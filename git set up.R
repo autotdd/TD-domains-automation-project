@@ -15,7 +15,7 @@ library(credentials)
 
 ### 2. Configure git with Rstudio ############################################
 
-usethis::use_git_config(user.name = "janardanswami", user.email = "saijanardhanswami@mail.com")
+usethis::use_git_config(user.name = "githubusername", user.email = "useremail@mail.com")
 
 
 # ----------------------------------------------------------------------------

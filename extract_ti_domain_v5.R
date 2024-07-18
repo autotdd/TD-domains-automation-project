@@ -10,14 +10,14 @@ replace_special_chars_and_trim <- function(text) {
   text <- str_replace_all(text, "", "<")
   text <- str_replace_all(text, "", ">")
   text <- str_replace_all(text, "", "-")
-  text <- str_replace_all(text, "\\s{2,}", " ") # Replace multiple spaces with a single space
-  text <- str_trim(text) # Trim leading and trailing spaces
+  text <- str_replace_all(text, "\\s{2,}", " ") 
+  text <- str_trim(text) 
   return(text)
 }
 
 # Function to handle text exceeding 200 characters
 handle_text_length <- function(text, max_length = 200) {
-  suffix <- "(As per the protocol)"
+  suffix <- "(As per the protocol)" #Discussed with Nagamani
   suffix_length <- nchar(suffix)
   
   if (nchar(text) > (max_length - suffix_length)) {

@@ -3,7 +3,7 @@ library(dplyr)
 library(openxlsx)
 
 # Function to create TA domain from dynamic Excel input
-create_ta_domain_from_dynamic_excel <- function(input_file, output_dir = getwd()) {
+create_ta_domain <- function(input_file, output_dir = getwd()) {
   
   # Read the Excel file
   inputs <- read.xlsx(input_file, sheet = "Inputs")
@@ -100,7 +100,7 @@ create_ta_domain_from_dynamic_excel <- function(input_file, output_dir = getwd()
 input_file <- "TD-domains-automation-project/dynamic_input_file.xlsx"
 
 # Create TA domain from the provided Excel file
-ta_df <- create_ta_domain_from_dynamic_excel(input_file)
+ta_df <- create_ta_domain(input_file)
 
 # Display the TA domain data frame
 print(ta_df)

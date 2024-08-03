@@ -1,6 +1,8 @@
-library(clintrialx)
+library(httr)
+library(jsonlite)
 library(dplyr)
 library(openxlsx)
+source("R/json_utils.R")
 
 #' Generate TS Dataset using clintrialx (Version 2)
 #'
@@ -8,16 +10,23 @@ library(openxlsx)
 #'
 #' @param study_id A character string representing the Study ID.
 #' @param num_rows An integer representing the number of rows to generate.
+#' @param nct_ids A character vector of NCT IDs.
 #' @return A data frame representing the TS dataset.
 #' @examples
-#' generate_TS_dataset_CTx_v2("STUDY123", 5)
+#' generate_TS_dataset_CTx_v2("STUDY123", 5, "NCT00000000")
 #' @export
-generate_TS_dataset_CTx_v2 <- function(study_id, num_rows) {
+generate_TS_dataset_CTx_v2 <- function(study_id, num_rows, nct_ids) {
   file_path <- system.file("extdata", "Trial_Summary.xlsx", package = "autoTDD")
+  
+  if (!file.exists(file_path)) {
+    stop("File does not exist: ", file_path)
+  }
+  
   data <- read.xlsx(file_path)
+  study_info <- get_study_info(nct_ids)
+  
+  return(data)
 }
-
-
 
 # Function to format dates in ISO 8601 format
 format_date_iso8601 <- function(date) {
@@ -281,10 +290,9 @@ create_ts_domain <- function(nct_ids, study_id, input_file) {
   return(final_df)
 }
 
-
 # Example usage
-nct_ids <- c("NCT05112965")
-study_id <- "YO42713"
-input_file <- "/cloud/project/TD-domains-automation-project/Trial_Summary.xlsx"
-final_df <- create_ts_domain(nct_ids, study_id, input_file)
-print(paste("Output written to:", paste0(study_id, "_TS.xlsx")))
+# nct_ids <- c("NCT05112965")
+# study_id <- "YO42713"
+# input_file <- "Trial_Summary.xlsx"
+# final_df <- create_ts_domain(nct_ids, study_id, input_file)
+# print(paste("Output written to:", paste0(study_id, "_TS.xlsx")))

@@ -4,34 +4,24 @@ library(dplyr)
 library(stringr)
 library(openxlsx)
 
+source("R/json_utils.R")
+
 #' Clinical Trials Function
 #'
 #' This function performs clinical trials data processing.
 #'
-#' @param param1 Description of the first parameter.
-#' @param param2 Description of the second parameter.
+#' @param nct_ids A character vector of NCT IDs.
 #' @return A data frame with the processed clinical trials data.
 #' @examples
-#' clinT(param1, param2)
+#' clinT("NCT00000000")
 #' @export
-
-
-get_study_info <- function(nctId) {
-  base_url <- "https://clinicaltrials.gov/api/v2/studies/"
-  url <- paste0(base_url, nctId)
-  
-  response <- GET(url)
-  
-  if (status_code(response) != 200) {
-    stop("Failed to fetch data from ClinicalTrials.gov API")
-  }
-  
-  content <- content(response, as = "text", encoding = "UTF-8")
-  json_data <- fromJSON(content)
-  
-  return(json_data)
+clinT <- function(nct_ids) {
+  data <- get_study_info(nct_ids)
+  # Further processing of data if needed
+  return(data)
 }
 
+# Helper function to convert JSON data to a data frame
 study_info_to_df <- function(json_data) {
   protocol <- json_data$protocolSection
   
@@ -88,23 +78,25 @@ study_info_to_df <- function(json_data) {
   return(df)
 }
 
+# Helper function to view JSON structure
 view_json_structure <- function(json_data) {
   print(names(json_data))
   print(str(json_data))
 }
 
-nctId <- "NCT05112965"  # Replace with the desired NCT ID
-study_info <- get_study_info(nctId)
-view_json_structure(study_info)  # View the structure of the JSON data
-study_df <- study_info_to_df(study_info)
-
-print(study_df)
-
-# Display the structure of the dataframe
-str(study_df)
-
-# Display summary statistics of the dataframe
-summary(study_df)
-
-# Display the first few rows of the dataframe
-print(study_df)
+# Example usage of the clinT function (this part should not be included in the package source code)
+# nctId <- "NCT05112965"  # Replace with the desired NCT ID
+# study_info <- clinT(nctId)
+# view_json_structure(study_info)  # View the structure of the JSON data
+# study_df <- study_info_to_df(study_info)
+# 
+# print(study_df)
+# 
+# # Display the structure of the dataframe
+# str(study_df)
+# 
+# # Display summary statistics of the dataframe
+# summary(study_df)
+# 
+# # Display the first few rows of the dataframe
+# print(study_df)

@@ -1,0 +1,597 @@
+{
+  "protocolSection": {
+    "identificationModule": {
+      "nctId": ["NCT05112965"],
+      "orgStudyIdInfo": {
+        "id": ["YO42713"]
+      },
+      "organization": {
+        "fullName": ["Hoffmann-La Roche"],
+        "class": ["INDUSTRY"]
+      },
+      "briefTitle": ["An Extension Study in Participants Previously Enrolled in a Genentech and/or F. Hoffmann-La Roche Ltd Sponsored Atezolizumab Study (IMbrella C)"],
+      "officialTitle": ["An Open-Label, Multicenter Extension Study in Participants Previously Enrolled in a Genentech and/or F. Hoffmann-La Roche Ltd Sponsored Atezolizumab Study (IMbrella C)"]
+    },
+    "statusModule": {
+      "statusVerifiedDate": ["2024-07"],
+      "overallStatus": ["RECRUITING"],
+      "expandedAccessInfo": {
+        "hasExpandedAccess": [false]
+      },
+      "startDateStruct": {
+        "date": ["2021-12-01"],
+        "type": ["ACTUAL"]
+      },
+      "primaryCompletionDateStruct": {
+        "date": ["2025-12-31"],
+        "type": ["ESTIMATED"]
+      },
+      "completionDateStruct": {
+        "date": ["2025-12-31"],
+        "type": ["ESTIMATED"]
+      },
+      "studyFirstSubmitDate": ["2021-11-02"],
+      "studyFirstSubmitQcDate": ["2021-11-02"],
+      "studyFirstPostDateStruct": {
+        "date": ["2021-11-09"],
+        "type": ["ACTUAL"]
+      },
+      "lastUpdateSubmitDate": ["2024-07-22"],
+      "lastUpdatePostDateStruct": {
+        "date": ["2024-07-23"],
+        "type": ["ACTUAL"]
+      }
+    },
+    "sponsorCollaboratorsModule": {
+      "responsibleParty": {
+        "type": ["SPONSOR"]
+      },
+      "leadSponsor": {
+        "name": ["Hoffmann-La Roche"],
+        "class": ["INDUSTRY"]
+      }
+    },
+    "oversightModule": {
+      "isFdaRegulatedDrug": [false],
+      "isFdaRegulatedDevice": [false]
+    },
+    "descriptionModule": {
+      "briefSummary": ["This is an open-label, multicenter, non-randomized extension study. Participants receiving atezolizumab monotherapy or atezolizumab combined with other agent(s) or comparator agent(s) in a Genentech or Roche-sponsored study (the parent study), who are eligible to continue treatment and do not have access to the study treatment locally, continue to receive study treatment in this extension study."]
+    },
+    "conditionsModule": {
+      "conditions": ["Neoplasms"]
+    },
+    "designModule": {
+      "studyType": ["INTERVENTIONAL"],
+      "phases": ["PHASE3"],
+      "designInfo": {
+        "allocation": ["NON_RANDOMIZED"],
+        "interventionModel": ["PARALLEL"],
+        "primaryPurpose": ["TREATMENT"],
+        "maskingInfo": {
+          "masking": ["NONE"]
+        }
+      },
+      "enrollmentInfo": {
+        "count": [100],
+        "type": ["ESTIMATED"]
+      }
+    },
+    "armsInterventionsModule": {
+      "armGroups": [
+        {
+          "label": "Atezolizumab Monotherapy",
+          "type": "EXPERIMENTAL",
+          "description": "Participants will continue to receive atezolizumab monotherapy as per parent protocol, until disease progression or beyond if the participant continues to derive clinical benefit as judged by the investigator and if allowed by the parent study or local prescribing information until death; withdrawal of study consent; unacceptable toxicity; pregnancy; participant non-compliance; or study termination by the Sponsor, whichever occurs first.",
+          "interventionNames": ["Drug: Atezolizumab"]
+        },
+        {
+          "label": "Combined Agents with Atezolizumab",
+          "type": "EXPERIMENTAL",
+          "description": "Participants will continue to receive atezolizumab with other agent(s) as per parent protocol, until disease progression or beyond if the participant continues to derive clinical benefit as judged by the investigator and if allowed by the parent study or local prescribing information until death; withdrawal of study consent; unacceptable toxicity; pregnancy; participant non-compliance; or study termination by the Sponsor, whichever occurs first.",
+          "interventionNames": ["Drug: Atezolizumab", "Drug: Bevacizumab", "Drug: Pemetrexed", "Drug: Paclitaxel", "Drug: Enzalutamide"]
+        },
+        {
+          "label": "Comparator Treatment",
+          "type": "ACTIVE_COMPARATOR",
+          "description": "Participants will continue to receive comparator agent(s) as per parent protocol, until disease progression or beyond if the participant continues to derive clinical benefit as judged by the investigator and if allowed by the parent study or local prescribing information until death; withdrawal of study consent; unacceptable toxicity; pregnancy; participant non-compliance; or study termination by the Sponsor, whichever occurs first.",
+          "interventionNames": ["Drug: Bevacizumab", "Drug: Pemetrexed", "Drug: Paclitaxel", "Drug: Enzalutamide"]
+        }
+      ],
+      "interventions": [
+        {
+          "type": "DRUG",
+          "name": "Atezolizumab",
+          "description": "Atezolizumab will be administered as a monotherapy or atezolizumab with other agent(s) as per parent protocol. Dosing regimen will continue in accordance with the parent study or at equivalent dose (if applicable) and at the same schedule as the parent study at the time of participant discontinuation from the parent study closure.",
+          "armGroupLabels": ["Atezolizumab Monotherapy", "Combined Agents with Atezolizumab"],
+          "otherNames": ["Tecentriq"]
+        },
+        {
+          "type": "DRUG",
+          "name": "Bevacizumab",
+          "description": "Bevacizumab will be administered as directed per the parent study.",
+          "armGroupLabels": ["Combined Agents with Atezolizumab", "Comparator Treatment"],
+          "otherNames": ["Avastin"]
+        },
+        {
+          "type": "DRUG",
+          "name": "Pemetrexed",
+          "description": "Pemetrexed will be administered as directed per the parent study.",
+          "armGroupLabels": ["Combined Agents with Atezolizumab", "Comparator Treatment"],
+          "otherNames": {}
+        },
+        {
+          "type": "DRUG",
+          "name": "Paclitaxel",
+          "description": "Paclitaxel will be administered as directed per the parent study.",
+          "armGroupLabels": ["Combined Agents with Atezolizumab", "Comparator Treatment"],
+          "otherNames": {}
+        },
+        {
+          "type": "DRUG",
+          "name": "Enzalutamide",
+          "description": "Enzalutamide will be administered as directed per the parent study.",
+          "armGroupLabels": ["Combined Agents with Atezolizumab", "Comparator Treatment"],
+          "otherNames": ["Xtandi"]
+        }
+      ]
+    },
+    "outcomesModule": {
+      "primaryOutcomes": [
+        {
+          "measure": "Number of Participants With Continued Access to Atezolizumab-based Therapy and/or Comparator Agent(s)",
+          "timeFrame": "Up to approximately 4 years"
+        }
+      ],
+      "secondaryOutcomes": [
+        {
+          "measure": "Percentage of Participants With Serious Adverse Events (SAEs)",
+          "timeFrame": "Up to 90 days after the final dose of study treatment (up to approximately 4 years)"
+        },
+        {
+          "measure": "Percentage of Participants With Adverse Events of Special Interest (AESIs)",
+          "timeFrame": "Up to 90 days after the final dose of study treatment (up to approximately 4 years)"
+        }
+      ]
+    },
+    "eligibilityModule": {
+      "eligibilityCriteria": ["Inclusion Criteria:\n\n* Eligible for continuing or crossing over to atezolizumab-based therapy at the time of rollover from the parent study, as per the parent study protocol, or\n* Eligible for continuing the comparator agent(s) in a Genentech- or Roche-sponsored study as per the parent study protocol, with no access to commercially available comparator agent\n* First dose of study treatment in this extension study will be received within 7 days of the treatment interruption window allowed by the parent study\n* Continue to benefit from atezolizumab-based study treatment or from the comparator at the time of rollover from the parent study as assessed by the investigator\n* Negative serum pregnancy test within 7 days prior to start of study treatment in women of childbearing potential\n* For women of childbearing potential: agreement to remain abstinent or use contraceptive methods, and agreement to refrain from donating eggs\n* For men: agreement to remain abstinent or use contraceptive measures, and agreement to refrain from donating sperm\n\nExclusion Criteria:\n\n* Meet any of the study treatment discontinuation criteria specified in the parent study at the time of enrollment in the extension study\n* Study treatment is commercially marketed in the patient's country for the patient-specific disease and is accessible to the patient\n* Time between the last dose of treatment received in parent study and first dose in extension study is longer than the interruption period (±7 days) allowed in the parent study\n* Treatment with any anti-cancer treatment (other than treatment permitted in the parent study) during the time between last treatment in the parent study and the first dose of study treatment in the extension study\n* Permanent discontinuation of atezolizumab for any reason during the parent study or during the time between last treatment in the parent study and the first dose of study treatment in the extension study (if applicable)\n* Any unresolved or irreversible toxicities during the parent study that required permanent discontinuation of study treatment, in accordance to the parent study or local prescribing information\n* Ongoing serious adverse events that have not resolved to baseline level or Grade ≤1 from the parent study or during the time between the last treatment in the parent study and the first dose of study treatment in the extension study\n* Any serious uncontrolled concomitant disease that would contraindicate the use of study treatment at the time of the extension study or that would place the patient at high risk for treatment-related complications\n* Concurrent participation in any therapeutic clinical trial (other than the parent study)\n* Pregnant or lactating, or intending to become pregnant during the extension study"],
+      "healthyVolunteers": [false],
+      "sex": ["ALL"],
+      "minimumAge": ["18 Years"],
+      "stdAges": ["ADULT", "OLDER_ADULT"]
+    },
+    "contactsLocationsModule": {
+      "centralContacts": [
+        {
+          "name": "Reference Study ID Number: YO42713 https://forpatients.roche.com/",
+          "role": "CONTACT",
+          "phone": "888-662-6728 (U.S. Only)",
+          "email": "global-roche-genentech-trials@gene.com"
+        }
+      ],
+      "overallOfficials": [
+        {
+          "name": "Clinical Trials",
+          "affiliation": "Hoffmann-La Roche",
+          "role": "STUDY_DIRECTOR"
+        }
+      ],
+      "locations": [
+        {
+          "facility": "Peking Union Medical College Hospital",
+          "status": "RECRUITING",
+          "city": "Beijing City",
+          "zip": "100032",
+          "country": "China",
+          "geoPoint": {}
+        },
+        {
+          "facility": "Beijing Cancer Hospital",
+          "status": "RECRUITING",
+          "city": "Beijing",
+          "zip": "100142",
+          "country": "China",
+          "geoPoint": {
+            "lat": 39.9075,
+            "lon": 116.3972
+          }
+        },
+        {
+          "facility": "Changchun Cancer Hospital",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "city": "Changchun",
+          "zip": "130000",
+          "country": "China",
+          "geoPoint": {
+            "lat": 43.88,
+            "lon": 125.3228
+          }
+        },
+        {
+          "facility": "Jilin Cancer Hospital",
+          "status": "RECRUITING",
+          "city": "Changchun",
+          "zip": "132013",
+          "country": "China",
+          "geoPoint": {
+            "lat": 43.88,
+            "lon": 125.3228
+          }
+        },
+        {
+          "facility": "Hunan Cancer Hospital",
+          "status": "RECRUITING",
+          "city": "Changsha CITY",
+          "zip": "410013",
+          "country": "China",
+          "geoPoint": {}
+        },
+        {
+          "facility": "The 900th Hospital of PLA joint service support force",
+          "status": "RECRUITING",
+          "city": "Fuzhou",
+          "zip": "110016",
+          "country": "China",
+          "geoPoint": {
+            "lat": 26.0614,
+            "lon": 119.3061
+          }
+        },
+        {
+          "facility": "The First Affiliated Hospital of Guangzhou Medical University",
+          "status": "RECRUITING",
+          "city": "Guangzhou",
+          "zip": "510120",
+          "country": "China",
+          "geoPoint": {
+            "lat": 23.1167,
+            "lon": 113.25
+          }
+        },
+        {
+          "facility": "Nanfang Hospital, Southern Medical University",
+          "status": "RECRUITING",
+          "city": "Guangzhou",
+          "zip": "510515",
+          "country": "China",
+          "geoPoint": {
+            "lat": 23.1167,
+            "lon": 113.25
+          }
+        },
+        {
+          "facility": "Sir Run Run Shaw Hospital",
+          "status": "RECRUITING",
+          "city": "Hangzhou City",
+          "zip": "310018",
+          "country": "China",
+          "geoPoint": {}
+        },
+        {
+          "facility": "Harbin Medical University Cancer Hospital",
+          "status": "RECRUITING",
+          "city": "Harbin",
+          "zip": "150081",
+          "country": "China",
+          "geoPoint": {
+            "lat": 45.75,
+            "lon": 126.65
+          }
+        },
+        {
+          "facility": "Shandong Cancer Hospital",
+          "status": "RECRUITING",
+          "city": "Jinan",
+          "zip": "250117",
+          "country": "China",
+          "geoPoint": {
+            "lat": 36.6683,
+            "lon": 116.9972
+          }
+        },
+        {
+          "facility": "Jiangsu Cancer Hospital",
+          "status": "RECRUITING",
+          "city": "Nanjing City",
+          "zip": "211100",
+          "country": "China",
+          "geoPoint": {}
+        },
+        {
+          "facility": "Shanghai Chest Hospital",
+          "status": "RECRUITING",
+          "city": "Shanghai",
+          "zip": "200000",
+          "country": "China",
+          "geoPoint": {
+            "lat": 31.2222,
+            "lon": 121.4581
+          }
+        },
+        {
+          "facility": "Zhongshan Hospital Fudan University",
+          "status": "RECRUITING",
+          "city": "Shanghai",
+          "zip": "200032",
+          "country": "China",
+          "geoPoint": {
+            "lat": 31.2222,
+            "lon": 121.4581
+          }
+        },
+        {
+          "facility": "The 2nd Hospital of Tianjin Medical University",
+          "status": "RECRUITING",
+          "city": "Tianjin",
+          "zip": "201203",
+          "country": "China",
+          "geoPoint": {
+            "lat": 39.1422,
+            "lon": 117.1767
+          }
+        },
+        {
+          "facility": "Tianjin Cancer Hospital",
+          "status": "RECRUITING",
+          "city": "Tianjin",
+          "zip": "300060",
+          "country": "China",
+          "geoPoint": {
+            "lat": 39.1422,
+            "lon": 117.1767
+          }
+        },
+        {
+          "facility": "Union Hospital of Tongji Medical College, Dept. of Cancer Center; Cancer Center",
+          "status": "RECRUITING",
+          "city": "Wuhan",
+          "zip": "430023",
+          "country": "China",
+          "geoPoint": {
+            "lat": 30.5833,
+            "lon": 114.2667
+          }
+        },
+        {
+          "facility": "Zhejiang Cancer Hospital",
+          "status": "RECRUITING",
+          "city": "Zhejiang",
+          "zip": "310022",
+          "country": "China",
+          "geoPoint": {}
+        },
+        {
+          "facility": "Henan Cancer Hospital",
+          "status": "RECRUITING",
+          "city": "Zhengzhou",
+          "zip": "450008",
+          "country": "China",
+          "geoPoint": {
+            "lat": 34.7578,
+            "lon": 113.6486
+          }
+        }
+      ]
+    },
+    "ipdSharingStatementModule": {
+      "ipdSharing": ["YES"],
+      "description": ["Qualified researchers may request access to individual patient level data through the clinical study data request platform (www.vivli.org). Further details on Roche's criteria for eligible studies are available here (https://vivli.org/ourmember/roche/). For further details on Roche's Global Policy on the Sharing of Clinical Information and how to request access to related clinical study documents, see here (https://www.roche.com/research_and_development/who_we_are_how_we_work/clinical_trials/our_commitment_to_data_sharing.htm)."]
+    }
+  },
+  "derivedSection": {
+    "miscInfoModule": {
+      "versionHolder": ["2024-08-02"]
+    },
+    "interventionBrowseModule": {
+      "meshes": [
+        {
+          "id": "D000017239",
+          "term": "Paclitaxel"
+        },
+        {
+          "id": "D000068258",
+          "term": "Bevacizumab"
+        },
+        {
+          "id": "D000068437",
+          "term": "Pemetrexed"
+        },
+        {
+          "id": "C000594389",
+          "term": "Atezolizumab"
+        }
+      ],
+      "ancestors": [
+        {
+          "id": "D000000972",
+          "term": "Antineoplastic Agents, Phytogenic"
+        },
+        {
+          "id": "D000000970",
+          "term": "Antineoplastic Agents"
+        },
+        {
+          "id": "D000050257",
+          "term": "Tubulin Modulators"
+        },
+        {
+          "id": "D000050256",
+          "term": "Antimitotic Agents"
+        },
+        {
+          "id": "D000050258",
+          "term": "Mitosis Modulators"
+        },
+        {
+          "id": "D000045504",
+          "term": "Molecular Mechanisms of Pharmacological Action"
+        },
+        {
+          "id": "D000074322",
+          "term": "Antineoplastic Agents, Immunological"
+        },
+        {
+          "id": "D000020533",
+          "term": "Angiogenesis Inhibitors"
+        },
+        {
+          "id": "D000043924",
+          "term": "Angiogenesis Modulating Agents"
+        },
+        {
+          "id": "D000006133",
+          "term": "Growth Substances"
+        },
+        {
+          "id": "D000045505",
+          "term": "Physiological Effects of Drugs"
+        },
+        {
+          "id": "D000006131",
+          "term": "Growth Inhibitors"
+        },
+        {
+          "id": "D000004791",
+          "term": "Enzyme Inhibitors"
+        },
+        {
+          "id": "D000005493",
+          "term": "Folic Acid Antagonists"
+        },
+        {
+          "id": "D000019384",
+          "term": "Nucleic Acid Synthesis Inhibitors"
+        },
+        {
+          "id": "D000082082",
+          "term": "Immune Checkpoint Inhibitors"
+        }
+      ],
+      "browseLeaves": [
+        {
+          "id": "M19537",
+          "name": "Paclitaxel",
+          "asFound": "Sessions",
+          "relevance": "HIGH"
+        },
+        {
+          "id": "M264",
+          "name": "Pemetrexed",
+          "asFound": "Collection",
+          "relevance": "HIGH"
+        },
+        {
+          "id": "M246",
+          "name": "Bevacizumab",
+          "asFound": "Non-",
+          "relevance": "HIGH"
+        },
+        {
+          "id": "M231",
+          "name": "Albumin-Bound Paclitaxel",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M349417",
+          "name": "Atezolizumab",
+          "asFound": "Experimental group",
+          "relevance": "HIGH"
+        },
+        {
+          "id": "M26197",
+          "name": "Tubulin Modulators",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M26196",
+          "name": "Antimitotic Agents",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M1346",
+          "name": "Antineoplastic Agents, Immunological",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M22318",
+          "name": "Angiogenesis Inhibitors",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M9231",
+          "name": "Growth Inhibitors",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M7951",
+          "name": "Enzyme Inhibitors",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M17546",
+          "name": "Vitamin B Complex",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M8618",
+          "name": "Folic Acid",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M8619",
+          "name": "Folic Acid Antagonists",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M2342",
+          "name": "Immune Checkpoint Inhibitors",
+          "relevance": "LOW"
+        },
+        {
+          "id": "T447",
+          "name": "Folinic Acid",
+          "relevance": "LOW"
+        },
+        {
+          "id": "T446",
+          "name": "Folic Acid",
+          "relevance": "LOW"
+        },
+        {
+          "id": "T448",
+          "name": "Folate",
+          "relevance": "LOW"
+        },
+        {
+          "id": "T475",
+          "name": "Vitamin B9",
+          "relevance": "LOW"
+        }
+      ],
+      "browseBranches": [
+        {
+          "abbrev": "ANeo",
+          "name": "Antineoplastic Agents"
+        },
+        {
+          "abbrev": "All",
+          "name": "All Drugs and Chemicals"
+        },
+        {
+          "abbrev": "Micro",
+          "name": "Micronutrients"
+        },
+        {
+          "abbrev": "Hemat",
+          "name": "Hematinics"
+        },
+        {
+          "abbrev": "Vi",
+          "name": "Vitamins"
+        }
+      ]
+    }
+  },
+  "hasResults": [false]
+}

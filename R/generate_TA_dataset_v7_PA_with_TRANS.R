@@ -104,63 +104,63 @@ create_ta_domain <- function(study_id, trial_design, arms_data, treatments_list,
   return(ta_df)
 }
 
-# Example usage with PARALLEL DESIGN
-study_id <- "STUDY002"
-trial_design <- "PARALLEL DESIGN"
-arms_data <- list(
-  list(
-    armcd = "ARM1",
-    epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
-  ),
-  list(
-    armcd = "ARM2",
-    epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
-  ),
-  list(
-    armcd = "ARM3",
-    epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
-  )
-)
-
-# Define treatments dynamically for each arm
-treatments_list <- list(
-  c("A", "B", "C"), # Treatments for ARM1
-  c("D", "E", "F"), # Treatments for ARM2
-  c("G", "H", "I")  # Treatments for ARM3
-)
-
-ta_df_parallel <- create_ta_domain(study_id, trial_design, arms_data, treatments_list)
-print(ta_df_parallel)
-
-# Example usage with PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS
-trial_design <- "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS"
-arms_data <- list(
-  list(
-    armcd = "ARM1",
-    epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up",
-    branch = c(NA, "Branch1", NA, NA, NA),
-    trans = c(NA, "Trans1", "Trans2", NA, NA)
-  ),
-  list(
-    armcd = "ARM2", 
-    epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up",
-    branch = c(NA, "Branch2", NA, NA, NA),
-    trans = c(NA, "Trans3", "Trans4", NA, NA)
-  ),
-  list(
-    armcd = "ARM3",
-    epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up",
-    branch = c(NA, "Branch3", NA, NA, NA),
-    trans = c(NA, "Trans5", "Trans6", NA, NA)
-  )
-)
-
-# Define treatments dynamically for each arm
-treatments_list <- list(
-  c("A", "B", "C"), # Treatments for ARM1
-  c("D", "E", "F"), # Treatments for ARM2
-  c("G", "H", "I")  # Treatments for ARM3
-)
-
-ta_df_parallel_branches <- create_ta_domain(study_id, trial_design, arms_data, treatments_list)
-print(ta_df_parallel_branches)
+# # Example usage with PARALLEL DESIGN
+# study_id <- "STUDY002"
+# trial_design <- "PARALLEL DESIGN"
+# arms_data <- list(
+#   list(
+#     armcd = "ARM1",
+#     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
+#   ),
+#   list(
+#     armcd = "ARM2",
+#     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
+#   ),
+#   list(
+#     armcd = "ARM3",
+#     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
+#   )
+# )
+# 
+# # Define treatments dynamically for each arm
+# treatments_list <- list(
+#   c("A", "B", "C"), # Treatments for ARM1
+#   c("D", "E", "F"), # Treatments for ARM2
+#   c("G", "H", "I")  # Treatments for ARM3
+# )
+# 
+# ta_df_parallel <- create_ta_domain(study_id, trial_design, arms_data, treatments_list)
+# print(ta_df_parallel)
+# 
+# # Example usage with PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS
+# trial_design <- "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS"
+# arms_data <- list(
+#   list(
+#     armcd = "ARM1",
+#     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up",
+#     branch = c(NA, "Branch1", NA, NA, NA),
+#     trans = c(NA, "Trans1", "Trans2", NA, NA)
+#   ),
+#   list(
+#     armcd = "ARM2", 
+#     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up",
+#     branch = c(NA, "Branch2", NA, NA, NA),
+#     trans = c(NA, "Trans3", "Trans4", NA, NA)
+#   ),
+#   list(
+#     armcd = "ARM3",
+#     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up",
+#     branch = c(NA, "Branch3", NA, NA, NA),
+#     trans = c(NA, "Trans5", "Trans6", NA, NA)
+#   )
+# )
+# 
+# # Define treatments dynamically for each arm
+# treatments_list <- list(
+#   c("A", "B", "C"), # Treatments for ARM1
+#   c("D", "E", "F"), # Treatments for ARM2
+#   c("G", "H", "I")  # Treatments for ARM3
+# )
+# 
+# ta_df_parallel_branches <- create_ta_domain(study_id, trial_design, arms_data, treatments_list)
+# print(ta_df_parallel_branches)

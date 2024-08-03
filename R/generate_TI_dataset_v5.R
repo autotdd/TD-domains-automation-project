@@ -1,7 +1,10 @@
-library(pdftools)
+library(httr)
+library(jsonlite)
 library(dplyr)
-library(stringr)
 library(openxlsx)
+library(stringr)
+library(pdftools)
+source("R/json_utils.R")
 
 #' Generate TI Dataset (Version 5)
 #'
@@ -9,12 +12,22 @@ library(openxlsx)
 #'
 #' @param study_id A character string representing the Study ID.
 #' @param num_rows An integer representing the number of rows to generate.
+#' @param nct_ids A character vector of NCT IDs.
 #' @return A data frame representing the TI dataset.
 #' @examples
-#' generate_TI_dataset_v5("STUDY123", 5)
+#' generate_TI_dataset_v5("STUDY123", 5, "NCT00000000")
 #' @export
-
-
+generate_TI_dataset_v5 <- function(study_id, num_rows, nct_ids) {
+  file_path <- system.file("extdata", "Trial_Summary.xlsx", package = "autoTDD")
+  
+  if (!file.exists(file_path)) {
+    stop("File does not exist: ", file_path)
+  }
+  
+  data <- read.xlsx(file_path)
+  study_info <- get_study_info(nct_ids)
+  return(data)
+}
 
 # Function to replace special characters and remove unnecessary spaces
 replace_special_chars_and_trim <- function(text) {
@@ -59,7 +72,22 @@ extract_header_footer_pattern <- function(pdf_text) {
   return(common_patterns)
 }
 
-extract_ti_domain <- function(study_id = "AB64554", pdf_path = "protocol.pdf", incl_range = 64:67, excl_range = 67:71, incl_section = "4.1.1", excl_section = "4.1.2", end_section = "4.2") {
+#' Extract TI Domain
+#'
+#' This function extracts the TI domain from the protocol PDF.
+#'
+#' @param study_id A character string representing the Study ID.
+#' @param pdf_path A character string representing the path to the protocol PDF.
+#' @param incl_range A numeric vector representing the page range for inclusion criteria.
+#' @param excl_range A numeric vector representing the page range for exclusion criteria.
+#' @param incl_section A character string representing the section identifier for inclusion criteria.
+#' @param excl_section A character string representing the section identifier for exclusion criteria.
+#' @param end_section A character string representing the section identifier for the end of criteria.
+#' @return A data frame representing the TI domain.
+#' @examples
+#' ti_domain <- extract_ti_domain("AB64554", "protocol.pdf", 64:67, 67:71, "4.1.1", "4.1.2", "4.2")
+#' @export
+extract_ti_domain <- function(study_id, pdf_path, incl_range, excl_range, incl_section, excl_section, end_section) {
   # Check if the protocol PDF file exists
   if (!file.exists(pdf_path)) {
     warning("The protocol PDF file is missing. Please ensure the file is named 'protocol.pdf' and located in the working directory.")
@@ -110,7 +138,7 @@ extract_ti_domain <- function(study_id = "AB64554", pdf_path = "protocol.pdf", i
   inclusion_criteria <- str_trim(inclusion_criteria)
   exclusion_criteria <- str_trim(exclusion_criteria)
   
-  # Remove any empty strings and initial descriptive text that is showing up in the output
+  # Remove any empty strings
   inclusion_criteria <- inclusion_criteria[inclusion_criteria != ""]
   exclusion_criteria <- exclusion_criteria[exclusion_criteria != ""]
   inclusion_criteria <- inclusion_criteria[-1]
@@ -151,8 +179,18 @@ extract_ti_domain <- function(study_id = "AB64554", pdf_path = "protocol.pdf", i
   return(ti_domain)
 }
 
-# Example usage
-ti_domain <- extract_ti_domain()
+# # Example usage
+# ti_domain <- extract_ti_domain(
+#   study_id = "AB64554",
+#   pdf_path = "protocol.pdf",
+#   incl_range = 64:67,
+#   excl_range = 67:71,
+#   incl_section = "4.1.1",
+#   excl_section = "4.1.2",
+#   end_section = "4.2"
+# )
+# 
+# # If the ti_domain is not NULL, print the first few rows
 # if (!is.null(ti_domain)) {
-#   print(ti_domain)
+#   print(head(ti_domain))
 # }

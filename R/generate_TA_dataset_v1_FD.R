@@ -103,33 +103,33 @@ create_ta_domain <- function(study_id, trial_design, arms_data, treatments, outp
   return(ta_df)
 }
 
-# FACTORIAL DESIGN example
-study_id <- "STUDY004"
-trial_design <- "FACTORIAL DESIGN"
-arms_data <- list(
-  list(
-    armcd = "ARM1",
-    epochs = "Screening,Treatment,Treatment,Follow-Up"
-  ),
-  list(
-    armcd = "ARM2",
-    epochs = "Screening,Treatment,Treatment,Follow-Up"
-  ),
-  list(
-    armcd = "ARM3",
-    epochs = "Screening,Treatment,Treatment,Follow-Up"
-  ),
-  list(
-    armcd = "ARM4",
-    epochs = "Screening,Treatment,Treatment,Follow-Up"
-  )
-)
-treatments <- list(
-  c("A", "B"), # Treatments for ARM1
-  c("Placebo B", "A"), # Treatments for ARM2
-  c("Placebo A", "B"), # Treatments for ARM3
-  c("Placebo A", "Placebo B")  # Treatments for ARM4
-)
-
-ta_df_factorial <- create_ta_domain(study_id, trial_design, arms_data, treatments)
-print(ta_df_factorial)
+# # FACTORIAL DESIGN example
+# study_id <- "STUDY004"
+# trial_design <- "FACTORIAL DESIGN"
+# arms_data <- list(
+#   list(
+#     armcd = "ARM1",
+#     epochs = "Screening,Treatment,Treatment,Follow-Up"
+#   ),
+#   list(
+#     armcd = "ARM2",
+#     epochs = "Screening,Treatment,Treatment,Follow-Up"
+#   ),
+#   list(
+#     armcd = "ARM3",
+#     epochs = "Screening,Treatment,Treatment,Follow-Up"
+#   ),
+#   list(
+#     armcd = "ARM4",
+#     epochs = "Screening,Treatment,Treatment,Follow-Up"
+#   )
+# )
+# treatments <- list(
+#   c("A", "B"), # Treatments for ARM1
+#   c("Placebo B", "A"), # Treatments for ARM2
+#   c("Placebo A", "B"), # Treatments for ARM3
+#   c("Placebo A", "Placebo B")  # Treatments for ARM4
+# )
+# 
+# ta_df_factorial <- create_ta_domain(study_id, trial_design, arms_data, treatments)
+# print(ta_df_factorial)

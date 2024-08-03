@@ -104,30 +104,30 @@ create_ta_domain <- function(study_id, trial_design, arms_data, treatments_list,
   return(ta_df)
 }
 
-# Example usage with PARALLEL DESIGN
-study_id <- "STUDY002"
-trial_design <- "PARALLEL DESIGN"
-arms_data <- list(
-  list(
-    armcd = "ARM1",
-    epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
-  ),
-  list(
-    armcd = "ARM2",
-    epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
-  ),
-  list(
-    armcd = "ARM3",
-    epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
-  )
-)
-
-# Define treatments dynamically for each arm
-treatments_list <- list(
-  c("A", "B", "C"), # Treatments for ARM1
-  c("D", "E", "F"), # Treatments for ARM2
-  c("G", "H", "I")  # Treatments for ARM3
-)
-
-ta_df_parallel <- create_ta_domain(study_id, trial_design, arms_data, treatments_list)
-print(ta_df_parallel)
+# # Example usage with PARALLEL DESIGN
+# study_id <- "STUDY002"
+# trial_design <- "PARALLEL DESIGN"
+# arms_data <- list(
+#   list(
+#     armcd = "ARM1",
+#     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
+#   ),
+#   list(
+#     armcd = "ARM2",
+#     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
+#   ),
+#   list(
+#     armcd = "ARM3",
+#     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
+#   )
+# )
+# 
+# # Define treatments dynamically for each arm
+# treatments_list <- list(
+#   c("A", "B", "C"), # Treatments for ARM1
+#   c("D", "E", "F"), # Treatments for ARM2
+#   c("G", "H", "I")  # Treatments for ARM3
+# )
+# 
+# ta_df_parallel <- create_ta_domain(study_id, trial_design, arms_data, treatments_list)
+# print(ta_df_parallel)

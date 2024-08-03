@@ -103,26 +103,26 @@ create_ta_domain <- function(study_id, trial_design, arms_data, treatments, outp
   return(ta_df)
 }
 
-# Example usage with CROSS-OVER DESIGN
-study_id <- "STUDY003"
-trial_design <- "CROSS-OVER DESIGN"
-arms_data <- list(
-  list(
-    armcd = "ARM1",
-    epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment"
-  ),
-  list(
-    armcd = "ARM2",
-    epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment"
-  ),
-  list(
-    armcd = "ARM3",
-    epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment"
-  )
-)
-treatments <- list(c("A", "B", "C")) # Define the treatments dynamically
-
-
-
-ta_df_cross_over <- create_ta_domain(study_id, trial_design, arms_data, treatments)
-print(ta_df_cross_over)
+# # Example usage with CROSS-OVER DESIGN
+# study_id <- "STUDY003"
+# trial_design <- "CROSS-OVER DESIGN"
+# arms_data <- list(
+#   list(
+#     armcd = "ARM1",
+#     epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment"
+#   ),
+#   list(
+#     armcd = "ARM2",
+#     epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment"
+#   ),
+#   list(
+#     armcd = "ARM3",
+#     epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment"
+#   )
+# )
+# treatments <- list(c("A", "B", "C")) # Define the treatments dynamically
+# 
+# 
+# 
+# ta_df_cross_over <- create_ta_domain(study_id, trial_design, arms_data, treatments)
+# print(ta_df_cross_over)

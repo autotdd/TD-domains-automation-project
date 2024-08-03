@@ -98,15 +98,15 @@ create_ta_domain <- function(study_id, arms_data, treatments, output_dir = getwd
   return(ta_df)
 }
 
-# Example usage for SINGLE GROUP DESIGN
-study_id <- "STUDY001"
-arms_data <- list(
-  list(
-    armcd = "ARM1",
-    epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
-  )
-)
-treatments <- list("A", "B", "C") # Define the treatments dynamically as a list
-
-ta_df_single_group <- create_ta_domain(study_id, arms_data, treatments)
-print(ta_df_single_group)
+# # Example usage for SINGLE GROUP DESIGN
+# study_id <- "STUDY001"
+# arms_data <- list(
+#   list(
+#     armcd = "ARM1",
+#     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
+#   )
+# )
+# treatments <- list("A", "B", "C") # Define the treatments dynamically as a list
+# 
+# ta_df_single_group <- create_ta_domain(study_id, arms_data, treatments)
+# print(ta_df_single_group)

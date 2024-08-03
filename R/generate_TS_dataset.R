@@ -1,5 +1,6 @@
 library(dplyr)
 library(openxlsx)
+source("R/json_utils.R")
 
 #' Generate TS Dataset (Version 3.4)
 #'
@@ -8,22 +9,24 @@ library(openxlsx)
 #'
 #' @param study_id A character string representing the Study ID.
 #' @param num_rows An integer representing the number of rows to generate.
+#' @param nct_ids A character vector of NCT IDs.
 #' @return A data frame representing the TS dataset.
 #' @examples
-#' generate_TS_dataset("STUDY123", 5)
+#' generate_TS_dataset("STUDY123", 5, "NCT00000000")
 #' @export
-generate_TS_dataset <- function(study_id, num_rows) {
-  file_path <- system.file("extdata", "Trial_Summary.xlsx", package = "autoTDD")
-  data <- read.xlsx(file_path)
-  
-}
-
-generate_TS_dataset <- function(study_id, num_rows) {
+generate_TS_dataset <- function(study_id, num_rows, nct_ids) {
   # Path to the Trial_Summary.xlsx file within the package
-  file_path <- system.file("extdata", "Trial_Summary.xlsx", package = "yourPackageName")
+  file_path <- system.file("extdata", "Trial_Summary.xlsx", package = "autoTDD")
+  
+  if (!file.exists(file_path)) {
+    stop("File does not exist: ", file_path)
+  }
   
   # Read the Excel file
   Trial_Summary <- read.xlsx(file_path)
+  
+  # Fetch study information using the utility function
+  study_info <- get_study_info(nct_ids)
   
   # Generate the TS dataset 
   dataset <- data.frame(
@@ -40,6 +43,8 @@ generate_TS_dataset <- function(study_id, num_rows) {
     TSVCDVER = character(num_rows),
     stringsAsFactors = FALSE
   )
+  
+  # Your implementation here using data from Trial_Summary and study_info
   
   return(dataset)
 }

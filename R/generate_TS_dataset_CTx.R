@@ -1,6 +1,7 @@
 library(clintrialx)
 library(dplyr)
 library(openxlsx)
+source("R/json_utils.R")
 
 #' Generate TS Dataset using clintrialx
 #'
@@ -8,14 +9,26 @@ library(openxlsx)
 #'
 #' @param study_id A character string representing the Study ID.
 #' @param num_rows An integer representing the number of rows to generate.
+#' @param nct_ids A character vector of NCT IDs.
 #' @return A data frame representing the TS dataset.
 #' @examples
-#' generate_TS_dataset_CTx("STUDY123", 5)
+#' generate_TS_dataset_CTx("STUDY123", 5, "NCT00000000")
 #' @export
-generate_TS_dataset_CTx <- function(study_id, num_rows) {
+generate_TS_dataset_CTx <- function(study_id, num_rows, nct_ids) {
   file_path <- system.file("extdata", "Trial_Summary.xlsx", package = "autoTDD")
+  
+  if (!file.exists(file_path)) {
+    stop("File does not exist: ", file_path)
+  }
+  
   data <- read.xlsx(file_path)
+  study_info <- get_study_info(nct_ids)
+  
+  # Your implementation here using data and study_info
+  
+  return(data)
 }
+
 
 
 # Function to format dates in ISO 8601 format

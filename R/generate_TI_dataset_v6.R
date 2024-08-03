@@ -1,8 +1,8 @@
 library(httr)
 library(jsonlite)
 library(dplyr)
-library(stringr)
 library(openxlsx)
+source("R/json_utils.R")
 
 #' Generate TI Dataset (Version 6)
 #'
@@ -10,28 +10,24 @@ library(openxlsx)
 #'
 #' @param study_id A character string representing the Study ID.
 #' @param num_rows An integer representing the number of rows to generate.
+#' @param nct_ids A character vector of NCT IDs.
 #' @return A data frame representing the TI dataset.
 #' @examples
-#' generate_TI_dataset_v6("STUDY123", 5)
+#' generate_TI_dataset_v6("STUDY123", 5, "NCT00000000")
 #' @export
-
-
-# Function to fetch study information from ClinicalTrials.gov
-get_study_info <- function(nct_ids) {
-  base_url <- "https://clinicaltrials.gov/api/v2/studies/"
-  url <- paste0(base_url, nct_ids)
+generate_TI_dataset_v6 <- function(study_id, num_rows, nct_ids) {
+  file_path <- system.file("extdata", "Trial_Summary.xlsx", package = "autoTDD")
   
-  response <- GET(url)
-  
-  if (status_code(response) != 200) {
-    stop("Failed to fetch data from ClinicalTrials.gov API")
+  if (!file.exists(file_path)) {
+    stop("File does not exist: ", file_path)
   }
   
-  content <- content(response, as = "text", encoding = "UTF-8")
-  json_data <- fromJSON(content)
+  data <- read.xlsx(file_path)
+  study_info <- get_study_info(nct_ids)
   
-  return(json_data)
+  return(data)
 }
+
 
 # Function to handle text exceeding 200 characters
 handle_text_length <- function(text, max_length = 200) {
@@ -140,12 +136,12 @@ create_ti_domain <- function(nct_ids, study_id, study_info) {
 }
 
 # Example usage
-nct_ids <- "NCT05789082"
-study_id <- "BO44426"
+# nct_ids <- "NCT05789082"
+# study_id <- "BO44426"
 
 # Fetch study information
-study_info <- get_study_info(nct_ids)
+# study_info <- get_study_info(nct_ids)
 
 # Create the TI domain
-ti_domain <- create_ti_domain(nct_ids, study_id, study_info)
-print(ti_domain)
+# ti_domain <- create_ti_domain(nct_ids, study_id, study_info)
+# print(ti_domain)

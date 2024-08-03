@@ -1,0 +1,19 @@
+Package: autoTDD
+Title: Automated Trial Design Domains Creation
+Version: 0.1.0
+Authors@R: 
+    person("Siddharth", "Lokineni", , "Sidhu871@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: This package automates the creation of the Trial Design Domains of the SDTM.
+License: GPL-3
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports:
+    dplyr,
+    openxlsx,
+    httr,
+    jsonlite,
+    stringr,
+    clintrialx,
+    pdftools

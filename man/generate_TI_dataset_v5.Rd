@@ -17,7 +17,7 @@ generate_TI_dataset_v5(study_id, num_rows, nct_ids)
 A data frame representing the TI dataset.
 }
 \description{
-This function generates the TI dataset for a given study ID and number of rows.
+This function generates the TI dataset for a given study ID based on the protocol.
 }
 \examples{
 generate_TI_dataset_v5("STUDY123", 5, "NCT00000000")

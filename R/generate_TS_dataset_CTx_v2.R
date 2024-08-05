@@ -96,8 +96,8 @@ create_ts_domain <- function(nct_ids, study_id, input_file) {
   trial_df <- preprocess_clintrialx_data(trial_df)
   
   # Print the preprocessed trial data to check its structure and contents
-  print("Preprocessed trial data from clintrialx:")
-  print(trial_df)
+  # print("Preprocessed trial data from clintrialx:")
+  # print(trial_df)
   
   # Define a mapping based on the dynamic extraction logic
   ts_mapping <- list(
@@ -284,8 +284,8 @@ create_ts_domain <- function(nct_ids, study_id, input_file) {
   write.xlsx(final_df, output_file)
   
   # Print the generated TS domain
-  print("Generated TS domain:")
-  print(final_df)
+  # print("Generated TS domain:")
+  # print(final_df)
   
   return(final_df)
 }

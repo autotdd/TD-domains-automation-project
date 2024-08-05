@@ -107,7 +107,7 @@
       "RemoteRepo": "clintrialx",
       "RemoteUsername": "ineelhere",
       "RemoteRef": "HEAD",
-      "RemoteSha": "264692cf4f75678b0631c7b2f91e2afd336db8c7",
+      "RemoteSha": "986ce1d0fd71de2cbf85b6d58975c3d86ec3499e",
       "Requirements": [
         "R",
         "RPostgreSQL",
@@ -117,7 +117,7 @@
         "progress",
         "readr"
       ],
-      "Hash": "6e1eec5bbd7d5fc4d968eb5896bbf7c3"
+      "Hash": "0eef0b5c9990529ccaede3c0094b0cd8"
     },
     "clipr": {
       "Package": "clipr",
@@ -315,7 +315,7 @@
     },
     "openxlsx": {
       "Package": "openxlsx",
-      "Version": "4.2.5.2",
+      "Version": "4.2.6.1",
       "Source": "Repository",
       "Repository": "RSPM",
       "Requirements": [
@@ -328,7 +328,7 @@
         "utils",
         "zip"
       ],
-      "Hash": "c03b4c18d42da881fb8e15a085c2b9d6"
+      "Hash": "bd8fbd2904be3ce8fdf529a4f74a0c29"
     },
     "pdftools": {
       "Package": "pdftools",

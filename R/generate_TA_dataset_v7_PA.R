@@ -1,22 +1,76 @@
 library(dplyr)
 library(openxlsx)
 
-#' Generate TA Dataset (Version 7) for PA
+#' Generate TA and TE Datasets for Parallel Design
 #'
-#' This function generates the TA dataset for a given study ID and number of rows,
-#' and reads from the 'Trial_Arms.xlsx' file included with the package.
+#' This function generates the TA and TE datasets for a given study ID and trial design.
+#' It supports the "PARALLEL DESIGN" trial design.
 #'
 #' @param study_id A character string representing the Study ID.
-#' @param num_rows An integer representing the number of rows to generate.
-#' @return A data frame representing the TA dataset.
+#' @param trial_design A character string representing the trial design. Should be "PARALLEL DESIGN".
+#' @param arms_data A list of arm data. Each element in the list should be a list containing `armcd` and `epochs`.
+#' @param treatments_list A list of treatments corresponding to each arm.
+#' @param te_rules A data frame containing `TESTRL`, `TEENRL`, and `TEDUR` rules.
+#' @param output_dir A character string representing the output directory. Defaults to the current working directory.
+#' @return A list containing two data frames: TA dataset and TE dataset.
+#' @details 
+#' This function creates the TA (Trial Arms) domain dataset and the TE (Trial Elements) domain dataset, which are part of the SDTM (Study Data Tabulation Model). 
+#' The function handles the "PARALLEL DESIGN" trial design.
+#' The TA dataset includes columns for study ID, domain, arm codes, epochs, and elements with treatments.
+#' The TE dataset includes columns for study ID, domain, element codes, element descriptions, and rules.
+#' 
+#' @note 
+#' - The `arms_data` parameter should be a list of arm data, where each arm includes arm code and epochs.
+#' - The `treatments_list` parameter should be a list of treatments corresponding to each arm.
+#' - The `te_rules` parameter should be a data frame containing `TESTRL`, `TEENRL`, and `TEDUR` rules.
+#' - The function supports "PARALLEL DESIGN" trials.
+#' 
 #' @examples
-#' generate_TA_dataset_v7_PA("STUDY123", 5)
+#' \dontrun{
+#' # Example usage with PARALLEL DESIGN
+#' study_id <- "STUDY002"
+#' trial_design <- "PARALLEL DESIGN"
+#' arms_data <- list(
+#'   list(
+#'     armcd = "ARM1",
+#'     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
+#'   ),
+#'   list(
+#'     armcd = "ARM2",
+#'     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
+#'   ),
+#'   list(
+#'     armcd = "ARM3",
+#'     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
+#'   )
+#' )
+#' 
+#' # Define treatments dynamically for each arm
+#' treatments_list <- list(
+#'   c("A", "B", "C"), # Treatments for ARM1
+#'   c("D", "E", "F"), # Treatments for ARM2
+#'   c("G", "H", "I")  # Treatments for ARM3
+#' )
+#' 
+#' # Define TE rules
+#' te_rules <- data.frame(
+#'   ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "FOLLOW-UP", "TREATMENT D", "TREATMENT E", 
+#'               "TREATMENT F", "TREATMENT G", "TREATMENT H", "TREATMENT I"),
+#'   TESTRL = c("Informed consent", "First dose of study drug", "End of treatment", "End of follow-up",
+#'              "First dose of study drug", "End of treatment", "End of follow-up", "First dose of study drug",
+#'              "End of treatment", "End of follow-up", "First dose of study drug"),
+#'   TEENRL = c("End of screening", "End of treatment period", "End of follow-up period", "End of study",
+#'              "End of treatment period", "End of follow-up period", "End of study", "End of treatment period",
+#'              "End of follow-up period", "End of study", "End of treatment period"),
+#'   TEDUR = c("P7D", "P14D", "P7D", "P21D", "P14D", "P7D", "P21D", "P14D", "P7D", "P21D", "P14D")
+#' )
+#' 
+#' result <- create_ta_te_domains_pa(study_id, trial_design, arms_data, treatments_list, te_rules)
+#' print(result$TA)
+#' print(result$TE)
+#' }
 #' @export
-
-
-# Sid Lokineni July 18th 2024
-# Function to create TA domain from dynamic inputs based on selected study design
-create_ta_domain <- function(study_id, trial_design, arms_data, treatments_list, output_dir = getwd()) {
+create_ta_te_domains_pa <- function(study_id, trial_design, arms_data, treatments_list, te_rules, output_dir = getwd()) {
   
   # Validate inputs
   if (trial_design != "PARALLEL DESIGN") {
@@ -94,40 +148,36 @@ create_ta_domain <- function(study_id, trial_design, arms_data, treatments_list,
     }
   }
   
-  # Save to Excel file
-  output_file <- paste0(output_dir, "/", study_id, "_TA.xlsx")
-  wb <- createWorkbook()
-  addWorksheet(wb, "TA")
-  writeData(wb, "TA", ta_df, headerStyle = createStyle(textDecoration = "bold"))
-  saveWorkbook(wb, output_file, overwrite = TRUE)
+  # Create TE domain from unique elements in TA domain, sorted by EPOCH
+  unique_elements <- ta_df %>%
+    distinct(ELEMENT, .keep_all = TRUE) %>%
+    arrange(factor(EPOCH, levels = c("SCREENING", "TREATMENT", "FOLLOW-UP"))) %>%
+    mutate(ETCD = paste0("ET", row_number())) %>%
+    select(STUDYID, ETCD, ELEMENT)
   
-  return(ta_df)
+  # Ensure te_rules are not repeated
+  if (nrow(te_rules) < nrow(unique_elements)) {
+    stop("The number of TE rules provided is less than the number of unique elements in the TA domain.")
+  }
+  
+  te_df <- unique_elements %>%
+    left_join(te_rules, by = c("ELEMENT")) %>%
+    mutate(DOMAIN = "TE") %>%
+    select(STUDYID, DOMAIN, ETCD, ELEMENT, TESTRL, TEENRL, TEDUR)
+  
+  # Save TA to Excel file
+  ta_output_file <- paste0(output_dir, "/", study_id, "_TA.xlsx")
+  wb_ta <- createWorkbook()
+  addWorksheet(wb_ta, "TA")
+  writeData(wb_ta, "TA", ta_df, headerStyle = createStyle(textDecoration = "bold"))
+  saveWorkbook(wb_ta, ta_output_file, overwrite = TRUE)
+  
+  # Save TE to Excel file
+  te_output_file <- paste0(output_dir, "/", study_id, "_TE.xlsx")
+  wb_te <- createWorkbook()
+  addWorksheet(wb_te, "TE")
+  writeData(wb_te, "TE", te_df, headerStyle = createStyle(textDecoration = "bold"))
+  saveWorkbook(wb_te, te_output_file, overwrite = TRUE)
+  
+  return(list(TA = ta_df, TE = te_df))
 }
-
-# # Example usage with PARALLEL DESIGN
-# study_id <- "STUDY002"
-# trial_design <- "PARALLEL DESIGN"
-# arms_data <- list(
-#   list(
-#     armcd = "ARM1",
-#     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
-#   ),
-#   list(
-#     armcd = "ARM2",
-#     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
-#   ),
-#   list(
-#     armcd = "ARM3",
-#     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
-#   )
-# )
-# 
-# # Define treatments dynamically for each arm
-# treatments_list <- list(
-#   c("A", "B", "C"), # Treatments for ARM1
-#   c("D", "E", "F"), # Treatments for ARM2
-#   c("G", "H", "I")  # Treatments for ARM3
-# )
-# 
-# ta_df_parallel <- create_ta_domain(study_id, trial_design, arms_data, treatments_list)
-# print(ta_df_parallel)

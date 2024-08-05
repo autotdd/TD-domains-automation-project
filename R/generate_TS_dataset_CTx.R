@@ -15,6 +15,11 @@ source("R/json_utils.R")
 #' generate_TS_dataset_CTx("STUDY123", 5, "NCT00000000")
 #' @export
 generate_TS_dataset_CTx <- function(study_id, num_rows, nct_ids) {
+  # Fetch the study info using clintrialx
+  study_info <- lapply(nct_ids, get_study_info)
+  study_info <- bind_rows(study_info)
+  
+  # Fetch the Trial_Summary.xlsx from the package
   file_path <- system.file("extdata", "Trial_Summary.xlsx", package = "autoTDD")
   
   if (!file.exists(file_path)) {
@@ -22,14 +27,12 @@ generate_TS_dataset_CTx <- function(study_id, num_rows, nct_ids) {
   }
   
   data <- read.xlsx(file_path)
-  study_info <- get_study_info(nct_ids)
   
+  # Process study_info and data
   # Your implementation here using data and study_info
   
   return(data)
 }
-
-
 
 # Function to format dates in ISO 8601 format
 format_date_iso8601 <- function(date) {
@@ -69,24 +72,25 @@ create_ts_domain <- function(nct_ids, study_id, input_file) {
   # Read the TS summary file
   ts_summary <- read.xlsx(input_file, sheet = "TS")
   
-  # Fetch the trial data from ClinicalTrials.gov using the provided NCT IDs
-  trial_data <- ctg_get_nct(nct_ids, fields = c("NCT Number", "Study Title", "Study Status", "Sponsor", 
-                                                "Conditions", "Phases", "Enrollment", "Start Date", 
-                                                "Primary Completion Date", "Completion Date", "Brief Summary", 
-                                                "Study Design", "Age", "Interventions", "Primary Outcome Measures", 
-                                                "Secondary Outcome Measures", "Study Documents"))
+  # Fetch and process trial data for each NCT ID
+  trial_data <- lapply(nct_ids, function(nct_id) {
+    study_info <- get_study_info(nct_id)
+    
+    # Save the JSON file with the study name prefix
+    json_file_path <- tempfile(fileext = ".json")
+    write_json(study_info, path = json_file_path)
+    
+    study_info_to_df(study_info)
+  })
   
-  # Convert fetched data to a dataframe
-  trial_df <- as.data.frame(trial_data)
+  # Combine all fetched trial data into a single dataframe
+  trial_df <- bind_rows(trial_data)
   
-  # Preprocess the clintrialx data for better readability
-  trial_df <- preprocess_clintrialx_data(trial_df)
+  # Print the processed trial data to check its structure and contents
+  # print("Preprocessed trial data from clintrialx:")
+  # print(trial_df)
   
-  # Print the preprocessed trial data to check its structure and contents
-  print("Preprocessed trial data from clintrialx:")
-  print(trial_df)
-  
-  # Define a mapping based on the insights from the paper and additional dynamic extraction logic
+  # Define a mapping based on the dynamic extraction logic
   ts_mapping <- list(
     `NCT Number` = "NCT Number",
     `Trial Title` = "Study Title",
@@ -161,7 +165,7 @@ create_ts_domain <- function(nct_ids, study_id, input_file) {
         ts_summary$TSVAL[i] <- NA  # No direct mapping available for other parameters
       }
     }
-    print(paste("TSVAL for", param, ":", ts_summary$TSVAL[i]))
+    # print(paste("TSVAL for", param, ":", ts_summary$TSVAL[i]))
   }
   
   # Fill in the STUDYID and DOMAIN columns
@@ -176,14 +180,15 @@ create_ts_domain <- function(nct_ids, study_id, input_file) {
   write.xlsx(final_df, output_file)
   
   # Print the generated TS domain
-  print("Generated TS domain:")
-  print(final_df)
+  # print("Generated TS domain:")
+  # print(final_df)
   
   return(final_df)
 }
+
 # Example usage
-nct_ids <- c("NCT05112965")
-study_id <- "YO42713"
-input_file <- "/cloud/project/TD-domains-automation-project/Trial_Summary.xlsx"
-final_df <- create_ts_domain(nct_ids, study_id, input_file)
-print(paste("Output written to:", paste0(study_id, "_TS.xlsx")))
+# nct_ids <- c("NCT05112965")
+# study_id <- "YO42713"
+# input_file <- system.file("extdata", "Trial_Summary.xlsx", package = "autoTDD")
+# final_df <- create_ts_domain(nct_ids, study_id, input_file)
+# print(paste("Output written to:", paste0(study_id, "_TS.xlsx")))

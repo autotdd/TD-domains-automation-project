@@ -213,8 +213,8 @@ create_ts_domain <- function(nct_ids, study_id, input_file) {
     study_info <- get_study_info(nct_id)
     
     # Save the JSON file with the study name prefix
-    json_file_path <- paste0("/cloud/project/", study_id, "_", nct_id, ".json")
-    write_json(study_info, path = json_file_path)
+    json_file_path <- file.path("/cloud/project/", paste0(study_id, "_", nct_id, ".json"))
+    write_json(study_info, path = json_file_path, pretty = TRUE)
     
     study_info_to_df(study_info)
   })
@@ -337,8 +337,8 @@ create_ts_domain <- function(nct_ids, study_id, input_file) {
   write.xlsx(final_df, output_file)
   
   # Print the generated TS domain
-  print("Generated TS domain:")
-  print(final_df)
+  # print("Generated TS domain:")
+  # print(final_df)
   
   return(final_df)
 }

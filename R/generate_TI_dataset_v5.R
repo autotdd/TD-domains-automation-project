@@ -8,7 +8,7 @@ source("R/json_utils.R")
 
 #' Generate TI Dataset (Version 5)
 #'
-#' This function generates the TI dataset for a given study ID and number of rows.
+#' This function generates the TI dataset for a given study ID based on the protocol.
 #'
 #' @param study_id A character string representing the Study ID.
 #' @param num_rows An integer representing the number of rows to generate.

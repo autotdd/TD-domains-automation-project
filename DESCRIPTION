@@ -2,20 +2,18 @@ Package: autoTDD
 Title: Automated Trial Design Domains Creation
 Version: 0.1.0
 Authors@R: 
-    person("Siddharth", "Lokineni", , "Sidhu871@gmail.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: This package automates the creation of the Trial Design Domains of the SDTM.
+    person("Siddharth", "Lokineni", , "Sidhu871@gmail.com", role = c("aut", "cre"))
+Description: This package provides tools to create automated trial design
+    domains for clinical studies.
 License: GPL-3
 Encoding: UTF-8
+LazyData: TRUE
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
-Imports:
+Imports: 
     dplyr,
-    openxlsx,
     httr,
     jsonlite,
-    stringr,
-    clintrialx,
-    pdftools
-
-    
+    openxlsx,
+    pdftools,
+    stringr

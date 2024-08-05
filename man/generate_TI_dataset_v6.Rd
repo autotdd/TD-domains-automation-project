@@ -17,7 +17,7 @@ generate_TI_dataset_v6(study_id, num_rows, nct_ids)
 A data frame representing the TI dataset.
 }
 \description{
-This function generates the TI dataset for a given study ID and number of rows.
+This function generates the TI dataset for a given study ID and number of rows. This is based on the Clintrails data.
 }
 \examples{
 generate_TI_dataset_v6("STUDY123", 5, "NCT00000000")

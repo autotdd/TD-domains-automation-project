@@ -27,7 +27,7 @@ library(tibble)  # Ensure tibble is loaded for add_row function
 #' \dontrun{
 #' # Example usage with CROSS-OVER
 #' study_id <- "STUDY003"
-#' trial_design <- "CROSS-OVER"
+#' trial_design <- "CROSS-OVER DESIGN"
 #' arms_data <- list(
 #'   list(
 #'     armcd = "ARM1",

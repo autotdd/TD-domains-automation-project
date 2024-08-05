@@ -48,7 +48,7 @@ and then creates the TE (Trial Elements) domain dataset using the elements from 
 \dontrun{
 # Example usage with CROSS-OVER
 study_id <- "STUDY003"
-trial_design <- "CROSS-OVER"
+trial_design <- "CROSS-OVER DESIGN"
 arms_data <- list(
   list(
     armcd = "ARM1",

@@ -224,7 +224,7 @@ create_ts_domain <- function(nct_ids, study_id, input_file) {
   
   # Print the processed trial data to check its structure and contents
   print("Processed trial data from ClinicalTrials.gov API:")
-  print(trial_df)
+  # print(trial_df)
   
   # Define a mapping based on the dynamic extraction logic
   ts_mapping <- list(
@@ -320,9 +320,7 @@ create_ts_domain <- function(nct_ids, study_id, input_file) {
     ts_summary$TSVAL[i] <- clean_tsval(ts_summary$TSVAL[i])
     if (is.na(ts_summary$TSVAL[i]) || ts_summary$TSVAL[i] == "") {
       warning(paste("TSVAL for", param, "is missing or empty"))
-    } else {
-      print(paste("TSVAL for", param, ":", ts_summary$TSVAL[i]))
-    }
+    } 
   }
   
   # Fill in the STUDYID and DOMAIN columns
@@ -344,8 +342,8 @@ create_ts_domain <- function(nct_ids, study_id, input_file) {
 }
 
 # Example usage
-# nct_ids <- c("NCT05789082")
-# study_id <- "BO44426"
-# input_file <- "/cloud/project/TD-domains-automation-project/Trial_Summary.xlsx"
-# final_df <- create_ts_domain(nct_ids, study_id, input_file)
+nct_ids <- c("NCT05789082")
+study_id <- "BO44426"
+input_file <- "/cloud/project/TD-domains-automation-project/Trial_Summary.xlsx"
+final_df <- create_ts_domain(nct_ids, study_id, input_file)
 # print(paste("Output written to:", paste0(study_id, "_TS.xlsx")))

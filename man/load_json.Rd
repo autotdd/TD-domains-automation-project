@@ -2,12 +2,14 @@
 % Please edit documentation in R/json_utils.R
 \name{load_json}
 \alias{load_json}
-\title{Load JSON data from a file}
+\title{Load JSON Data from File}
 \usage{
-load_json(filename)
+load_json(filename, dir = "json")
 }
 \arguments{
 \item{filename}{A character string representing the name of the JSON file.}
+
+\item{dir}{A character string representing the directory where the file is located. Defaults to "json".}
 }
 \value{
 A list or data frame containing the loaded JSON data.
@@ -18,5 +20,6 @@ This function loads JSON data from a specified file within the package directory
 \examples{
 \dontrun{
 data <- load_json("example.json")
+print(data)
 }
 }

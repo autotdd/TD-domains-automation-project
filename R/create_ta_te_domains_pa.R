@@ -1,33 +1,26 @@
-library(dplyr)
-library(openxlsx)
+# File: R/create_ta_te_domains_pa.R
 
 #' Generate TA and TE Datasets for Parallel Design
 #'
-#' This function generates the TA and TE datasets for a given study ID and trial design.
-#' It supports the "PARALLEL DESIGN" trial design.
+#' This function generates the TA (Trial Arms) and TE (Trial Elements) datasets 
+#' for a given study ID. It supports both simple "PARALLEL DESIGN" and 
+#' "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS".
 #'
 #' @param study_id A character string representing the Study ID.
-#' @param trial_design A character string representing the trial design. Should be "PARALLEL DESIGN".
-#' @param arms_data A list of arm data. Each element in the list should be a list containing `armcd` and `epochs`.
+#' @param trial_design A character string representing the trial design. 
+#'        Should be either "PARALLEL DESIGN" or "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS".
+#' @param arms_data A list of arm data. Each element in the list should be a list containing 
+#'        `armcd`, `epochs`, and optionally `branch` and `trans`.
 #' @param treatments_list A list of treatments corresponding to each arm.
 #' @param te_rules A data frame containing `TESTRL`, `TEENRL`, and `TEDUR` rules.
 #' @param output_dir A character string representing the output directory. Defaults to the current working directory.
 #' @return A list containing two data frames: TA dataset and TE dataset.
-#' @details 
-#' This function creates the TA (Trial Arms) domain dataset and the TE (Trial Elements) domain dataset, which are part of the SDTM (Study Data Tabulation Model). 
-#' The function handles the "PARALLEL DESIGN" trial design.
-#' The TA dataset includes columns for study ID, domain, arm codes, epochs, and elements with treatments.
-#' The TE dataset includes columns for study ID, domain, element codes, element descriptions, and rules.
-#' 
-#' @note 
-#' - The `arms_data` parameter should be a list of arm data, where each arm includes arm code and epochs.
-#' - The `treatments_list` parameter should be a list of treatments corresponding to each arm.
-#' - The `te_rules` parameter should be a data frame containing `TESTRL`, `TEENRL`, and `TEDUR` rules.
-#' - The function supports "PARALLEL DESIGN" trials.
-#' 
+#' @export
+#' @importFrom dplyr add_row distinct arrange mutate select left_join
+#' @importFrom openxlsx createWorkbook addWorksheet writeData createStyle saveWorkbook
 #' @examples
 #' \dontrun{
-#' # Example usage with PARALLEL DESIGN
+#' # Example for simple PARALLEL DESIGN
 #' study_id <- "STUDY002"
 #' trial_design <- "PARALLEL DESIGN"
 #' arms_data <- list(
@@ -38,43 +31,52 @@ library(openxlsx)
 #'   list(
 #'     armcd = "ARM2",
 #'     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
-#'   ),
-#'   list(
-#'     armcd = "ARM3",
-#'     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
 #'   )
 #' )
-#' 
-#' # Define treatments dynamically for each arm
 #' treatments_list <- list(
-#'   c("A", "B", "C"), # Treatments for ARM1
-#'   c("D", "E", "F"), # Treatments for ARM2
-#'   c("G", "H", "I")  # Treatments for ARM3
+#'   c("A", "B", "C"),
+#'   c("D", "E", "F")
 #' )
-#' 
-#' # Define TE rules
 #' te_rules <- data.frame(
-#'   ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "FOLLOW-UP", "TREATMENT D", "TREATMENT E", 
-#'               "TREATMENT F", "TREATMENT G", "TREATMENT H", "TREATMENT I"),
-#'   TESTRL = c("Informed consent", "First dose of study drug", "End of treatment", "End of follow-up",
-#'              "First dose of study drug", "End of treatment", "End of follow-up", "First dose of study drug",
-#'              "End of treatment", "End of follow-up", "First dose of study drug"),
-#'   TEENRL = c("End of screening", "End of treatment period", "End of follow-up period", "End of study",
-#'              "End of treatment period", "End of follow-up period", "End of study", "End of treatment period",
-#'              "End of follow-up period", "End of study", "End of treatment period"),
-#'   TEDUR = c("P7D", "P14D", "P7D", "P21D", "P14D", "P7D", "P21D", "P14D", "P7D", "P21D", "P14D")
+#'   ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", 
+#'               "TREATMENT D", "TREATMENT E", "TREATMENT F", "FOLLOW-UP"),
+#'   TESTRL = c("Informed consent", "First dose A", "First dose B", "First dose C", 
+#'              "First dose D", "First dose E", "First dose F", "End of treatment"),
+#'   TEENRL = c("End of screening", "End of A", "End of B", "End of C", 
+#'              "End of D", "End of E", "End of F", "End of follow-up"),
+#'   TEDUR = c("P7D", "P14D", "P14D", "P14D", "P14D", "P14D", "P14D", "P21D")
 #' )
 #' 
 #' result <- create_ta_te_domains_pa(study_id, trial_design, arms_data, treatments_list, te_rules)
 #' print(result$TA)
 #' print(result$TE)
+#' 
+#' # Example for PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS
+#' trial_design <- "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS"
+#' arms_data <- list(
+#'   list(
+#'     armcd = "ARM1",
+#'     epochs = "Screening,Treatment,Treatment,Follow-Up",
+#'     branch = c(NA, "Branch1", NA, NA),
+#'     trans = c(NA, "Trans1", "Trans2", NA)
+#'   ),
+#'   list(
+#'     armcd = "ARM2",
+#'     epochs = "Screening,Treatment,Treatment,Follow-Up",
+#'     branch = c(NA, "Branch2", NA, NA),
+#'     trans = c(NA, "Trans3", "Trans4", NA)
+#'   )
+#' )
+#' 
+#' result_with_transitions <- create_ta_te_domains_pa(study_id, trial_design, arms_data, treatments_list, te_rules)
+#' print(result_with_transitions$TA)
+#' print(result_with_transitions$TE)
 #' }
-#' @export
 create_ta_te_domains_pa <- function(study_id, trial_design, arms_data, treatments_list, te_rules, output_dir = getwd()) {
   
   # Validate inputs
-  if (trial_design != "PARALLEL DESIGN") {
-    stop("This function only supports 'PARALLEL DESIGN'")
+  if (!trial_design %in% c("PARALLEL DESIGN", "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS")) {
+    stop("This function only supports 'PARALLEL DESIGN' and 'PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS'")
   }
   
   # Initialize TA domain data frame
@@ -91,23 +93,6 @@ create_ta_te_domains_pa <- function(study_id, trial_design, arms_data, treatment
     EPOCH = character(),
     stringsAsFactors = FALSE
   )
-  
-  # Function to generate element descriptions from epochs with additional text for treatment
-  generate_elements <- function(epochs, treatments) {
-    treatment_counter <- 1
-    num_treatments <- length(treatments)
-    elements <- sapply(seq_along(epochs), function(i) {
-      if (grepl("TREATMENT", epochs[i], ignore.case = TRUE)) {
-        treatment_index <- (treatment_counter - 1) %% num_treatments + 1
-        element <- paste0("TREATMENT ", treatments[treatment_index])
-        treatment_counter <<- treatment_counter + 1
-        return(element)
-      } else {
-        return(epochs[i])
-      }
-    })
-    return(elements)
-  }
   
   # Populate TA domain data frame based on input rows
   for (i in seq_along(arms_data)) {
@@ -141,8 +126,8 @@ create_ta_te_domains_pa <- function(study_id, trial_design, arms_data, treatment
           TAETORD = j,
           ETCD = paste0("ET", row_index),
           ELEMENT = element_descriptions[j],
-          TABRANCH = NA,
-          TATRANS = NA,
+          TABRANCH = if (trial_design == "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS" && !is.null(arm_data$branch)) arm_data$branch[j] else NA,
+          TATRANS = if (trial_design == "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS" && !is.null(arm_data$trans)) arm_data$trans[j] else NA,
           EPOCH = epochs[j]
         )
     }
@@ -166,18 +151,44 @@ create_ta_te_domains_pa <- function(study_id, trial_design, arms_data, treatment
     select(STUDYID, DOMAIN, ETCD, ELEMENT, TESTRL, TEENRL, TEDUR)
   
   # Save TA to Excel file
-  ta_output_file <- paste0(output_dir, "/", study_id, "_TA.xlsx")
+  ta_output_file <- file.path(output_dir, paste0(study_id, "_TA.xlsx"))
   wb_ta <- createWorkbook()
   addWorksheet(wb_ta, "TA")
   writeData(wb_ta, "TA", ta_df, headerStyle = createStyle(textDecoration = "bold"))
   saveWorkbook(wb_ta, ta_output_file, overwrite = TRUE)
   
   # Save TE to Excel file
-  te_output_file <- paste0(output_dir, "/", study_id, "_TE.xlsx")
+  te_output_file <- file.path(output_dir, paste0(study_id, "_TE.xlsx"))
   wb_te <- createWorkbook()
   addWorksheet(wb_te, "TE")
   writeData(wb_te, "TE", te_df, headerStyle = createStyle(textDecoration = "bold"))
   saveWorkbook(wb_te, te_output_file, overwrite = TRUE)
   
   return(list(TA = ta_df, TE = te_df))
+}
+
+# Helper function
+
+#' Generate Element Descriptions
+#'
+#' This function generates element descriptions from epochs with additional text for treatment.
+#'
+#' @param epochs A character vector of epochs.
+#' @param treatments A character vector of treatments.
+#' @return A character vector of element descriptions.
+#' @keywords internal
+generate_elements <- function(epochs, treatments) {
+  treatment_counter <- 1
+  num_treatments <- length(treatments)
+  elements <- sapply(seq_along(epochs), function(i) {
+    if (grepl("TREATMENT", epochs[i], ignore.case = TRUE)) {
+      treatment_index <- (treatment_counter - 1) %% num_treatments + 1
+      element <- paste0("TREATMENT ", treatments[treatment_index])
+      treatment_counter <<- treatment_counter + 1
+      return(element)
+    } else {
+      return(epochs[i])
+    }
+  })
+  return(elements)
 }

@@ -2,20 +2,23 @@
 % Please edit documentation in R/json_utils.R
 \name{save_json}
 \alias{save_json}
-\title{Save JSON data to a file}
+\title{Save JSON Data to File}
 \usage{
-save_json(data, filename)
+save_json(data, filename, dir = "json")
 }
 \arguments{
 \item{data}{A list or data frame to be saved as JSON.}
 
 \item{filename}{A character string representing the name of the JSON file.}
+
+\item{dir}{A character string representing the directory to save the file. Defaults to "json".}
 }
 \description{
 This function saves JSON data to a specified file within the package directory.
 }
 \examples{
 \dontrun{
+data <- list(name = "John Doe", age = 30)
 save_json(data, "example.json")
 }
 }

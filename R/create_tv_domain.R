@@ -1,11 +1,12 @@
+# File: R/create_tv_domain.R
 #' Create TV Domain
 #'
-#' This function creates the TV (Trial Visits) domain
-#' by extracting ALS excel file.
+#' This function creates the TV (Trial Visits) domain by extracting ALS excel file.
+#' It will help to create VISIT related information in the TV data set.
 #'
 #' @param study_id A character string representing the Study ID.
 #' @param ALS excel file to generate the trail visit domain.
-#' @return A data frame representing the TV dataset.
+#' @return A data frame representing the TV data set.
 #' @export
 #' @importFrom dplyr readxl grepl read.xlsx
 #' @examples

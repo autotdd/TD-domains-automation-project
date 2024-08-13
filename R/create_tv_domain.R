@@ -61,7 +61,6 @@ create_tv_domain <- function(study_id, file_path ) {
 
 # if Folders sheet present , all required columns present but there is no records
 
-
   if ( nrow(data) == 0 ) {
     stop("Folders sheet is empty in the ALS file")
   }

@@ -2,3 +2,6 @@
 ^renv\.lock$
 ^autoTDD\.Rproj$
 ^\.Rproj\.user$
+^autoTDD\.Rcheck$
+^autoTDD.*\.tar\.gz$
+^autoTDD.*\.tgz$

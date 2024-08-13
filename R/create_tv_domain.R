@@ -85,6 +85,7 @@ create_tv_domain <- function(study_id, file_path ) {
     stringsAsFactors = FALSE
   )
 
+
   data3 <- data2 %>% mutate (TVENRL =if_else(toupper(VISIT) == "SCREENING" , "One day before start of study drug" , "On the same day of visit")) %>%
     #  mutate (TVSTRL =if_else(toupper(VISIT) == "SCREENING" , "28 days prior to treatment" , "")) %>%
     mutate( TVSTRL = if_else(VISITDY == 1 ,  paste("First dose of treatment phase +/-",data2$due_day,"days", sep =" "),  paste( data2$VISITDY,"Days +/-", data2$due_day, "days from Cycle 1 Day 1", sep =" ") ))

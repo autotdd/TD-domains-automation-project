@@ -24,7 +24,7 @@ Should be either "PARALLEL DESIGN" or "PARALLEL DESIGN WITH BRANCHES AND TRANSIT
 
 \item{treatments_list}{A list of treatments corresponding to each arm.}
 
-\item{te_rules}{A data frame containing \code{TESTRL}, \code{TEENRL}, and \code{TEDUR} rules.}
+\item{te_rules}{A data frame containing \code{ELEMENT}, \code{TESTRL}, \code{TEENRL}, and \code{TEDUR} rules.}
 
 \item{output_dir}{A character string representing the output directory. Defaults to the current working directory.}
 }
@@ -56,11 +56,11 @@ treatments_list <- list(
   c("D", "E", "F")
 )
 te_rules <- data.frame(
-  ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", 
+  ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C",
               "TREATMENT D", "TREATMENT E", "TREATMENT F", "FOLLOW-UP"),
-  TESTRL = c("Informed consent", "First dose A", "First dose B", "First dose C", 
+  TESTRL = c("Informed consent", "First dose A", "First dose B", "First dose C",
              "First dose D", "First dose E", "First dose F", "End of treatment"),
-  TEENRL = c("End of screening", "End of A", "End of B", "End of C", 
+  TEENRL = c("End of screening", "End of A", "End of B", "End of C",
              "End of D", "End of E", "End of F", "End of follow-up"),
   TEDUR = c("P7D", "P14D", "P14D", "P14D", "P14D", "P14D", "P14D", "P21D")
 )

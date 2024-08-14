@@ -8,7 +8,9 @@
 #' @param ALS excel file to generate the trail visit domain.
 #' @return A data frame representing the TV data set.
 #' @export
-#' @importFrom dplyr readxl grepl read.xlsx
+#' @importFrom dplyr mutate select filter
+#' @importFrom readxl read_excel
+#' @importFrom openxlsx read.xlsx
 #' @examples
 #' \dontrun{
 #' study_id <- "AB12345"

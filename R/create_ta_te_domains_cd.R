@@ -184,33 +184,33 @@ generate_elements_cd <- function(epochs, arm_index, treatments) {
   return(elements)
 }
 
-study_id <- "STUDY003"
-trial_design <- "CROSS-OVER DESIGN"
-arms_data <- list(
-  list(
-    armcd = "ARM1",
-    epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment"
-  ),
-  list(
-    armcd = "ARM2",
-    epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment"
-  ),
-  list(
-    armcd = "ARM3",
-    epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment"
-  )
-)
-treatments <- list(c("A", "B", "C")) # Define the treatments dynamically
-te_rules <- data.frame(
-  ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "WASHOUT"),
-  TESTRL = c("Informed consent", "First dose of study drug", "First dose of study drug",
-             "First dose of study drug", "End of washout"),
-  TEENRL = c("End of screening", "End of treatment period", "End of treatment period",
-             "End of treatment period", "End of washout period"),
-  TEDUR = c("P7D", "P14D", "P7D", "P21D", "P7D")
-)
-
-result <- create_ta_te_domains_cd(study_id, trial_design, arms_data, treatments, te_rules)
-print(result$TA)
-print(result$TE)
+# study_id <- "STUDY003"
+# trial_design <- "CROSS-OVER DESIGN"
+# arms_data <- list(
+#   list(
+#     armcd = "ARM1",
+#     epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment"
+#   ),
+#   list(
+#     armcd = "ARM2",
+#     epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment"
+#   ),
+#   list(
+#     armcd = "ARM3",
+#     epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment"
+#   )
+# )
+# treatments <- list(c("A", "B", "C")) # Define the treatments dynamically
+# te_rules <- data.frame(
+#   ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "WASHOUT"),
+#   TESTRL = c("Informed consent", "First dose of study drug", "First dose of study drug",
+#              "First dose of study drug", "End of washout"),
+#   TEENRL = c("End of screening", "End of treatment period", "End of treatment period",
+#              "End of treatment period", "End of washout period"),
+#   TEDUR = c("P7D", "P14D", "P7D", "P21D", "P7D")
+# )
+#
+# result <- create_ta_te_domains_cd(study_id, trial_design, arms_data, treatments, te_rules)
+# print(result$TA)
+# print(result$TE)
 

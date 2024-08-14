@@ -1,83 +1,120 @@
-# Test code for SINGLE GROUP DESIGN
+library(testthat)
+library(dplyr)
 
-# Define study ID
-study_id <- "STUDY001"
-
-# Define arm data with epochs
-arms_data <- list(
-  list(
-    armcd = "ARM1",
-    epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
+test_that("create_ta_te_domains_sd produces correct output for a single group design", {
+  study_id <- "STUDY001"
+  arms_data <- list(
+    list(
+      armcd = "ARM1",
+      epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
+    )
   )
-)
+  treatments <- list("A", "B", "C")
+  te_rules <- data.frame(
+    ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "FOLLOW-UP"),
+    TESTRL = c("Informed consent", "First dose of study drug A", "First dose of study drug B",
+               "First dose of study drug C", "End of treatment"),
+    TEENRL = c("End of screening", "End of treatment A", "End of treatment B",
+               "End of treatment C", "End of follow-up period"),
+    TEDUR = c("P7D", "P14D", "P14D", "P14D", "P21D"),
+    stringsAsFactors = FALSE
+  )
 
-# Define treatments dynamically as a list
-treatments <- list("A", "B", "C")
+  result <- create_ta_te_domains_sd(study_id, arms_data, treatments, te_rules)
 
-# Define TE rules
-te_rules <- data.frame(
-  ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "FOLLOW-UP"),
-  TESTRL = c("Informed consent", "First dose of study drug", "First dose of study drug", "First dose of study drug", "Start of follow-up period"),
-  TEENRL = c("End of screening", "End of treatment period", "End of treatment period", "End of treatment period", "End of follow-up period"),
-  TEDUR = c("P7D", "P14D", "P14D", "P14D", "P21D")
-)
+  # Check overall structure
+  expect_type(result, "list")
+  expect_named(result, c("TA", "TE"))
+  expect_s3_class(result$TA, "data.frame")
+  expect_s3_class(result$TE, "data.frame")
 
-# Generate the TA and TE datasets using the provided function
-ta_te_df <- create_ta_domain_sd(study_id, arms_data, treatments, te_rules)
+  # Check TA domain
+  expect_equal(nrow(result$TA), 5) # 5 epochs * 1 arm
+  expect_equal(ncol(result$TA), 10) # Ensure all required variables are present
+  expect_equal(unique(result$TA$STUDYID), study_id)
+  expect_equal(unique(result$TA$DOMAIN), "TA")
+  expect_equal(unique(result$TA$ARMCD), "ARM1")
+  expect_equal(unique(result$TA$ARM), "ARM1")
+  expect_equal(unique(result$TA$TAETORD), 1:5)
+  expect_equal(result$TA$ETCD, paste0("ET", 1:5))
+  expect_equal(result$TA$ELEMENT, c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "FOLLOW-UP"))
+  expect_true(all(is.na(result$TA$TABRANCH)))
+  expect_true(all(is.na(result$TA$TATRANS)))
+  expect_equal(result$TA$EPOCH, c("SCREENING", "TREATMENT", "TREATMENT", "TREATMENT", "FOLLOW-UP"))
 
-# Print the generated TA and TE datasets
-print("Generated TA domain:")
-print(ta_te_df$TA)
-print("Generated TE domain:")
-print(ta_te_df$TE)
+  # Check TE domain
+  expect_equal(nrow(result$TE), 5) # 5 unique elements
+  expect_equal(ncol(result$TE), 7) # Ensure all required variables are present
+  expect_equal(unique(result$TE$STUDYID), study_id)
+  expect_equal(unique(result$TE$DOMAIN), "TE")
+  expect_equal(result$TE$ETCD, paste0("ET", 1:5))
+  expect_equal(result$TE$ELEMENT, te_rules$ELEMENT)
+  expect_equal(result$TE$TESTRL, te_rules$TESTRL)
+  expect_equal(result$TE$TEENRL, te_rules$TEENRL)
+  expect_equal(result$TE$TEDUR, te_rules$TEDUR)
+})
 
-# Perform additional checks to validate the generated datasets
+test_that("create_ta_te_domains_sd handles errors correctly", {
+  study_id <- "STUDY002"
+  arms_data <- list(
+    list(
+      armcd = "ARM1",
+      epochs = "Screening,Treatment,Follow-Up"
+    )
+  )
+  treatments <- list("A", "B") # More treatments than Treatment epochs
+  te_rules <- data.frame(
+    ELEMENT = c("SCREENING", "TREATMENT A", "FOLLOW-UP"),
+    TESTRL = c("Informed consent", "First dose of study drug", "End of treatment"),
+    TEENRL = c("End of screening", "End of treatment", "End of follow-up"),
+    TEDUR = c("P7D", "P14D", "P21D"),
+    stringsAsFactors = FALSE
+  )
 
-# Check if the TA domain has the correct number of rows
-expected_ta_rows <- 5
-actual_ta_rows <- nrow(ta_te_df$TA)
-if (actual_ta_rows != expected_ta_rows) {
-  stop(paste("TA domain row count mismatch: expected", expected_ta_rows, "but got", actual_ta_rows))
-}
+  expect_error(
+    create_ta_te_domains_sd(study_id, arms_data, treatments, te_rules),
+    "Mismatch between number of treatments and treatment epochs for arm 1"
+  )
+})
 
-# Check if the TE domain has the correct number of rows
-expected_te_rows <- 5
-actual_te_rows <- nrow(ta_te_df$TE)
-if (actual_te_rows != expected_te_rows) {
-  stop(paste("TE domain row count mismatch: expected", expected_te_rows, "but got", actual_te_rows))
-}
+test_that("create_ta_te_domains_sd creates separate Excel files for TA and TE", {
+  study_id <- "STUDY003"
+  arms_data <- list(
+    list(
+      armcd = "ARM1",
+      epochs = "Screening,Treatment,Follow-Up"
+    )
+  )
+  treatments <- list("A")
+  te_rules <- data.frame(
+    ELEMENT = c("SCREENING", "TREATMENT A", "FOLLOW-UP"),
+    TESTRL = c("Informed consent", "First dose of study drug", "End of treatment"),
+    TEENRL = c("End of screening", "End of treatment", "End of follow-up"),
+    TEDUR = c("P7D", "P14D", "P21D"),
+    stringsAsFactors = FALSE
+  )
 
-# Check if the TA domain contains the expected elements
-expected_ta_elements <- c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "FOLLOW-UP")
-actual_ta_elements <- ta_te_df$TA$ELEMENT
-if (!all(expected_ta_elements %in% actual_ta_elements)) {
-  stop("TA domain elements mismatch")
-}
+  # Create a temporary directory for output files
+  temp_dir <- tempdir()
 
-# Check if the TE domain contains the expected elements
-expected_te_elements <- c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "FOLLOW-UP")
-actual_te_elements <- ta_te_df$TE$ELEMENT
-if (!all(expected_te_elements %in% actual_te_elements)) {
-  stop("TE domain elements mismatch")
-}
+  result <- create_ta_te_domains_sd(study_id, arms_data, treatments, te_rules, output_dir = temp_dir)
 
-# Check if the TA domain columns are correctly populated
-required_ta_columns <- c("STUDYID", "DOMAIN", "ARMCD", "ARM", "TAETORD", "ETCD", "ELEMENT", "EPOCH")
-missing_ta_columns <- setdiff(required_ta_columns, colnames(ta_te_df$TA))
-if (length(missing_ta_columns) > 0) {
-  stop(paste("TA domain is missing columns:", paste(missing_ta_columns, collapse = ", ")))
-}
+  # Check if both TA and TE Excel files are created
+  expect_true(file.exists(file.path(temp_dir, paste0(study_id, "_TA.xlsx"))))
+  expect_true(file.exists(file.path(temp_dir, paste0(study_id, "_TE.xlsx"))))
 
-# Check if the TE domain columns are correctly populated
-required_te_columns <- c("STUDYID", "DOMAIN", "ETCD", "ELEMENT", "TESTRL", "TEENRL", "TEDUR")
-missing_te_columns <- setdiff(required_te_columns, colnames(ta_te_df$TE))
-if (length(missing_te_columns) > 0) {
-  stop(paste("TE domain is missing columns:", paste(missing_te_columns, collapse = ", ")))
-}
+  # Read the Excel files
+  ta_excel <- readxl::read_excel(file.path(temp_dir, paste0(study_id, "_TA.xlsx")))
+  te_excel <- readxl::read_excel(file.path(temp_dir, paste0(study_id, "_TE.xlsx")))
 
-# Check if the STUDYID is correctly populated in both TA and TE domains
-if (any(ta_te_df$TA$STUDYID != study_id) || any(ta_te_df$TE$STUDYID != study_id)) {
-  stop("STUDYID mismatch in TA or TE domain")
-}
+  # Check that the Excel files contain the correct data
+  expect_equal(nrow(ta_excel), nrow(result$TA))
+  expect_equal(nrow(te_excel), nrow(result$TE))
 
-print("All checks passed successfully.")
+  expect_equal(colnames(ta_excel), colnames(result$TA))
+  expect_equal(colnames(te_excel), colnames(result$TE))
+
+  # Clean up
+  unlink(file.path(temp_dir, paste0(study_id, "_TA.xlsx")))
+  unlink(file.path(temp_dir, paste0(study_id, "_TE.xlsx")))
+})

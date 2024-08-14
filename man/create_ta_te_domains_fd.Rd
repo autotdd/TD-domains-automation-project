@@ -35,44 +35,5 @@ for a given study ID based on the FACTORIAL DESIGN.
 }
 \examples{
 \dontrun{
-study_id <- "STUDY004"
-trial_design <- "FACTORIAL DESIGN"
-arms_data <- list(
-  list(
-    armcd = "ARM1",
-    epochs = "Screening,Treatment,Treatment,Follow-Up"
-  ),
-  list(
-    armcd = "ARM2",
-    epochs = "Screening,Treatment,Treatment,Follow-Up"
-  ),
-  list(
-    armcd = "ARM3",
-    epochs = "Screening,Treatment,Treatment,Follow-Up"
-  ),
-  list(
-    armcd = "ARM4",
-    epochs = "Screening,Treatment,Treatment,Follow-Up"
-  )
-)
-treatments <- list(
-  c("A", "B"), # Treatments for ARM1
-  c("Placebo B", "A"), # Treatments for ARM2
-  c("Placebo A", "B"), # Treatments for ARM3
-  c("Placebo A", "Placebo B")  # Treatments for ARM4
-)
-te_rules <- data.frame(
-  ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "FOLLOW-UP", 
-              "TREATMENT PLACEBO A", "TREATMENT PLACEBO B"),
-  TESTRL = c("Informed consent", "First dose of study drug A", "First dose of study drug B", 
-             "End of follow-up", "First dose of placebo A", "First dose of placebo B"),
-  TEENRL = c("End of screening", "End of treatment A", "End of treatment B", 
-             "End of study", "End of placebo A treatment", "End of placebo B treatment"),
-  TEDUR = c("P7D", "P14D", "P14D", "P21D", "P14D", "P14D")
-)
-
-result <- create_ta_te_domains_fd(study_id, trial_design, arms_data, treatments, te_rules)
-print(result$TA)
-print(result$TE)
 }
 }

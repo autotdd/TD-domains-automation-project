@@ -1,4 +1,7 @@
-test_create_ta_te_domains_pa <- function() {
+library(testthat)
+library(dplyr)
+
+test_that("create_ta_te_domains_pa works correctly for simple PARALLEL DESIGN", {
   study_id <- "STUDY002"
   trial_design <- "PARALLEL DESIGN"
   arms_data <- list(
@@ -9,74 +12,140 @@ test_create_ta_te_domains_pa <- function() {
     list(
       armcd = "ARM2",
       epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
-    ),
-    list(
-      armcd = "ARM3",
-      epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
     )
   )
-  
-  # Define treatments dynamically for each arm
   treatments_list <- list(
-    c("A", "B", "C"), # Treatments for ARM1
-    c("D", "E", "F"), # Treatments for ARM2
-    c("G", "H", "I")  # Treatments for ARM3
+    c("A", "B", "C"),
+    c("D", "E", "F")
   )
-  
-  # Define TE rules
   te_rules <- data.frame(
-    ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "FOLLOW-UP", "TREATMENT D", "TREATMENT E", 
-                "TREATMENT F", "TREATMENT G", "TREATMENT H", "TREATMENT I"),
-    TESTRL = c("Informed consent", "First dose of study drug", "End of treatment", "End of follow-up",
-               "First dose of study drug", "End of treatment", "End of follow-up", "First dose of study drug",
-               "End of treatment", "End of follow-up", "First dose of study drug"),
-    TEENRL = c("End of screening", "End of treatment period", "End of follow-up period", "End of study",
-               "End of treatment period", "End of follow-up period", "End of study", "End of treatment period",
-               "End of follow-up period", "End of study", "End of treatment period"),
-    TEDUR = c("P7D", "P14D", "P7D", "P21D", "P14D", "P7D", "P21D", "P14D", "P7D", "P21D", "P14D")
+    ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C",
+                "TREATMENT D", "TREATMENT E", "TREATMENT F", "FOLLOW-UP"),
+    TESTRL = c("Informed consent", "First dose A", "First dose B", "First dose C",
+               "First dose D", "First dose E", "First dose F", "End of treatment"),
+    TEENRL = c("End of screening", "End of A", "End of B", "End of C",
+               "End of D", "End of E", "End of F", "End of follow-up"),
+    TEDUR = c("P7D", "P14D", "P14D", "P14D", "P14D", "P14D", "P14D", "P21D"),
+    stringsAsFactors = FALSE
   )
-  
-  # Run the function to generate TA and TE domains
-  result <- create_ta_te_domains_pa(study_id, trial_design, arms_data, treatments_list, te_rules)
-  
-  # Extract the TA and TE data frames
-  ta_df <- result$TA
-  te_df <- result$TE
-  
-  # Print the generated TA and TE data frames
-  print("Generated TA domain:")
-  print(ta_df)
-  
-  print("Generated TE domain:")
-  print(te_df)
-  
-  # Basic validation of the TA domain
-  stopifnot(nrow(ta_df) == 15) # Expecting 15 rows (5 elements per arm * 3 arms)
-  stopifnot(ncol(ta_df) == 10) # Expecting 10 columns
-  
-  # Basic validation of the TE domain
-  stopifnot(nrow(te_df) == 11) # Expecting 11 unique elements
-  stopifnot(ncol(te_df) == 7)  # Expecting 7 columns
-  
-  # Check if the STUDYID is correctly populated in TA and TE domains
-  stopifnot(all(ta_df$STUDYID == study_id))
-  stopifnot(all(te_df$STUDYID == study_id))
-  
-  # Check if the DOMAIN is correctly populated in TA and TE domains
-  stopifnot(all(ta_df$DOMAIN == "TA"))
-  stopifnot(all(te_df$DOMAIN == "TE"))
-  
-  # Check if ETCD values are unique in TA and TE domains
-  stopifnot(length(unique(ta_df$ETCD)) == nrow(ta_df))
-  stopifnot(length(unique(te_df$ETCD)) == nrow(te_df))
-  
-  # Ensure TE domain has correctly mapped rules
-  expected_elements <- c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "FOLLOW-UP",
-                         "TREATMENT D", "TREATMENT E", "TREATMENT F", "TREATMENT G", "TREATMENT H", "TREATMENT I")
-  stopifnot(all(te_df$ELEMENT %in% expected_elements))
-  
-  cat("All tests passed successfully.\n")
-}
 
-# Run the test function
-test_create_ta_te_domains_pa()
+  result <- create_ta_te_domains_pa(study_id, trial_design, arms_data, treatments_list, te_rules)
+
+  # Test TA domain
+  expect_equal(nrow(result$TA), 10) # 5 epochs * 2 arms
+  expect_equal(unique(result$TA$STUDYID), study_id)
+  expect_equal(unique(result$TA$DOMAIN), "TA")
+  expect_equal(unique(result$TA$ARMCD), c("ARM1", "ARM2"))
+  expect_equal(unique(result$TA$EPOCH), c("SCREENING", "TREATMENT", "FOLLOW-UP"))
+  expect_true(all(is.na(result$TA$TABRANCH)))
+  expect_true(all(is.na(result$TA$TATRANS)))
+
+  # Check treatment sequence
+  arm1_treatments <- result$TA %>%
+    filter(ARMCD == "ARM1", EPOCH == "TREATMENT") %>%
+    pull(ELEMENT)
+  expect_equal(arm1_treatments, c("TREATMENT A", "TREATMENT B", "TREATMENT C"))
+
+  arm2_treatments <- result$TA %>%
+    filter(ARMCD == "ARM2", EPOCH == "TREATMENT") %>%
+    pull(ELEMENT)
+  expect_equal(arm2_treatments, c("TREATMENT D", "TREATMENT E", "TREATMENT F"))
+
+  # Test TE domain
+  expect_equal(nrow(result$TE), 8) # Number of unique elements in te_rules
+  expect_equal(result$TE$STUDYID, rep(study_id, 8))
+  expect_equal(result$TE$DOMAIN, rep("TE", 8))
+  expect_equal(result$TE$ETCD, paste0("ET", 1:8))
+  expect_equal(result$TE$ELEMENT, te_rules$ELEMENT)
+  expect_equal(result$TE$TESTRL, te_rules$TESTRL)
+  expect_equal(result$TE$TEENRL, te_rules$TEENRL)
+  expect_equal(result$TE$TEDUR, te_rules$TEDUR)
+})
+
+test_that("create_ta_te_domains_pa works correctly for PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS", {
+  study_id <- "STUDY003"
+  trial_design <- "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS"
+  arms_data <- list(
+    list(
+      armcd = "ARM1",
+      epochs = "Screening,Treatment,Treatment,Follow-Up",
+      branch = c(NA, "Branch1", NA, NA),
+      trans = c(NA, "Trans1", "Trans2", NA)
+    ),
+    list(
+      armcd = "ARM2",
+      epochs = "Screening,Treatment,Treatment,Follow-Up",
+      branch = c(NA, "Branch2", NA, NA),
+      trans = c(NA, "Trans3", "Trans4", NA)
+    )
+  )
+  treatments_list <- list(
+    c("A", "B"),
+    c("C", "D")
+  )
+  te_rules <- data.frame(
+    ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "TREATMENT D", "FOLLOW-UP"),
+    TESTRL = c("Informed consent", "First dose A", "First dose B", "First dose C", "First dose D", "End of treatment"),
+    TEENRL = c("End of screening", "End of A", "End of B", "End of C", "End of D", "End of follow-up"),
+    TEDUR = c("P7D", "P14D", "P14D", "P14D", "P14D", "P21D"),
+    stringsAsFactors = FALSE
+  )
+
+  result <- create_ta_te_domains_pa(study_id, trial_design, arms_data, treatments_list, te_rules)
+
+  # Test TA domain
+  expect_equal(nrow(result$TA), 8) # 4 epochs * 2 arms
+  expect_equal(unique(result$TA$STUDYID), study_id)
+  expect_equal(unique(result$TA$DOMAIN), "TA")
+  expect_equal(unique(result$TA$ARMCD), c("ARM1", "ARM2"))
+  expect_equal(unique(result$TA$EPOCH), c("SCREENING", "TREATMENT", "FOLLOW-UP"))
+  expect_false(all(is.na(result$TA$TABRANCH)))
+  expect_false(all(is.na(result$TA$TATRANS)))
+
+  # Check branches and transitions
+  arm1_data <- result$TA %>% filter(ARMCD == "ARM1")
+  expect_equal(arm1_data$TABRANCH, c(NA, "Branch1", NA, NA))
+  expect_equal(arm1_data$TATRANS, c(NA, "Trans1", "Trans2", NA))
+
+  # Test TE domain
+  expect_equal(nrow(result$TE), 6) # Number of unique elements in te_rules
+  expect_equal(result$TE$STUDYID, rep(study_id, 6))
+  expect_equal(result$TE$DOMAIN, rep("TE", 6))
+  expect_equal(result$TE$ETCD, paste0("ET", 1:6))
+  expect_equal(result$TE$ELEMENT, te_rules$ELEMENT)
+  expect_equal(result$TE$TESTRL, te_rules$TESTRL)
+  expect_equal(result$TE$TEENRL, te_rules$TEENRL)
+  expect_equal(result$TE$TEDUR, te_rules$TEDUR)
+})
+
+test_that("create_ta_te_domains_pa handles errors correctly", {
+  study_id <- "STUDY004"
+  trial_design <- "PARALLEL DESIGN"
+  arms_data <- list(
+    list(
+      armcd = "ARM1",
+      epochs = "Screening,Treatment,Follow-Up"
+    )
+  )
+  treatments_list <- list(c("A"))
+  te_rules <- data.frame(
+    ELEMENT = c("SCREENING", "TREATMENT A", "FOLLOW-UP"),
+    TESTRL = c("Informed consent", "First dose A", "End of treatment"),
+    TEENRL = c("End of screening", "End of A", "End of follow-up"),
+    TEDUR = c("P7D", "P14D", "P21D"),
+    stringsAsFactors = FALSE
+  )
+
+  # Test invalid trial design
+  expect_error(
+    create_ta_te_domains_pa(study_id, "INVALID DESIGN", arms_data, treatments_list, te_rules),
+    "This function only supports 'PARALLEL DESIGN' and 'PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS'"
+  )
+
+  # Test mismatched epochs and treatments
+  bad_treatments_list <- list(c("A", "B"))
+  expect_error(
+    create_ta_te_domains_pa(study_id, trial_design, arms_data, bad_treatments_list, te_rules),
+    "Mismatch between number of treatments and treatment epochs for arm 1"
+  )
+})

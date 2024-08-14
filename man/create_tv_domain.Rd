@@ -12,11 +12,11 @@ create_tv_domain(study_id, file_path)
 \item{ALS}{excel file to generate the trail visit domain.}
 }
 \value{
-A data frame representing the TV dataset.
+A data frame representing the TV data set.
 }
 \description{
-This function creates the TV (Trial Visits) domain
-by extracting ALS excel file.
+This function creates the TV (Trial Visits) domain by extracting ALS excel file.
+It will help to create VISIT related information in the TV data set.
 }
 \examples{
 \dontrun{

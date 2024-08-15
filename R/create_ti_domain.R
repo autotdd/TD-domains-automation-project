@@ -183,7 +183,6 @@ create_ti_domain_pdf <- function(study_id, pdf_path, incl_range, excl_range, inc
   return(ti_domain)
 }
 
-
 #' Create TI Domain from API
 #'
 #' This function creates the TI domain by extracting inclusion and exclusion criteria from ClinicalTrials.gov API.

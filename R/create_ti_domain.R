@@ -1,3 +1,5 @@
+# File: R/create_ti_domain.R
+
 #' Create TI Domain
 #'
 #' This function creates the TI (Trial Inclusion/Exclusion Criteria) domain

@@ -49,9 +49,9 @@ by extracting inclusion and exclusion criteria either from a PDF protocol or fro
 \dontrun{
 # Example using PDF method
 ti_domain_pdf <- create_ti_domain(
-  study_id = "STUDY005", 
+  study_id = "STUDY005",
   method = "pdf",
-  pdf_path = "path/to/protocol.pdf",
+  pdf_path = "path/to/Temp_Protocol_v1.pdf",
   incl_range = 64:67,
   excl_range = 67:71,
   incl_section = "4.1.1",
@@ -61,7 +61,7 @@ ti_domain_pdf <- create_ti_domain(
 
 # Example using API method
 ti_domain_api <- create_ti_domain(
-  study_id = "STUDY005", 
+  study_id = "STUDY005",
   method = "api",
   nct_id = "NCT05789082"
 )

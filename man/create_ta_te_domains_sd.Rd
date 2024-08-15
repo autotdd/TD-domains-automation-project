@@ -42,9 +42,9 @@ arms_data <- list(
 treatments <- list("A", "B", "C") # Define the treatments dynamically as a list
 te_rules <- data.frame(
   ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "FOLLOW-UP"),
-  TESTRL = c("Informed consent", "First dose of study drug A", "First dose of study drug B", 
+  TESTRL = c("Informed consent", "First dose of study drug A", "First dose of study drug B",
              "First dose of study drug C", "End of treatment"),
-  TEENRL = c("End of screening", "End of treatment A", "End of treatment B", 
+  TEENRL = c("End of screening", "End of treatment A", "End of treatment B",
              "End of treatment C", "End of follow-up period"),
   TEDUR = c("P7D", "P14D", "P14D", "P14D", "P21D")
 )

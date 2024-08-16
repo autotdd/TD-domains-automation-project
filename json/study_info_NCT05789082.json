@@ -1,0 +1,1142 @@
+{
+  "protocolSection": {
+    "identificationModule": {
+      "nctId": ["NCT05789082"],
+      "orgStudyIdInfo": {
+        "id": ["BO44426"]
+      },
+      "secondaryIdInfos": [
+        {
+          "id": "2022-003048-28",
+          "type": "EUDRACT_NUMBER"
+        },
+        {
+          "id": "2023-507171-22-00",
+          "type": "OTHER",
+          "domain": "EU CT Number"
+        }
+      ],
+      "organization": {
+        "fullName": ["Hoffmann-La Roche"],
+        "class": ["INDUSTRY"]
+      },
+      "briefTitle": ["A Study Evaluating the Safety, Activity, and Pharmacokinetics of Divarasib in Combination With Other Anti-Cancer Therapies in Participants With Previously Untreated Advanced or Metastatic Non-Small Cell Lung Cancer With a KRAS G12C Mutation"],
+      "officialTitle": ["A Phase Ib/II, Open-Label, Multicenter Study Evaluating the Safety, Activity, and Pharmacokinetics of Divarasib in Combination With Other Anti-Cancer Therapies in Patients With Previously Untreated Advanced Or Metastatic Non-Small Cell Lung Cancer With a KRAS G12C Mutation"],
+      "acronym": ["Krascendo 170"]
+    },
+    "statusModule": {
+      "statusVerifiedDate": ["2024-08"],
+      "overallStatus": ["RECRUITING"],
+      "expandedAccessInfo": {
+        "hasExpandedAccess": [false]
+      },
+      "startDateStruct": {
+        "date": ["2023-06-20"],
+        "type": ["ACTUAL"]
+      },
+      "primaryCompletionDateStruct": {
+        "date": ["2025-09-30"],
+        "type": ["ESTIMATED"]
+      },
+      "completionDateStruct": {
+        "date": ["2025-09-30"],
+        "type": ["ESTIMATED"]
+      },
+      "studyFirstSubmitDate": ["2023-02-21"],
+      "studyFirstSubmitQcDate": ["2023-03-28"],
+      "studyFirstPostDateStruct": {
+        "date": ["2023-03-29"],
+        "type": ["ACTUAL"]
+      },
+      "lastUpdateSubmitDate": ["2024-08-02"],
+      "lastUpdatePostDateStruct": {
+        "date": ["2024-08-05"],
+        "type": ["ACTUAL"]
+      }
+    },
+    "sponsorCollaboratorsModule": {
+      "responsibleParty": {
+        "type": ["SPONSOR"]
+      },
+      "leadSponsor": {
+        "name": ["Hoffmann-La Roche"],
+        "class": ["INDUSTRY"]
+      }
+    },
+    "oversightModule": {
+      "oversightHasDmc": [false],
+      "isFdaRegulatedDrug": [true],
+      "isFdaRegulatedDevice": [false]
+    },
+    "descriptionModule": {
+      "briefSummary": ["The purpose of this study is to evaluate the safety, pharmacokinetics (PK), and activity of divarasib combined with other anti-cancer therapies in participants with previously untreated, advanced or metastatic non-small cell lung cancer (NSCLC)."]
+    },
+    "conditionsModule": {
+      "conditions": ["Non-Small Cell Lung Cancer"]
+    },
+    "designModule": {
+      "studyType": ["INTERVENTIONAL"],
+      "phases": ["PHASE1", "PHASE2"],
+      "designInfo": {
+        "allocation": ["RANDOMIZED"],
+        "interventionModel": ["PARALLEL"],
+        "primaryPurpose": ["TREATMENT"],
+        "maskingInfo": {
+          "masking": ["NONE"]
+        }
+      },
+      "enrollmentInfo": {
+        "count": [96],
+        "type": ["ESTIMATED"]
+      }
+    },
+    "armsInterventionsModule": {
+      "armGroups": [
+        {
+          "label": "Cohort A - Combination Dose Finding + Dose Expansion",
+          "type": "EXPERIMENTAL",
+          "description": "Participants enrolled in this cohort will receive divarasib (different dose levels will be evaluated) once a day (QD) combined with pembrolizumab 200 mg intravenous (IV) infusion every 3 weeks (Q3W).\n\nDuring the expansion stage, some participants are planned to be randomized to one divarasib combination dose level; other participants are planned to be randomized to another divarasib combination dose level. Divarasib will be given in combination with pembrolizumab.",
+          "interventionNames": ["Drug: Divarasib", "Drug: Pembrolizumab"]
+        },
+        {
+          "label": "Cohort B - Combination Dose Finding + Dose Expansion",
+          "type": "EXPERIMENTAL",
+          "description": "Participants enrolled in this cohort will receive divarasib (different dose levels will be evaluated) QD combined with pembrolizumab 200 mg IV Q3W plus investigator's choice of platinum-based chemotherapy (carboplatin or cisplatin) and pemetrexed.",
+          "interventionNames": ["Drug: Divarasib", "Drug: Pembrolizumab", "Drug: Carboplatin", "Drug: Cisplatin", "Drug: Pemetrexed"]
+        }
+      ],
+      "interventions": [
+        {
+          "type": "DRUG",
+          "name": "Divarasib",
+          "description": "Participants will receive one of two doses of divarasib orally (PO), QD on days 1-21 of each 21-day cycle.",
+          "armGroupLabels": ["Cohort A - Combination Dose Finding + Dose Expansion", "Cohort B - Combination Dose Finding + Dose Expansion"]
+        },
+        {
+          "type": "DRUG",
+          "name": "Pembrolizumab",
+          "description": "Participants will receive a 200 mg IV infusion of pembrolizumab Q3W on Day 1 of each 21-day cycle.",
+          "armGroupLabels": ["Cohort A - Combination Dose Finding + Dose Expansion", "Cohort B - Combination Dose Finding + Dose Expansion"]
+        },
+        {
+          "type": "DRUG",
+          "name": "Carboplatin",
+          "description": "Participants will receive IV carboplatin Q3W for four 21-day cycles.",
+          "armGroupLabels": ["Cohort B - Combination Dose Finding + Dose Expansion"]
+        },
+        {
+          "type": "DRUG",
+          "name": "Cisplatin",
+          "description": "Participants will receive IV cisplatin Q3W for four 21-day cycles.",
+          "armGroupLabels": ["Cohort B - Combination Dose Finding + Dose Expansion"]
+        },
+        {
+          "type": "DRUG",
+          "name": "Pemetrexed",
+          "description": "Participants will receive IV pemetrexed Q3W.",
+          "armGroupLabels": ["Cohort B - Combination Dose Finding + Dose Expansion"]
+        }
+      ]
+    },
+    "outcomesModule": {
+      "primaryOutcomes": [
+        {
+          "measure": "Percentage of Participants with Adverse Events (AEs)",
+          "timeFrame": "Baseline until 60 days after the final dose of study treatment or until initiation of another anti-cancer therapy, whichever occurs first (up to approximately 3 years)"
+        }
+      ],
+      "secondaryOutcomes": [
+        {
+          "measure": "Objective Response Rate (ORR)",
+          "description": "The percentage of participants who experience a complete response or partial response, as determined by the investigator, according to Response Evaluation Criteria in Solid Tumors (RECIST) v1.1",
+          "timeFrame": "Up to approximately 3 years"
+        },
+        {
+          "measure": "Duration of Response (DOR)",
+          "description": "The time from the first occurrence of a documented objective response to disease progression or death from any cause (whichever occurs first), as determined by the investigator according to RECIST v1.1",
+          "timeFrame": "Up to approximately 3 years"
+        },
+        {
+          "measure": "Progression Free Survival (PFS)",
+          "description": "The time from randomization, or date of first treatment for participants enrolled prior to the expansion stage, to the first occurrence of disease progression or death from any cause during the study (whichever occurs first), as determined by the investigator according to RECIST v1.1",
+          "timeFrame": "Up to approximately 3 years"
+        },
+        {
+          "measure": "Number of Participants Reporting Presence, Frequency, Severity, and/or Degree of Interference with Daily Function of Symptomatic Side Effects as Assessed Through the Patient-Reported Outcomes Common Terminology Criteria for Adverse Events (PRO-CTCAE)",
+          "timeFrame": "Up to approximately 3 years"
+        },
+        {
+          "measure": "Change from Baseline in Symptomatic Side Effects, as Assessed Through use of the PRO-CTCAE",
+          "timeFrame": "Baseline up to approximately 3 years"
+        },
+        {
+          "measure": "Percentage of Participants Reporting \"Frequent\" or \"Almost Constant\" Diarrhea During the First Three Cycles of Treatment According to the PRO-CTCAE Criteria",
+          "timeFrame": "Up to approximately 3 years"
+        },
+        {
+          "measure": "Percentage of Participants Reporting \"Severe\" or \"Very Severe\" Nausea or Vomiting During the First Three Cycles of Treatment According to the PRO-CTCAE",
+          "timeFrame": "Up to approximately 3 years"
+        },
+        {
+          "measure": "Frequency of Participant's Response of the Degree they are Troubled with Treatment Symptoms, as Assessed Through use of the Single-item European Organisation for Research and Treatment of Cancer (EORTC) Item List 46 (IL46)",
+          "timeFrame": "Up to approximately 3 years"
+        },
+        {
+          "measure": "Plasma Concentration of Divarasib at Specified Timepoints",
+          "timeFrame": "At Days 1, 8 and 15 of Cycles 1 and 2; Days 1 and 15 of Cycles 3 and 4; Day 1 of every other Cycle after Cycle 5, until treatment discontinuation (up to approximately 3 years). Each cycle is 21 days."
+        },
+        {
+          "measure": "Identification of Divarasib Recommended Dose",
+          "description": "The recommended dose will be based upon the totality of safety, activity, and PK data.",
+          "timeFrame": "Up to approximately 3 years"
+        }
+      ]
+    },
+    "eligibilityModule": {
+      "eligibilityCriteria": ["Inclusion Criteria:\n\n* Confirmation of Biomarker eligibility\n* Pre-treatment tumor tissue along with an associated pathology report is required for all participants enrolled on study. Representative tumor specimens must be in formalin-fixed, paraffin embedded (FFPE) blocks (preferred) or 15 unstained, freshly cut, serial slides. Although 15 slides are required, if only 10 slides are available, the participant may be eligible for the study following consultation with the Sponsor.\n* Eastern Cooperative Oncology Group (ECOG) performance status (PS) of 0 or 1\n* Histologically or cytologically documented locally advanced unresectable or metastatic NSCLC that is not eligible for curative surgery and/or definitive chemoradiotherapy\n* No prior systemic treatment for advanced unresectable or metastatic NSCLC\n* Measurable disease, as defined by Response Evaluation Criteria in Solid Tumors (RECIST) v1.1\n\nExclusion Criteria:\n\n* Known concomitant second oncogenic driver with available targeted treatment\n* Squamous cell histology NSCLC\n* Symptomatic, untreated, or actively progressing central nervous system (CNS) metastases\n* Prior treatment with a KRAS G12C inhibitor\n* Known hypersensitivity to any of the components of divarasib or pembrolizumab; or known hypersensitivity to pemetrexed, carboplatin, or cisplatin (Cohort B only)\n* History of idiopathic pulmonary fibrosis, organizing pneumonia (e.g., bronchiolitis obliterans), drug-induced pneumonitis, or idiopathic pneumonitis, or evidence of active pneumonitis, active tuberculosis, significant cardiovascular disease within 3 months prior to initiation of study treatment\n* History of malignancy other than NSCLC within 5 years prior to initiation of study treatment, with the exception of malignancies with a negligible risk of metastasis or death (e.g., 5-year OS rate more \\>90%), such as adequately treated carcinoma in situ of the cervix, non-melanoma skin carcinoma, localized prostate cancer, ductal breast carcinoma in situ, or Stage I uterine cancer\n* Uncontrolled tumor related pain, pleural effusion, pericardial effusion, or ascites requiring recurrent drainage procedures, uncontrolled or symptomatic hypercalcemia"],
+      "healthyVolunteers": [false],
+      "sex": ["ALL"],
+      "minimumAge": ["18 Years"],
+      "stdAges": ["ADULT", "OLDER_ADULT"]
+    },
+    "contactsLocationsModule": {
+      "centralContacts": [
+        {
+          "name": "Reference Study ID Number: BO44426 https://forpatients.roche.com/",
+          "role": "CONTACT",
+          "phone": "888-662-6728 (U.S. and Canada)",
+          "email": "global-roche-genentech-trials@gene.com"
+        }
+      ],
+      "overallOfficials": [
+        {
+          "name": "Clinical Trials",
+          "affiliation": "Hoffmann-La Roche",
+          "role": "STUDY_DIRECTOR"
+        }
+      ],
+      "locations": [
+        {
+          "facility": "UCSD Moores Cancer Center",
+          "status": "RECRUITING",
+          "city": "La Jolla",
+          "state": "California",
+          "zip": "92093",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 32.8473,
+            "lon": -117.2742
+          }
+        },
+        {
+          "facility": "Yale Cancer Center",
+          "status": "RECRUITING",
+          "city": "New Haven",
+          "state": "Connecticut",
+          "zip": "06520",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 41.3081,
+            "lon": -72.9282
+          }
+        },
+        {
+          "facility": "NYU Langone Hospital - Long Island",
+          "status": "RECRUITING",
+          "city": "Mineola",
+          "state": "New York",
+          "zip": "11501",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 40.7493,
+            "lon": -73.6407
+          }
+        },
+        {
+          "facility": "NYU Cancer Center; NYU Cancer Institute",
+          "status": "RECRUITING",
+          "city": "New York",
+          "state": "New York",
+          "zip": "10016",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 40.7143,
+            "lon": -74.006
+          }
+        },
+        {
+          "facility": "MD Anderson Cancer Center; Oncology",
+          "status": "RECRUITING",
+          "city": "Houston",
+          "state": "Texas",
+          "zip": "77030",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 29.7633,
+            "lon": -95.3633
+          }
+        },
+        {
+          "facility": "Hospital Britanico; Oncologia",
+          "status": "RECRUITING",
+          "city": "Buenos Aires",
+          "zip": "C1280AEB",
+          "country": "Argentina",
+          "geoPoint": {
+            "lat": -34.6131,
+            "lon": -58.3772
+          }
+        },
+        {
+          "facility": "Clinica Adventista Belgrano; Oncology",
+          "status": "RECRUITING",
+          "city": "Ciudad Autonoma Buenos Aires",
+          "zip": "C1430EGF",
+          "country": "Argentina",
+          "geoPoint": {
+            "lat": -34.6131,
+            "lon": -58.3772
+          }
+        },
+        {
+          "facility": "Centro Oncologico Riojano Integral (CORI)",
+          "status": "RECRUITING",
+          "city": "La Rioja",
+          "zip": "F5300COE",
+          "country": "Argentina",
+          "geoPoint": {
+            "lat": -29.411,
+            "lon": -66.8507
+          }
+        },
+        {
+          "facility": "Concord Repatriation General Hospital; Concord Cancer Centre",
+          "status": "RECRUITING",
+          "city": "Concord",
+          "state": "New South Wales",
+          "zip": "2139",
+          "country": "Australia",
+          "geoPoint": {
+            "lat": -33.8472,
+            "lon": 151.1038
+          }
+        },
+        {
+          "facility": "Peter MacCallum Cancer Centre; Medical Oncology",
+          "status": "RECRUITING",
+          "city": "Melbourne",
+          "state": "Victoria",
+          "zip": "3000",
+          "country": "Australia",
+          "geoPoint": {
+            "lat": -37.814,
+            "lon": 144.9633
+          }
+        },
+        {
+          "facility": "Alfred Health",
+          "status": "RECRUITING",
+          "city": "Melbourne",
+          "state": "Victoria",
+          "zip": "3004",
+          "country": "Australia",
+          "geoPoint": {
+            "lat": -37.814,
+            "lon": 144.9633
+          }
+        },
+        {
+          "facility": "Cliniques Universitaires St-Luc",
+          "status": "RECRUITING",
+          "city": "Bruxelles",
+          "zip": "1200",
+          "country": "Belgium",
+          "geoPoint": {
+            "lat": 50.8505,
+            "lon": 4.3488
+          }
+        },
+        {
+          "facility": "Jessa Zkh (Campus Virga Jesse)",
+          "status": "RECRUITING",
+          "city": "Hasselt",
+          "zip": "3500",
+          "country": "Belgium",
+          "geoPoint": {
+            "lat": 50.9311,
+            "lon": 5.3378
+          }
+        },
+        {
+          "facility": "Clinique Ste-Elisabeth",
+          "status": "RECRUITING",
+          "city": "Namur",
+          "zip": "5000",
+          "country": "Belgium",
+          "geoPoint": {
+            "lat": 50.4669,
+            "lon": 4.8675
+          }
+        },
+        {
+          "facility": "AZ Delta (Campus Rumbeke)",
+          "status": "RECRUITING",
+          "city": "Roeselare",
+          "zip": "8800",
+          "country": "Belgium",
+          "geoPoint": {
+            "lat": 50.9465,
+            "lon": 3.1227
+          }
+        },
+        {
+          "facility": "Crio - Centro Regional Integrado de Oncologia",
+          "status": "WITHDRAWN",
+          "city": "Fortaleza",
+          "state": "CE",
+          "zip": "60336-232",
+          "country": "Brazil",
+          "geoPoint": {
+            "lat": -3.7172,
+            "lon": -38.5431
+          }
+        },
+        {
+          "facility": "Hospital Nossa Senhora da Conceicao",
+          "status": "WITHDRAWN",
+          "city": "Porto Alegre",
+          "state": "RS",
+          "zip": "90040-373",
+          "country": "Brazil",
+          "geoPoint": {
+            "lat": -30.0331,
+            "lon": -51.23
+          }
+        },
+        {
+          "facility": "Hospital de Cancer de Barretos",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "city": "Barretos",
+          "state": "SP",
+          "zip": "14784-400",
+          "country": "Brazil",
+          "geoPoint": {
+            "lat": -20.5572,
+            "lon": -48.5678
+          }
+        },
+        {
+          "facility": "Instituto do Cancer do Estado de Sao Paulo - ICESP",
+          "status": "RECRUITING",
+          "city": "Sao Paulo",
+          "state": "SP",
+          "zip": "01246-000",
+          "country": "Brazil",
+          "geoPoint": {
+            "lat": -23.5475,
+            "lon": -46.6361
+          }
+        },
+        {
+          "facility": "Princess Margaret Cancer Center",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "city": "Toronto",
+          "state": "Ontario",
+          "zip": "M5G 1Z5",
+          "country": "Canada",
+          "geoPoint": {
+            "lat": 43.7001,
+            "lon": -79.4163
+          }
+        },
+        {
+          "facility": "Jewish General Hospital",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "city": "Montreal",
+          "state": "Quebec",
+          "zip": "H3T 1E2",
+          "country": "Canada",
+          "geoPoint": {
+            "lat": 45.5088,
+            "lon": -73.5878
+          }
+        },
+        {
+          "facility": "Hunan Cancer Hospital",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "city": "Changsha CITY",
+          "zip": "410013",
+          "country": "China",
+          "geoPoint": {}
+        },
+        {
+          "facility": "Harbin Medical University Cancer Hospital",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "city": "Harbin",
+          "zip": "150081",
+          "country": "China",
+          "geoPoint": {
+            "lat": 45.75,
+            "lon": 126.65
+          }
+        },
+        {
+          "facility": "Shanghai Pulmonary Hospital",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "city": "Shanghai",
+          "zip": "200433",
+          "country": "China",
+          "geoPoint": {
+            "lat": 31.2222,
+            "lon": 121.4581
+          }
+        },
+        {
+          "facility": "Rambam Medical Center; Oncology",
+          "status": "RECRUITING",
+          "city": "Haifa",
+          "zip": "3109601",
+          "country": "Israel",
+          "geoPoint": {
+            "lat": 32.8184,
+            "lon": 34.9885
+          }
+        },
+        {
+          "facility": "Rabin MC; Davidof Center - Oncology Institute",
+          "status": "RECRUITING",
+          "city": "Petach Tikva",
+          "zip": "4941492",
+          "country": "Israel",
+          "geoPoint": {
+            "lat": 32.0871,
+            "lon": 34.8875
+          }
+        },
+        {
+          "facility": "Tel Aviv Sourasky Medical Ctr; Oncology",
+          "status": "RECRUITING",
+          "city": "Tel Aviv",
+          "zip": "6423906",
+          "country": "Israel",
+          "geoPoint": {
+            "lat": 32.0809,
+            "lon": 34.7806
+          }
+        },
+        {
+          "facility": "Istituto Nazionale Tumori Fondazione G. Pascale",
+          "status": "RECRUITING",
+          "city": "Napoli",
+          "state": "Campania",
+          "zip": "80131",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 40.8522,
+            "lon": 14.2681
+          }
+        },
+        {
+          "facility": "Policlinico Universitario Agostino Gemelli IRCCS; UOS Fase 1",
+          "status": "RECRUITING",
+          "city": "Roma",
+          "state": "Lazio",
+          "zip": "00168",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 41.8919,
+            "lon": 12.5113
+          }
+        },
+        {
+          "facility": "A.O. UNIVERSITARIA S. LUIGI GONZAGA; Oncologia Medica",
+          "status": "RECRUITING",
+          "city": "Orbassano",
+          "state": "Piemonte",
+          "zip": "10043",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 45.0055,
+            "lon": 7.5381
+          }
+        },
+        {
+          "facility": "Pusan National University Hospital",
+          "status": "RECRUITING",
+          "city": "Busan",
+          "zip": "602-739",
+          "country": "Korea, Republic of",
+          "geoPoint": {
+            "lat": 35.1028,
+            "lon": 129.0403
+          }
+        },
+        {
+          "facility": "Seoul National University Hospital",
+          "status": "RECRUITING",
+          "city": "Seoul",
+          "zip": "03080",
+          "country": "Korea, Republic of",
+          "geoPoint": {
+            "lat": 37.566,
+            "lon": 126.9784
+          }
+        },
+        {
+          "facility": "Asan Medical Center",
+          "status": "RECRUITING",
+          "city": "Seoul",
+          "zip": "05505",
+          "country": "Korea, Republic of",
+          "geoPoint": {
+            "lat": 37.566,
+            "lon": 126.9784
+          }
+        },
+        {
+          "facility": "Samsung Medical Center",
+          "status": "RECRUITING",
+          "city": "Seoul",
+          "zip": "06351",
+          "country": "Korea, Republic of",
+          "geoPoint": {
+            "lat": 37.566,
+            "lon": 126.9784
+          }
+        },
+        {
+          "facility": "Korea University Guro Hospital",
+          "status": "RECRUITING",
+          "city": "Seoul",
+          "zip": "08308",
+          "country": "Korea, Republic of",
+          "geoPoint": {
+            "lat": 37.566,
+            "lon": 126.9784
+          }
+        },
+        {
+          "facility": "NKI The Netherlands Cancer Institute",
+          "status": "RECRUITING",
+          "city": "Amsterdam",
+          "zip": "1066 CX",
+          "country": "Netherlands",
+          "geoPoint": {
+            "lat": 52.374,
+            "lon": 4.8897
+          }
+        },
+        {
+          "facility": "UMC St Radboud",
+          "status": "RECRUITING",
+          "city": "Nijmegen",
+          "zip": "6525 GA",
+          "country": "Netherlands",
+          "geoPoint": {
+            "lat": 51.8425,
+            "lon": 5.8528
+          }
+        },
+        {
+          "facility": "Uniwersyteckie Centrum Kliniczne; Osrodek Badan Wczesnych Faz",
+          "status": "RECRUITING",
+          "city": "Gda?sk",
+          "zip": "80-214",
+          "country": "Poland",
+          "geoPoint": {}
+        },
+        {
+          "facility": "Krakowski Szpital Specjalistyczny im sw. Jana Paw?a II; Oddzia? Onkologiczny",
+          "status": "RECRUITING",
+          "city": "Kraków",
+          "zip": "31-202",
+          "country": "Poland",
+          "geoPoint": {
+            "lat": 50.0614,
+            "lon": 19.9366
+          }
+        },
+        {
+          "facility": "Warminsko-Mazurskie Centrum Chorób P?uc w Olsztynie; Oddzial onkologii z pododdzialem chemioterapii",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "city": "Olsztyn",
+          "zip": "10-357",
+          "country": "Poland",
+          "geoPoint": {
+            "lat": 53.7799,
+            "lon": 20.4942
+          }
+        },
+        {
+          "facility": "ICO Badalona-H.U. Germans Trias i Pujol",
+          "status": "RECRUITING",
+          "city": "Badalona",
+          "state": "Barcelona",
+          "zip": "08916",
+          "country": "Spain",
+          "geoPoint": {
+            "lat": 41.45,
+            "lon": 2.2474
+          }
+        },
+        {
+          "facility": "NEXT Oncology-Hospital Quironsalud Madrid",
+          "status": "WITHDRAWN",
+          "city": "Pozuelo de Alarcon",
+          "state": "Madrid",
+          "zip": "28223",
+          "country": "Spain",
+          "geoPoint": {
+            "lat": 40.4329,
+            "lon": -3.8134
+          }
+        },
+        {
+          "facility": "Vall d?Hebron Institute of Oncology (VHIO), Barcelona",
+          "status": "RECRUITING",
+          "city": "Barcelona",
+          "zip": "08035",
+          "country": "Spain",
+          "geoPoint": {
+            "lat": 41.3888,
+            "lon": 2.159
+          }
+        },
+        {
+          "facility": "Hospital General Universitario Gregorio Marañon; Servicio de Oncologia",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "city": "Madrid",
+          "zip": "28009",
+          "country": "Spain",
+          "geoPoint": {
+            "lat": 40.4165,
+            "lon": -3.7026
+          }
+        },
+        {
+          "facility": "Hospital Universitario 12 de Octubre; Servicio de Oncologia",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "city": "Madrid",
+          "zip": "28041",
+          "country": "Spain",
+          "geoPoint": {
+            "lat": 40.4165,
+            "lon": -3.7026
+          }
+        },
+        {
+          "facility": "Hospital Universitario Virgen del Rocio; Servicio de Oncologia",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "city": "Sevilla",
+          "zip": "41013",
+          "country": "Spain",
+          "geoPoint": {
+            "lat": 37.3828,
+            "lon": -5.9732
+          }
+        },
+        {
+          "facility": "Hospital Clinico Universitario de Valencia; Servicio de Onco-hematologia",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "city": "Valencia",
+          "zip": "46010",
+          "country": "Spain",
+          "geoPoint": {
+            "lat": 39.4697,
+            "lon": -0.3774
+          }
+        },
+        {
+          "facility": "Sahlgrenska University Hospital; Sahlgrenska Clinical Trial unit / Department of Oncology",
+          "status": "RECRUITING",
+          "city": "Göteborg",
+          "zip": "413 45",
+          "country": "Sweden",
+          "geoPoint": {
+            "lat": 57.7072,
+            "lon": 11.9668
+          }
+        },
+        {
+          "facility": "Universitätsspital Basel; Oncology - Klinische Forschung",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "city": "Basel",
+          "zip": "4031",
+          "country": "Switzerland",
+          "geoPoint": {
+            "lat": 47.5584,
+            "lon": 7.5733
+          }
+        },
+        {
+          "facility": "Inselspital Bern; Universitätsklinik für Medizinische Onkologie, Klinische Forschungseinheit",
+          "status": "RECRUITING",
+          "city": "Bern",
+          "zip": "3010",
+          "country": "Switzerland",
+          "geoPoint": {
+            "lat": 46.9481,
+            "lon": 7.4474
+          }
+        },
+        {
+          "facility": "National Cheng Kung University Hospital; Internal Medicine",
+          "status": "RECRUITING",
+          "city": "North Dist.",
+          "zip": "70403",
+          "country": "Taiwan",
+          "geoPoint": {}
+        },
+        {
+          "facility": "Taichung Veterans General Hospital; Dept of Internal Medicine",
+          "status": "RECRUITING",
+          "city": "Taichung",
+          "zip": "407",
+          "country": "Taiwan",
+          "geoPoint": {
+            "lat": 24.1469,
+            "lon": 120.6839
+          }
+        },
+        {
+          "facility": "National Taiwan Uni Hospital; Internal Medicine",
+          "status": "RECRUITING",
+          "city": "Taipei",
+          "zip": "100",
+          "country": "Taiwan",
+          "geoPoint": {
+            "lat": 25.0478,
+            "lon": 121.5319
+          }
+        },
+        {
+          "facility": "Chang Gung Medical Foundation - Linkou; Chest Dept",
+          "status": "RECRUITING",
+          "city": "Taoyuan",
+          "zip": "333",
+          "country": "Taiwan",
+          "geoPoint": {
+            "lat": 24.9523,
+            "lon": 121.2019
+          }
+        },
+        {
+          "facility": "Adana City Hospital, Medical Oncology",
+          "status": "WITHDRAWN",
+          "city": "Adana",
+          "zip": "01060",
+          "country": "Turkey",
+          "geoPoint": {
+            "lat": 37.0017,
+            "lon": 35.3289
+          }
+        },
+        {
+          "facility": "Ankara Bilkent City Hospital",
+          "status": "WITHDRAWN",
+          "city": "Ankara",
+          "zip": "06490",
+          "country": "Turkey",
+          "geoPoint": {
+            "lat": 39.9199,
+            "lon": 32.8543
+          }
+        },
+        {
+          "facility": "Koc University Hospital; Oncology",
+          "status": "WITHDRAWN",
+          "city": "Istanbul",
+          "country": "Turkey",
+          "geoPoint": {
+            "lat": 41.0138,
+            "lon": 28.9497
+          }
+        },
+        {
+          "facility": "Beatson West of Scotland Cancer Centre",
+          "status": "RECRUITING",
+          "city": "Glasgow",
+          "zip": "G12 0YN",
+          "country": "United Kingdom",
+          "geoPoint": {
+            "lat": 55.8651,
+            "lon": -4.2576
+          }
+        },
+        {
+          "facility": "Barts & London School of Med; Medical Oncology",
+          "status": "RECRUITING",
+          "city": "London",
+          "zip": "EC1A 7BE",
+          "country": "United Kingdom",
+          "geoPoint": {
+            "lat": 51.5085,
+            "lon": -0.1257
+          }
+        }
+      ]
+    },
+    "ipdSharingStatementModule": {
+      "ipdSharing": ["YES"],
+      "description": ["Qualified researchers may request access to individual patient level data through the clinical study data request platform (www.vivli.org). Further details on Roche's criteria for eligible studies are available here (https://vivli.org/ourmember/roche/). For further details on Roche's Global Policy on the Sharing of Clinical Information and how to request access to related clinical study documents, see here (https://www.roche.com/research_and_development/who_we_are_how_we_work/clinical_trials/our_commitment_to_data_sharing.htm)."]
+    }
+  },
+  "derivedSection": {
+    "miscInfoModule": {
+      "versionHolder": ["2024-08-15"]
+    },
+    "conditionBrowseModule": {
+      "meshes": [
+        {
+          "id": "D000008175",
+          "term": "Lung Neoplasms"
+        },
+        {
+          "id": "D000002289",
+          "term": "Carcinoma, Non-Small-Cell Lung"
+        }
+      ],
+      "ancestors": [
+        {
+          "id": "D000012142",
+          "term": "Respiratory Tract Neoplasms"
+        },
+        {
+          "id": "D000013899",
+          "term": "Thoracic Neoplasms"
+        },
+        {
+          "id": "D000009371",
+          "term": "Neoplasms by Site"
+        },
+        {
+          "id": "D000009369",
+          "term": "Neoplasms"
+        },
+        {
+          "id": "D000008171",
+          "term": "Lung Diseases"
+        },
+        {
+          "id": "D000012140",
+          "term": "Respiratory Tract Diseases"
+        },
+        {
+          "id": "D000002283",
+          "term": "Carcinoma, Bronchogenic"
+        },
+        {
+          "id": "D000001984",
+          "term": "Bronchial Neoplasms"
+        }
+      ],
+      "browseLeaves": [
+        {
+          "id": "M11172",
+          "name": "Lung Neoplasms",
+          "asFound": "Lung Cancer",
+          "relevance": "HIGH"
+        },
+        {
+          "id": "M5546",
+          "name": "Carcinoma, Non-Small-Cell Lung",
+          "asFound": "Non-small Cell Lung Cancer",
+          "relevance": "HIGH"
+        },
+        {
+          "id": "M5534",
+          "name": "Carcinoma",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M14979",
+          "name": "Respiratory Tract Neoplasms",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M16658",
+          "name": "Thoracic Neoplasms",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M11168",
+          "name": "Lung Diseases",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M14977",
+          "name": "Respiratory Tract Diseases",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M5540",
+          "name": "Carcinoma, Bronchogenic",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M5260",
+          "name": "Bronchial Neoplasms",
+          "relevance": "LOW"
+        }
+      ],
+      "browseBranches": [
+        {
+          "abbrev": "BC04",
+          "name": "Neoplasms"
+        },
+        {
+          "abbrev": "BC08",
+          "name": "Respiratory Tract (Lung and Bronchial) Diseases"
+        },
+        {
+          "abbrev": "All",
+          "name": "All Conditions"
+        }
+      ]
+    },
+    "interventionBrowseModule": {
+      "meshes": [
+        {
+          "id": "D000016190",
+          "term": "Carboplatin"
+        },
+        {
+          "id": "C000582435",
+          "term": "Pembrolizumab"
+        },
+        {
+          "id": "D000068437",
+          "term": "Pemetrexed"
+        }
+      ],
+      "ancestors": [
+        {
+          "id": "D000000970",
+          "term": "Antineoplastic Agents"
+        },
+        {
+          "id": "D000074322",
+          "term": "Antineoplastic Agents, Immunological"
+        },
+        {
+          "id": "D000082082",
+          "term": "Immune Checkpoint Inhibitors"
+        },
+        {
+          "id": "D000045504",
+          "term": "Molecular Mechanisms of Pharmacological Action"
+        },
+        {
+          "id": "D000004791",
+          "term": "Enzyme Inhibitors"
+        },
+        {
+          "id": "D000005493",
+          "term": "Folic Acid Antagonists"
+        },
+        {
+          "id": "D000019384",
+          "term": "Nucleic Acid Synthesis Inhibitors"
+        }
+      ],
+      "browseLeaves": [
+        {
+          "id": "M18650",
+          "name": "Carboplatin",
+          "asFound": "System",
+          "relevance": "HIGH"
+        },
+        {
+          "id": "M349416",
+          "name": "Pembrolizumab",
+          "asFound": "Once daily",
+          "relevance": "HIGH"
+        },
+        {
+          "id": "M6182",
+          "name": "Cisplatin",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M264",
+          "name": "Pemetrexed",
+          "asFound": "Target",
+          "relevance": "HIGH"
+        },
+        {
+          "id": "M1346",
+          "name": "Antineoplastic Agents, Immunological",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M2342",
+          "name": "Immune Checkpoint Inhibitors",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M7951",
+          "name": "Enzyme Inhibitors",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M17546",
+          "name": "Vitamin B Complex",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M8618",
+          "name": "Folic Acid",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M8619",
+          "name": "Folic Acid Antagonists",
+          "relevance": "LOW"
+        },
+        {
+          "id": "T447",
+          "name": "Folinic Acid",
+          "relevance": "LOW"
+        },
+        {
+          "id": "T446",
+          "name": "Folic Acid",
+          "relevance": "LOW"
+        },
+        {
+          "id": "T448",
+          "name": "Folate",
+          "relevance": "LOW"
+        },
+        {
+          "id": "T475",
+          "name": "Vitamin B9",
+          "relevance": "LOW"
+        }
+      ],
+      "browseBranches": [
+        {
+          "abbrev": "ANeo",
+          "name": "Antineoplastic Agents"
+        },
+        {
+          "abbrev": "All",
+          "name": "All Drugs and Chemicals"
+        },
+        {
+          "abbrev": "Micro",
+          "name": "Micronutrients"
+        },
+        {
+          "abbrev": "Hemat",
+          "name": "Hematinics"
+        },
+        {
+          "abbrev": "Vi",
+          "name": "Vitamins"
+        }
+      ]
+    }
+  },
+  "hasResults": [false]
+}

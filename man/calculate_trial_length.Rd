@@ -2,19 +2,19 @@
 % Please edit documentation in R/create_ts_domain.R
 \name{calculate_trial_length}
 \alias{calculate_trial_length}
-\title{Calculate Trial Length in ISO 8601 Format}
+\title{Calculate Trial Length}
 \usage{
 calculate_trial_length(start_date, end_date)
 }
 \arguments{
-\item{start_date}{A character string representing the start date (YYYY-MM-DD).}
+\item{start_date}{The start date of the trial.}
 
-\item{end_date}{A character string representing the end date (YYYY-MM-DD).}
+\item{end_date}{The end date of the trial.}
 }
 \value{
-A character string representing the trial length in ISO 8601 format or NA if input is invalid.
+A character string representing the trial length in ISO 8601 duration format.
 }
 \description{
-Calculate Trial Length in ISO 8601 Format
+Calculate Trial Length
 }
 \keyword{internal}

@@ -2,17 +2,17 @@
 % Please edit documentation in R/create_ts_domain.R
 \name{convert_to_roman}
 \alias{convert_to_roman}
-\title{Convert Numeric Phase to Roman Numeral}
+\title{Convert Phase to Roman Numeral}
 \usage{
 convert_to_roman(phase)
 }
 \arguments{
-\item{phase}{A character string representing the phase.}
+\item{phase}{A character string representing the trial phase.}
 }
 \value{
-A character string with the phase converted to Roman numeral.
+A character string with the phase in Roman numeral format.
 }
 \description{
-Convert Numeric Phase to Roman Numeral
+Convert Phase to Roman Numeral
 }
 \keyword{internal}

@@ -2,17 +2,17 @@
 % Please edit documentation in R/create_ts_domain.R
 \name{format_date_iso8601}
 \alias{format_date_iso8601}
-\title{Format Dates in ISO 8601 Format}
+\title{Format Date to ISO 8601}
 \usage{
 format_date_iso8601(date)
 }
 \arguments{
-\item{date}{A character string representing a date.}
+\item{date}{A date string.}
 }
 \value{
-A character string formatted as YYYY-MM-DD or NA if input is invalid.
+A character string representing the date in ISO 8601 format.
 }
 \description{
-Format Dates in ISO 8601 Format
+Format Date to ISO 8601
 }
 \keyword{internal}

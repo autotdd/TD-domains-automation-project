@@ -2,17 +2,17 @@
 % Please edit documentation in R/create_ts_domain.R
 \name{clean_tsval}
 \alias{clean_tsval}
-\title{Clean TSVAL Values}
+\title{Clean TSVAL}
 \usage{
 clean_tsval(tsval)
 }
 \arguments{
-\item{tsval}{A character string representing TSVAL.}
+\item{tsval}{A character string representing a TSVAL.}
 }
 \value{
-A cleaned character string with unique TSVAL values.
+A cleaned character string.
 }
 \description{
-Clean TSVAL Values
+Clean TSVAL
 }
 \keyword{internal}

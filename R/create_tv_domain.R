@@ -13,9 +13,10 @@
 #' @importFrom openxlsx read.xlsx
 #' @examples
 #' \dontrun{
-#' study_id <- "AB12345"
-#' file_path <- "als.xlsx"
-#' tv_domain <- create_tv_domain(study_id, file_path)
+#' tv_domain <- create_tv_domain(
+#'   study_id ="AB12345" ,
+#'   file_path = "inst/extdata/Als_file.xlsx"
+#' )
 #' print(head(tv_domain))
 #' }
 

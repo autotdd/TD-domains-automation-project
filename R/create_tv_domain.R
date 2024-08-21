@@ -14,28 +14,30 @@
 #' @examples
 #' \dontrun{
 #' tv_domain <- create_tv_domain(
-#'   study_id ="AB12345" ,
-#'   file_path = "inst/extdata/Als_file.xlsx"
+#'   study_id ="AB12345"
 #' )
 #' print(head(tv_domain))
 #' }
 
-create_tv_domain <- function(study_id, file_path ) {
+create_tv_domain <- function(study_id ) {
 
-# Locate the TV summary file within the package
-  input_file <- system.file("extdata", "Als_file.xlsx", package = "autoTDD")
+  #  Get the path for the Als_file.xlsx excel file
 
-# to check the Study number's length
+  file_path <- system.file("extdata", "Als_file.xlsx", package = "autoTDD")
+
+
+
+  # to check the Study number's length
   if (nchar(study_id) != 7 ) {
     stop("Please enter correct study number. It should have 7 character length: ", study_id)
   }
 
-# to check the File exist or not
+  # to check the File exist or not
   if (!file.exists(file_path)) {
     stop("File does not exist at this location: ", file_path)
   }
 
-# if file present then to check the file extension is xlsx or not
+  # if file present then to check the file extension is xlsx or not
   if (grepl("xlsx", file_path, ignore.case = FALSE)) {
 
     cat("Xlsx file is present: ", file_path , "\n")
@@ -44,17 +46,17 @@ create_tv_domain <- function(study_id, file_path ) {
     stop("Please provide xlsx format file, As you have selected wrong format file that is: ", file_path)
   }
 
-# if correct ALS file is present then check for "Folders" sheet in the excel file
+  # if correct ALS file is present then check for "Folders" sheet in the excel file
 
   if(!"Folders" %in% excel_sheets(file_path) ){
     stop( "Excel file does not have sheet with the name Folders: , Please update correct ALS file: ",file_path )
-    }
+  }
 
 
   # Read the Excel file
-  data <- read.xlsx(file_path , sheet = 'Folders' )
+  data <- openxlsx::read.xlsx(file_path , sheet = 'Folders' )
 
-# to check if the column names exists or not
+  # to check if the column names exists or not
 
   if ( all(c("FolderName" , "Targetdays", "OverDueDays" ) %in% names(data)) ) {
     print("Excel sheet contains required column names (FolderName , Targetdays, OverDueDays)")
@@ -63,7 +65,7 @@ create_tv_domain <- function(study_id, file_path ) {
     stop("Excel sheet does not have required column names (FolderName , Targetdays, OverDueDays)")
   }
 
-# if Folders sheet present , all required columns present but there is no records
+  # if Folders sheet present , all required columns present but there is no records
 
   if ( nrow(data) == 0 ) {
     stop("Folders sheet is empty in the ALS file")
@@ -95,15 +97,18 @@ create_tv_domain <- function(study_id, file_path ) {
 
   data3$TVSTRL[data3$VISITDY == -28 ] <- "28 days prior to treatment"
 
- data3$VISIT[(grepl("Treatment Discontinuation", data3$VISIT, ignore.case = FALSE)) ] <- 'Treatment Discontinuation'
+  data3$VISIT[(grepl("Treatment Discontinuation", data3$VISIT, ignore.case = FALSE)) ] <- 'Treatment Discontinuation'
 
- data3$TVSTRL[(grepl("Treatment Discontinuation", data3$VISIT, ignore.case = FALSE)) ] <- '30 Days from final dose'
+  data3$TVSTRL[(grepl("Treatment Discontinuation", data3$VISIT, ignore.case = FALSE)) ] <- '30 Days from final dose'
 
-    data3 <- data3 %>% select(-due_day)
+  data3 <- data3 %>% select(-due_day)
+
+
+  # Write the output to an Excel file
+  output_file <- file.path("/cloud/project/inst/extdata", paste0(study_id, "_TV.xlsx"))
+  openxlsx::write.xlsx(data3, output_file)
 
   return(data3)
 
 }
-
-
 

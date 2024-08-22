@@ -4,7 +4,7 @@
 \alias{create_tv_domain}
 \title{Create TV Domain}
 \usage{
-create_tv_domain(study_id, file_path)
+create_tv_domain(study_id)
 }
 \arguments{
 \item{study_id}{A character string representing the Study ID.}
@@ -20,9 +20,9 @@ It will help to create VISIT related information in the TV data set.
 }
 \examples{
 \dontrun{
-study_id <- "AB12345"
-file_path <- "als.xlsx"
-tv_domain <- create_tv_domain(study_id, file_path)
+tv_domain <- create_tv_domain(
+  study_id ="AB12345")
+
 print(head(tv_domain))
 }
 }

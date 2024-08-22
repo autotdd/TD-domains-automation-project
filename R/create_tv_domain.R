@@ -14,8 +14,8 @@
 #' @examples
 #' \dontrun{
 #' tv_domain <- create_tv_domain(
-#'   study_id ="AB12345"
-#' )
+#'   study_id ="AB12345")
+#'
 #' print(head(tv_domain))
 #' }
 

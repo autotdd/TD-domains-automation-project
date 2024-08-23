@@ -146,8 +146,8 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
         return(NA)
       })
 
-      if (param %in% c("OUTMSPRI", "OUTMSSEC", "OUTMSEXP")) {
-        # Handle multiple outcome measures
+      if (param %in% c("OUTMSPRI", "OUTMSSEC", "OUTMSEXP", "TRT", "OBJPRIM", "OBJSEC")) {
+        # Handle multiple values
         if (length(mapped_value) > 1) {
           for (value in mapped_value) {
             new_row <- ts_summary[i, ]
@@ -227,6 +227,38 @@ process_study_info <- function(study_info, debug = FALSE) {
       print(str(study_info, max.level = 3))
     }
     return(data.frame())
+  }
+
+  safe_extract_interventions <- function(data) {
+    interventions <- safe_extract(data, c("armsInterventionsModule", "interventionList", "intervention"))
+    if (is.null(interventions) || length(interventions) == 0) {
+      if(debug) cat("No interventions found\n")
+      return(NA)
+    }
+
+    intervention_names <- sapply(interventions, function(intervention) {
+      name <- safe_extract(intervention, "name")
+      if(debug) cat("Intervention name found:", name, "\n")
+      return(name)
+    })
+
+    return(intervention_names)
+  }
+
+  safe_extract_objectives <- function(data, objective_type) {
+    objectives <- safe_extract(data, c("objectivesModule", paste0(objective_type, "Objectives")))
+    if (is.null(objectives) || length(objectives) == 0) {
+      if(debug) cat("No", objective_type, "objectives found\n")
+      return(NA)
+    }
+
+    objective_texts <- sapply(objectives, function(objective) {
+      text <- safe_extract(objective, "objectiveDescription")
+      if(debug) cat(objective_type, "objective found:", text, "\n")
+      return(text)
+    })
+
+    return(objective_texts)
   }
 
   safe_extract <- function(data, path, default = NA) {
@@ -334,6 +366,9 @@ process_study_info <- function(study_info, debug = FALSE) {
     interventions = paste(sapply(safe_extract(protocol, c("armsInterventionsModule", "interventionList", "intervention"), list()), function(x) safe_extract(x, "name")), collapse = "; "),
     eligibilityCriteria = safe_extract(protocol, c("eligibilityModule", "eligibilityCriteria")),
     studyType = safe_extract(protocol, c("designModule", "studyType")),
+    treatmentNames = I(list(safe_extract_interventions(protocol))),
+    primaryObjective = I(list(safe_extract_objectives(protocol, "primary"))),
+    secondaryObjectives = I(list(safe_extract_objectives(protocol, "secondary"))),
     stringsAsFactors = FALSE
   )
 
@@ -458,6 +493,29 @@ define_ts_mapping <- function() {
     HLTSUBJI = function(df) derive_healthy_subjects(df),
     EXTTIND = function(df) derive_extension_trial(df),
     PDSTIND = function(df) derive_pediatric_study(df),
+    TRT = function(df) {
+      treatments <- df$treatmentNames[[1]]
+      if (is.null(treatments) || all(is.na(treatments))) {
+        return(NA)
+      }
+      return(treatments)
+    },
+
+    OBJPRIM = function(df) {
+      objectives <- df$primaryObjective[[1]]
+      if (is.null(objectives) || all(is.na(objectives))) {
+        return(NA)
+      }
+      return(objectives)
+    },
+
+    OBJSEC = function(df) {
+      objectives <- df$secondaryObjectives[[1]]
+      if (is.null(objectives) || all(is.na(objectives))) {
+        return(NA)
+      }
+      return(objectives)
+    },
     LENGTH = function(df) {
       start_date <- as.Date(df$startDate)
       end_date <- as.Date(df$completionDate)

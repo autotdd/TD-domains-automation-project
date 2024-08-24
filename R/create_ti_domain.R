@@ -81,77 +81,192 @@ create_ti_domain <- function(study_id, method, pdf_path = NULL, nct_id = NULL,
 create_ti_domain_pdf <- function(study_id, pdf_path, incl_range, excl_range, incl_section, excl_section, end_section, output_dir) {
   debug_info <- ""
   
-  # Extract text from the specified page ranges of the PDF
-  pdf_text <- pdf_text(pdf_path)
-  debug_info <- paste0(debug_info, sprintf("Number of pages in PDF: %d\n", length(pdf_text)))
-  
-  inclusion_text <- paste(pdf_text[incl_range], collapse = "\n")
-  exclusion_text <- paste(pdf_text[excl_range], collapse = "\n")
-
-  debug_info <- paste0(debug_info, sprintf("Inclusion text (first 200 characters):\n%s...\n\n", substr(inclusion_text, 1, 200)))
-  debug_info <- paste0(debug_info, sprintf("Exclusion text (first 200 characters):\n%s...\n\n", substr(exclusion_text, 1, 200)))
-
-  # Extract Inclusion Criteria
-  debug_info <- paste0(debug_info, sprintf("Searching for inclusion section: %s\n", incl_section))
-  if (str_detect(inclusion_text, fixed(incl_section))) {
-    debug_info <- paste0(debug_info, "Inclusion section found\n")
-    inclusion_start <- str_locate(inclusion_text, fixed(incl_section))[1, 2]
-    exclusion_start <- str_locate(inclusion_text, fixed(excl_section))[1, 1]
-    inclusion_text <- str_sub(inclusion_text, inclusion_start + 1, exclusion_start - 1)
-
-    debug_info <- paste0(debug_info, sprintf("Extracted inclusion text (first 200 characters):\n%s...\n\n", substr(inclusion_text, 1, 200)))
-
-    # Treat each bullet point as a new criterion
-    inclusion_criteria <- extract_bullet_points(inclusion_text)
+  tryCatch({
+    pdf_text <- pdftools::pdf_text(pdf_path)
+    debug_info <- paste0(debug_info, sprintf("Number of pages in PDF: %d\n", length(pdf_text)))
+    
+    # Remove footnotes and headers
+    cleaned_result <- remove_footnotes_and_headers(pdf_text)
+    cleaned_text <- cleaned_result$cleaned_pages
+    debug_info <- paste0(debug_info, cleaned_result$debug_info)
+    
+    # Check if cleaned_text is empty
+    if (length(cleaned_text) == 0) {
+      stop("Failed to read PDF or PDF is empty after cleaning")
+    }
+    
+    # Check if incl_range and excl_range are within bounds
+    if (max(incl_range) > length(cleaned_text) || max(excl_range) > length(cleaned_text)) {
+      stop(sprintf("Specified page ranges are out of bounds. Cleaned PDF has %d pages, incl_range: %s, excl_range: %s", 
+                   length(cleaned_text), paste(incl_range, collapse="-"), paste(excl_range, collapse="-")))
+    }
+    
+    # Extract text for inclusion and exclusion criteria
+    inclusion_text <- paste(cleaned_text[incl_range], collapse = "\n")
+    exclusion_text <- paste(cleaned_text[excl_range], collapse = "\n")
+    
+    debug_info <- paste0(debug_info, "Inclusion text sample: ", substr(inclusion_text, 1, 200), "...\n")
+    debug_info <- paste0(debug_info, "Exclusion text sample: ", substr(exclusion_text, 1, 200), "...\n")
+    
+    # Extract criteria
+    inclusion_criteria <- extract_criteria(inclusion_text, incl_section)
+    exclusion_criteria <- extract_criteria(exclusion_text, excl_section)
+    
     debug_info <- paste0(debug_info, sprintf("Number of inclusion criteria: %d\n", length(inclusion_criteria)))
-    if (length(inclusion_criteria) > 0) {
-      debug_info <- paste0(debug_info, sprintf("First inclusion criterion: %s\n", inclusion_criteria[1]))
-      debug_info <- paste0(debug_info, sprintf("Last inclusion criterion: %s\n", inclusion_criteria[length(inclusion_criteria)]))
-    }
-  } else {
-    debug_info <- paste0(debug_info, "Inclusion section not found\n")
-    inclusion_criteria <- character(0)
-  }
-
-  # Extract Exclusion Criteria
-  debug_info <- paste0(debug_info, sprintf("Searching for exclusion section: %s\n", excl_section))
-  if (str_detect(exclusion_text, fixed(excl_section))) {
-    debug_info <- paste0(debug_info, "Exclusion section found\n")
-    exclusion_start <- str_locate(exclusion_text, fixed(excl_section))[1, 2]
-    end_section_pattern <- paste0("\\n", gsub("\\.", "\\\\.", end_section))
-    exclusion_end <- str_locate(exclusion_text, end_section_pattern)[1, 1]
-    if (!is.na(exclusion_end)) {
-      exclusion_text <- str_sub(exclusion_text, exclusion_start + 1, exclusion_end - 1)
-    } else {
-      exclusion_text <- str_sub(exclusion_text, exclusion_start + 1)
-    }
-
-    debug_info <- paste0(debug_info, sprintf("Extracted exclusion text (first 200 characters):\n%s...\n\n", substr(exclusion_text, 1, 200)))
-
-    # Treat each bullet point as a new criterion
-    exclusion_criteria <- extract_bullet_points(exclusion_text)
     debug_info <- paste0(debug_info, sprintf("Number of exclusion criteria: %d\n", length(exclusion_criteria)))
-    if (length(exclusion_criteria) > 0) {
-      debug_info <- paste0(debug_info, sprintf("First exclusion criterion: %s\n", exclusion_criteria[1]))
-      debug_info <- paste0(debug_info, sprintf("Last exclusion criterion: %s\n", exclusion_criteria[length(exclusion_criteria)]))
+    
+    # Create TI domain data frame
+    ti_domain <- data.frame(
+      STUDYID = study_id,
+      DOMAIN = "TI",
+      IETESTCD = c(paste0("INCL", sprintf("%03d", seq_along(inclusion_criteria))),
+                   paste0("EXCL", sprintf("%03d", seq_along(exclusion_criteria)))),
+      IETEST = c(rep("Inclusion Criteria", length(inclusion_criteria)),
+                 rep("Exclusion Criteria", length(exclusion_criteria))),
+      IECAT = "",
+      IESCAT = "",
+      IEORRES = c(inclusion_criteria, exclusion_criteria),
+      stringsAsFactors = FALSE
+    )
+    
+    # Save to Excel if there's data
+    if (nrow(ti_domain) > 0) {
+      excel_file <- file.path(output_dir, paste0(study_id, "_TI.xlsx"))
+      openxlsx::write.xlsx(ti_domain, excel_file)
+      debug_info <- paste0(debug_info, "Excel file saved: ", excel_file, "\n")
+    } else {
+      debug_info <- paste0(debug_info, "No data to save to Excel.\n")
     }
-  } else {
-    debug_info <- paste0(debug_info, "Exclusion section not found\n")
-    exclusion_criteria <- character(0)
+    
+    return(list(ti_domain = ti_domain, debug_info = debug_info))
+  }, error = function(e) {
+    error_msg <- paste("Error in create_ti_domain_pdf:", e$message, "\n")
+    return(list(ti_domain = data.frame(), debug_info = paste0(debug_info, error_msg)))
+  })
+}
+
+extract_criteria <- function(text, section_header) {
+  lines <- strsplit(text, "\n")[[1]]
+  start_index <- which(grepl(section_header, lines, ignore.case = TRUE))
+  
+  if (length(start_index) == 0) {
+    warning(sprintf("Section header '%s' not found in the text. Searching for alternatives.", section_header))
+    alternative_headers <- c("Inclusion Criteria", "Exclusion Criteria", "Eligibility Criteria")
+    for (alt_header in alternative_headers) {
+      start_index <- which(grepl(alt_header, lines, ignore.case = TRUE))
+      if (length(start_index) > 0) {
+        warning(sprintf("Alternative header '%s' found.", alt_header))
+        break
+      }
+    }
+    if (length(start_index) == 0) {
+      return(character(0))
+    }
   }
+  
+  criteria <- character(0)
+  current_criterion <- ""
+  
+  for (i in (start_index[1] + 1):length(lines)) {
+    line <- trimws(lines[i])
+    if (nchar(line) == 0) next
+    
+    # Check for new criterion (bullet point or number)
+    if (grepl("^(•|\\d+\\.|-|[a-z]\\))", line) && nchar(current_criterion) > 0) {
+      criteria <- c(criteria, trim_and_clean(current_criterion))
+      current_criterion <- ""
+    }
+    
+    # Remove bullet points and numbers at the start of the line
+    line <- gsub("^(•|\\d+\\.|-|[a-z]\\))\\s*", "", line)
+    
+    current_criterion <- paste(current_criterion, line)
+    
+    # Check if we've reached the end of the criteria section
+    if (grepl("(Exclusion Criteria|Study Procedures|Investigational Medicinal Products)", line, ignore.case = TRUE)) {
+      break
+    }
+  }
+  
+  if (nchar(current_criterion) > 0) {
+    criteria <- c(criteria, trim_and_clean(current_criterion))
+  }
+  
+  return(criteria)
+}
 
-  # Create a data frame for the TI domain
-  ti_domain <- data.frame(
-    STUDYID = study_id,
-    DOMAIN = "TI",
-    IETESTCD = c(rep("INCL", length(inclusion_criteria)), rep("EXCL", length(exclusion_criteria))),
-    IETEST = c(rep("Inclusion Criteria", length(inclusion_criteria)), rep("Exclusion Criteria", length(exclusion_criteria))),
-    IECAT = "",
-    IESCAT = "",
-    IEORRES = c(inclusion_criteria, exclusion_criteria)
-  )
+trim_and_clean <- function(text, max_length = 200) {
+  text <- gsub("^\\s+|\\s+$", "", text)  # Remove leading and trailing whitespace
+  text <- gsub("\\s+", " ", text)  # Replace multiple spaces with a single space
+  if (nchar(text) > max_length) {
+    text <- substr(text, 1, max_length - 23)  # Truncate to 177 characters (200 - 23 for the added text)
+    text <- paste0(trimws(text), "... (As per the protocol)")
+  }
+  return(text)
+}
 
-  return(list(ti_domain = ti_domain, debug_info = debug_info))
+library(stringdist)
+
+remove_footnotes_and_headers <- function(pages) {
+  debug_info <- ""
+  
+  tryCatch({
+    # Split each page into lines
+    page_lines <- lapply(pages, function(page) strsplit(page, "\n")[[1]])
+    debug_info <- paste0(debug_info, sprintf("Number of pages: %d\n", length(page_lines)))
+    
+    # Check for empty pages
+    page_lengths <- sapply(page_lines, length)
+    debug_info <- paste0(debug_info, "Page lengths: ", paste(page_lengths, collapse = ", "), "\n")
+    
+    # Remove empty pages
+    non_empty_pages <- page_lines[page_lengths > 0]
+    debug_info <- paste0(debug_info, sprintf("Number of non-empty pages: %d\n", length(non_empty_pages)))
+    
+    if (length(non_empty_pages) == 0) {
+      stop("All pages are empty")
+    }
+    
+    # Find the minimum number of lines across all non-empty pages
+    min_lines <- min(sapply(non_empty_pages, length))
+    debug_info <- paste0(debug_info, sprintf("Minimum number of lines per non-empty page: %d\n", min_lines))
+    
+    # Identify repetitive text
+    all_lines <- unlist(non_empty_pages)
+    line_counts <- table(all_lines)
+    frequent_lines <- names(line_counts[line_counts > length(non_empty_pages) * 0.5])
+    
+    debug_info <- paste0(debug_info, sprintf("Number of frequent lines identified: %d\n", length(frequent_lines)))
+    
+    # Print identified footnotes/headers
+    debug_info <- paste0(debug_info, "Identified frequent lines (potential footnotes/headers):\n")
+    for (i in seq_along(frequent_lines)) {
+      debug_info <- paste0(debug_info, sprintf("%d. %s\n", i, frequent_lines[i]))
+    }
+    
+    # Clean pages
+    cleaned_pages <- lapply(non_empty_pages, function(page) {
+      # Remove frequent lines
+      page <- page[!sapply(page, function(line) {
+        any(sapply(frequent_lines, function(freq_line) {
+          1 - stringdist(line, freq_line, method = "lv") / max(nchar(line), nchar(freq_line)) >= 0.9
+        }))
+      })]
+      
+      # Remove empty lines
+      page <- page[nchar(trimws(page)) > 0]
+      
+      # Join lines back into a single string
+      paste(page, collapse = "\n")
+    })
+    
+    debug_info <- paste0(debug_info, sprintf("Number of pages after cleaning: %d\n", length(cleaned_pages)))
+    
+    return(list(cleaned_pages = cleaned_pages, debug_info = debug_info))
+  }, error = function(e) {
+    error_msg <- paste("Error in remove_footnotes_and_headers:", e$message, "\n")
+    return(list(cleaned_pages = pages, debug_info = paste0(debug_info, error_msg)))
+  })
 }
 
 #' Create TI Domain from API
@@ -222,8 +337,6 @@ process_ti_domain <- function(inclusion_criteria_df, exclusion_criteria_df, stud
    return(ti_domain)
 }
 
-# Helper functions (extract_criteria, handle_text_length, etc.) remain the same as in the previous version
-
 #' Save TI Domain to Excel
 #'
 #' This function saves the TI domain data frame to an Excel file with formatting.
@@ -237,145 +350,25 @@ save_ti_domain_to_excel <- function(ti_domain, study_id, output_dir) {
   addWorksheet(wb, "TI_Domain")
   writeData(wb, "TI_Domain", ti_domain)
 
-  # Set column width for IETEST to show at least 100 characters
-  setColWidths(wb, "TI_Domain", cols = 4, widths = 100)
+  # Set column widths
+  setColWidths(wb, "TI_Domain", cols = 1:6, widths = c(10, 10, 10, 20, 10, 10))
+  setColWidths(wb, "TI_Domain", cols = 7, widths = 150)  # IEORRES column
 
   # Apply text wrapping to all columns
-  wrapStyle <- createStyle(wrapText = TRUE)
+  wrapStyle <- createStyle(wrapText = TRUE, valign = "top")
   addStyle(wb, "TI_Domain", style = wrapStyle, rows = 1:(nrow(ti_domain) + 1), cols = 1:ncol(ti_domain), gridExpand = TRUE)
 
-  saveWorkbook(wb, file_name, overwrite = TRUE)
-}
+  # Set row height to accommodate wrapped text
+  setRowHeights(wb, "TI_Domain", rows = 2:(nrow(ti_domain) + 1), heights = 60)
 
-#' Extract Criteria
-#'
-#' This function extracts and cleans inclusion or exclusion criteria from the given text.
-#'
-#' @param text A character string containing criteria text.
-#' @param type A character string, either "INCL" for inclusion or "EXCL" for exclusion.
-#' @return A data frame with extracted criteria.
-#' @keywords internal
-extract_criteria <- function(text, type) {
-  if (is.na(text) || is.null(text)) {
-    return(data.frame(IETESTCD = character(0), IETEST = character(0), IECAT = character(0), stringsAsFactors = FALSE))
-  }
+  debug_info <- sprintf("Attempting to save Excel file: %s\n", file_name)
 
-  # Split the text by newlines and bullets
-  criteria <- unlist(str_split(text, "\\n\\*\\s|\\n\\*|\\n\\n\\*\\s|\\*\\s"))
+  tryCatch({
+    saveWorkbook(wb, file_name, overwrite = TRUE)
+    debug_info <- paste0(debug_info, sprintf("Excel file saved successfully: %s\n", file_name))
+  }, error = function(e) {
+    debug_info <- paste0(debug_info, sprintf("Error saving Excel file: %s\n", e$message))
+  })
 
-  # Remove any empty strings and NA values
-  criteria <- criteria[criteria != "" & !is.na(criteria)]
-
-  # Remove initial descriptive text if present
-  criteria <- criteria[!grepl("Inclusion Criteria|Exclusion Criteria", criteria, ignore.case = TRUE)]
-
-  # Handle text length exceeding 200 characters
-  criteria <- sapply(criteria, handle_text_length, max_length = 200)
-
-  # Create a data frame for the criteria
-  criteria_df <- data.frame(
-    IETESTCD = paste0(type, seq_along(criteria)),
-    IETEST = criteria,
-    IECAT = type,
-    stringsAsFactors = FALSE
-  )
-
-  return(criteria_df)
-}
-
-#' Handle Text Length
-#'
-#' This function truncates text exceeding a maximum length and adds a suffix.
-#'
-#' @param text A character string to be processed.
-#' @param max_length An integer specifying the maximum allowed length.
-#' @return A character string truncated to the specified length if necessary.
-#' @keywords internal
-handle_text_length <- function(text, max_length = 200) {
-  if (is.na(text) || text == "") {
-    return(NA_character_)
-  }
-  suffix <- "(As per the protocol)"
-  suffix_length <- nchar(suffix)
-
-  if (nchar(text) > (max_length - suffix_length)) {
-    truncated_text <- str_sub(text, 1, max_length - suffix_length - 1)
-    last_space <- str_locate_all(truncated_text, " ")[[1]]
-    if (!is.null(last_space) && nrow(last_space) > 0) {
-      last_space_position <- last(last_space[, 1])
-      text <- str_sub(truncated_text, 1, last_space_position - 1)
-    }
-    text <- paste0(text, " ", suffix)
-  }
-  return(text)
-}
-
-#' Extract Header and Footer Pattern
-#'
-#' This function extracts common header and footer patterns from PDF text.
-#'
-#' @param pdf_text A character vector containing the text of PDF pages.
-#' @return A character vector of common patterns.
-#' @keywords internal
-extract_header_footer_pattern <- function(pdf_text) {
-  common_patterns <- c()
-  for (page_text in pdf_text) {
-    lines <- str_split(page_text, "\n")[[1]]
-    header <- lines[1]
-    footer <- lines[length(lines)]
-    common_patterns <- c(common_patterns, header, footer)
-  }
-  common_patterns <- unique(common_patterns)
-  return(common_patterns)
-}
-
-#' Replace Special Characters and Trim
-#'
-#' This function replaces special characters and trims whitespace from text.
-#'
-#' @param text A character string to be processed.
-#' @return A processed character string.
-#' @keywords internal
-replace_special_chars_and_trim <- function(text) {
-  text <- str_replace_all(text, ">=", "greater than or equal to")
-  text <- str_replace_all(text, "<=", "less than or equal to")
-  text <- str_replace_all(text, "<", "less than")
-  text <- str_replace_all(text, ">", "greater than")
-  text <- str_replace_all(text, "-", "to")
-  text <- str_replace_all(text, "\\s{2,}", " ") # Replace multiple spaces with a single space
-  text <- str_trim(text) # Trim leading and trailing spaces
-  return(text)
-}
-
-# Helper function to extract bullet points more dynamically
-extract_bullet_points <- function(text) {
-  # Split the text into lines
-  lines <- strsplit(text, "\n")[[1]]
-  
-  # Define a regex pattern for bullet points
-  bullet_pattern <- "^\\s*•\\s*|^\\s*\\d+\\.\\s*|^\\s*[a-z]\\)\\s*|^\\s*[A-Z]\\)\\s*"
-  
-  criteria <- character(0)
-  current_criterion <- ""
-  
-  for (line in lines) {
-    if (grepl(bullet_pattern, line)) {
-      if (current_criterion != "") {
-        criteria <- c(criteria, trimws(current_criterion))
-      }
-      current_criterion <- gsub(bullet_pattern, "", line)
-    } else {
-      current_criterion <- paste(current_criterion, line)
-    }
-  }
-  
-  # Add the last criterion if it exists
-  if (current_criterion != "") {
-    criteria <- c(criteria, trimws(current_criterion))
-  }
-  
-  # Remove any empty criteria
-  criteria <- criteria[criteria != ""]
-  
-  return(criteria)
+  return(debug_info)
 }

@@ -94,7 +94,7 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
       }
       return(processed_info)
     }, error = function(e) {
-      warning(paste("Error processing NCT ID:", nct_id, "- ", e$message))
+      warning(paste("Error processing NCT ID:", nct_id, "-", e$message))
       if(debug) {
         cat("Error details:\n")
         print(e)
@@ -127,14 +127,13 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
   # Initialize an empty list to store TS rows
   ts_rows <- list()
 
-  # Map the fetched data to TSVAL based on TSPARM labels
-  ts_rows <- list()
+  # In the create_ts_domain function, replace the existing mapping loop with this:
   for (i in 1:nrow(ts_summary)) {
     param <- ts_summary$TSPARMCD[i]
     if (param %in% names(ts_mapping)) {
       mapped_value <- tryCatch({
         if(debug) cat("Mapping", param, "\n")
-        result <- ts_mapping[[param]](trial_df)
+        result <- ts_mapping[[param]](trial_data)
         if(debug) cat("Mapped value for", param, ":", toString(result), "\n")
         result
       }, error = function(e) {
@@ -143,10 +142,10 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
           cat("Error details for", param, ":\n")
           print(e)
         }
-        return(NA)
+        return("NA")
       })
-
-      if (param %in% c("OUTMSPRI", "OUTMSSEC", "OUTMSEXP", "TRT", "OBJPRIM", "OBJSEC")) {
+      
+      if (param %in% c("OBJPRIM", "OBJSEC", "OUTMSPRI", "OUTMSSEC", "FCNTRY")) {
         # Handle multiple values
         if (length(mapped_value) > 1) {
           for (value in mapped_value) {
@@ -156,22 +155,18 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
           }
         } else {
           new_row <- ts_summary[i, ]
-          new_row$TSVAL <- if (length(mapped_value) == 1) mapped_value else NA
+          new_row$TSVAL <- if (length(mapped_value) == 1) mapped_value else "NA"
           ts_rows[[length(ts_rows) + 1]] <- new_row
         }
       } else {
         # Handle other parameters
         new_row <- ts_summary[i, ]
-        if (!is.null(mapped_value) && !all(is.na(mapped_value))) {
-          new_row$TSVAL <- paste(unique(na.omit(mapped_value)), collapse = "; ")
-        } else {
-          new_row$TSVAL <- NA
-        }
+        new_row$TSVAL <- if (length(mapped_value) == 1) mapped_value else "NA"
         ts_rows[[length(ts_rows) + 1]] <- new_row
       }
     } else {
       new_row <- ts_summary[i, ]
-      new_row$TSVAL <- NA
+      new_row$TSVAL <- "NA"
       ts_rows[[length(ts_rows) + 1]] <- new_row
     }
   }
@@ -217,167 +212,23 @@ process_study_info <- function(study_info, debug = FALSE) {
     return(data.frame())
   }
 
-  # Try to find the ProtocolSection
-  protocol <- study_info[[1]]$protocolSection
+  tryCatch({
+    # Preserve the entire structure
+    result <- study_info[[1]]
 
-  if(is.null(protocol)) {
     if(debug) {
-      cat("Error: ProtocolSection not found in study_info\n")
-      cat("study_info structure:\n")
-      print(str(study_info, max.level = 3))
-    }
-    return(data.frame())
-  }
-
-  safe_extract_interventions <- function(data) {
-    interventions <- safe_extract(data, c("armsInterventionsModule", "interventionList", "intervention"))
-    if (is.null(interventions) || length(interventions) == 0) {
-      if(debug) cat("No interventions found\n")
-      return(NA)
+      cat("Processed study info structure:\n")
+      print(str(result, max.level = 2))
     }
 
-    intervention_names <- sapply(interventions, function(intervention) {
-      name <- safe_extract(intervention, "name")
-      if(debug) cat("Intervention name found:", name, "\n")
-      return(name)
-    })
-
-    return(intervention_names)
-  }
-
-  safe_extract_objectives <- function(data, objective_type) {
-    objectives <- safe_extract(data, c("objectivesModule", paste0(objective_type, "Objectives")))
-    if (is.null(objectives) || length(objectives) == 0) {
-      if(debug) cat("No", objective_type, "objectives found\n")
-      return(NA)
-    }
-
-    objective_texts <- sapply(objectives, function(objective) {
-      text <- safe_extract(objective, "objectiveDescription")
-      if(debug) cat(objective_type, "objective found:", text, "\n")
-      return(text)
-    })
-
-    return(objective_texts)
-  }
-
-  safe_extract <- function(data, path, default = NA) {
-    if(debug) cat("Extracting:", paste(path, collapse = "$"), "\n")
-    result <- tryCatch({
-      value <- data
-      for(p in path) {
-        if(is.null(value[[p]])) {
-          if(debug) cat("Path element not found:", p, "\n")
-          return(default)
-        }
-        value <- value[[p]]
-      }
-      value
-    }, error = function(e) {
-      if(debug) cat("Error extracting:", paste(path, collapse = "$"), "-", e$message, "\n")
-      default
-    })
-    if (length(result) == 0) default else result
-  }
-
-  safe_extract_locations <- function(data) {
-    if(debug) cat("Extracting locations\n")
-    locations <- safe_extract(data, c("contactsLocationsModule", "locationList"))
-    if (is.null(locations) || length(locations) == 0) {
-      if(debug) cat("No locations found\n")
-      return(NA)
-    }
-
-    location_strings <- sapply(locations, function(loc) {
-      facility <- safe_extract(loc, "facility")
-      city <- safe_extract(loc, "city")
-      country <- safe_extract(loc, "country")
-      if(debug) cat("Location found:", paste(facility, city, country, sep = ", "), "\n")
-      paste(facility, city, country, sep = ", ")
-    })
-
-    result <- paste(location_strings, collapse = "; ")
-    if(debug) cat("Final locations string:", result, "\n")
     return(result)
-  }
-
-  safe_extract_outcomes <- function(data, outcome_type) {
-    outcomes <- safe_extract(data, c("outcomesModule", paste0(outcome_type, "OutcomeList"), paste0(outcome_type, "Outcome")))
-    if (is.null(outcomes) || length(outcomes) == 0) {
-      if(debug) cat("No", outcome_type, "outcomes found\n")
-      return(NA)
+  }, error = function(e) {
+    if(debug) {
+      cat("Error in process_study_info:", conditionMessage(e), "\n")
+      print(e)
     }
-
-    outcome_measures <- sapply(outcomes, function(outcome) {
-      measure <- safe_extract(outcome, "measure")
-      if(debug) cat(outcome_type, "outcome measure found:", measure, "\n")
-      return(measure)
-    })
-
-    return(outcome_measures)
-  }
-
-  convert_age_to_iso8601 <- function(age) {
-    if (is.na(age) || is.null(age)) return(NA)
-
-    age_value <- as.numeric(gsub("[^0-9.]", "", age))
-    if (grepl("year", tolower(age))) {
-      return(paste0("P", age_value, "Y"))
-    } else if (grepl("month", tolower(age))) {
-      return(paste0("P", age_value, "M"))
-    } else if (grepl("week", tolower(age))) {
-      return(paste0("P", age_value, "W"))
-    } else if (grepl("day", tolower(age))) {
-      return(paste0("P", age_value, "D"))
-    } else {
-      return(age)  # Return original if format is not recognized
-    }
-  }
-
-  result <- data.frame(
-    nctId = safe_extract(protocol, c("identificationModule", "nctId")),
-    orgStudyId = safe_extract(protocol, c("identificationModule", "orgStudyIdInfo", "id")),
-    briefTitle = safe_extract(protocol, c("identificationModule", "briefTitle")),
-    officialTitle = safe_extract(protocol, c("identificationModule", "officialTitle")),
-    overallStatus = safe_extract(protocol, c("statusModule", "overallStatus")),
-    startDate = safe_extract(protocol, c("statusModule", "startDateStruct", "date")),
-    primaryCompletionDate = safe_extract(protocol, c("statusModule", "primaryCompletionDateStruct", "date")),
-    completionDate = safe_extract(protocol, c("statusModule", "completionDateStruct", "date")),
-    phase = safe_extract(protocol, c("designModule", "phaseList", "phase")),
-    enrollment = safe_extract(protocol, c("designModule", "enrollmentInfo", "count")),
-    enrollmentType = safe_extract(protocol, c("designModule", "enrollmentInfo", "type")),
-    condition = paste(safe_extract(protocol, c("conditionsModule", "conditionList", "condition"), character(0)), collapse = "; "),
-    interventionModel = safe_extract(protocol, c("designModule", "designInfo", "interventionModel")),
-    interventionType = paste(sapply(safe_extract(protocol, c("armsInterventionsModule", "interventionList", "intervention"), list()), function(x) safe_extract(x, "type")), collapse = "; "),
-    numberOfArms = length(safe_extract(protocol, c("armsInterventionsModule", "armGroupList", "armGroup"), list())),
-    masking = safe_extract(protocol, c("designModule", "designInfo", "maskingInfo", "masking")),
-    allocation = safe_extract(protocol, c("designModule", "designInfo", "allocation")),
-    ageMin = convert_age_to_iso8601(safe_extract(protocol, c("eligibilityModule", "minimumAge"))),
-    ageMax = convert_age_to_iso8601(safe_extract(protocol, c("eligibilityModule", "maximumAge"))),
-    gender = safe_extract(protocol, c("eligibilityModule", "sex")),
-    healthyVolunteers = safe_extract(protocol, c("eligibilityModule", "healthyVolunteers")),
-    sponsor = safe_extract(protocol, c("sponsorCollaboratorsModule", "leadSponsor", "name")),
-    collaborators = paste(sapply(safe_extract(protocol, c("sponsorCollaboratorsModule", "collaboratorList", "collaborator"), list()), function(x) safe_extract(x, "name")), collapse = "; "),
-    locations = safe_extract_locations(protocol),
-    primaryOutcomeMeasures = I(list(safe_extract_outcomes(protocol, "primary"))),
-    secondaryOutcomeMeasures = I(list(safe_extract_outcomes(protocol, "secondary"))),
-    otherOutcomeMeasures = I(list(safe_extract_outcomes(protocol, "other"))),
-    armGroupLabels = paste(sapply(safe_extract(protocol, c("armsInterventionsModule", "armGroupList", "armGroup"), list()), function(x) safe_extract(x, "label")), collapse = "; "),
-    interventions = paste(sapply(safe_extract(protocol, c("armsInterventionsModule", "interventionList", "intervention"), list()), function(x) safe_extract(x, "name")), collapse = "; "),
-    eligibilityCriteria = safe_extract(protocol, c("eligibilityModule", "eligibilityCriteria")),
-    studyType = safe_extract(protocol, c("designModule", "studyType")),
-    treatmentNames = I(list(safe_extract_interventions(protocol))),
-    primaryObjective = I(list(safe_extract_objectives(protocol, "primary"))),
-    secondaryObjectives = I(list(safe_extract_objectives(protocol, "secondary"))),
-    stringsAsFactors = FALSE
-  )
-
-  if(debug) {
-    cat("Processed study info:\n")
-    print(result)
-  }
-
-  return(result)
+    return(data.frame())  # Return an empty data frame on error
+  })
 }
 
 
@@ -398,8 +249,8 @@ format_date_iso8601 <- function(date) {
 #' @return A list containing the TS mapping.
 #' @keywords internal
 define_ts_mapping <- function() {
-  list(
-    STUDYID = function(df) df$orgStudyId,
+  mapping <- list(
+    STUDYID = function(df) df[[1]]$protocolSection$identificationModule$nctId,
     DOMAIN = function(df) "TS",
     TSSEQ = function(df) seq_len(nrow(df)),
     TSPARMCD = function(df) names(df),
@@ -409,92 +260,412 @@ define_ts_mapping <- function() {
     TSVALCD = function(df) NA,
     TSVCDREF = function(df) NA,
     TSVCDVER = function(df) NA,
-    TITLE = function(df) df$officialTitle,
-    TPHASE = function(df) convert_to_roman(df$phase),
-    INDIC = function(df) df$condition,
-    TDIGRP = function(df) df$condition,
-    THERAREA = function(df) derive_therapeutic_area(df$condition, df$interventions),
-    REGID = function(df) df$nctId,
-    INTTYPE = function(df) unique(df$interventionType),
-    STYPE = function(df) df$studyType,
-    TTYPE = function(df) derive_trial_type(df),
-    ACTSUB = function(df) df$enrollment,
-    PLANSUB = function(df) df$enrollment,
-    SENDTC = function(df) format_date_iso8601(df$completionDate),
-    SSTDTC = function(df) format_date_iso8601(df$startDate),
-    ADAPT = function(df) derive_adaptive_design(df),
-    ADDON = function(df) derive_addon_treatment(df),
-    AGEMAX = function(df) df$ageMax,
-    AGEMIN = function(df) df$ageMin,
-    COMPTRT = function(df) derive_comparative_treatment(df),
-    CURTRT = function(df) df$interventions,
-    DCUTDESC = function(df) derive_data_cutoff_description(df),
-    DCUTDTC = function(df) format_date_iso8601(df$primaryCompletionDate),
-    EGBLIND = function(df) df$masking,
-    INTMODEL = function(df) df$interventionModel,
-    NARMS = function(df) df$numberOfArms,
-    ONGOSIND = function(df) ifelse(df$overallStatus %in% c("Recruiting", "Active, not recruiting"), "Y", "N"),
-    OUTMSPRI = function(df) {
-      measures <- df$primaryOutcomeMeasures[[1]]
-      if (is.null(measures) || all(is.na(measures))) {
+    TITLE = function(df) df[[1]]$protocolSection$identificationModule$briefTitle,
+    TPHASE = function(df) {
+      phase <- df[[1]]$protocolSection$identificationModule$phase
+      if (is.null(phase) || is.na(phase) || length(phase) == 0) {
         return(NA)
       }
-      return(measures)
+      phase <- toupper(phase)
+      roman_phases <- c(
+        "PHASE 1" = "I", "PHASE 2" = "II", "PHASE 3" = "III", "PHASE 4" = "IV",
+        "PHASE 1/PHASE 2" = "I/II", "PHASE 2/PHASE 3" = "II/III",
+        "EARLY PHASE 1" = "Early I", "NOT APPLICABLE" = "N/A"
+      )
+
+      if (phase %in% names(roman_phases)) {
+        return(roman_phases[phase])
+      } else {
+        return(phase)  # Return original if no match found
+      }
+    },
+    INDIC = function(df) df[[1]]$protocolSection$conditionsModule$conditions[[1]],
+    TDIGRP = function(df) df[[1]]$protocolSection$conditionsModule$conditions[[1]],
+    THERAREA = function(df) {
+      condition <- df[[1]]$protocolSection$conditionsModule$conditions[[1]]
+      interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions[[1]]$type
+      if (is.na(condition) || is.na(interventions)) {
+        return(NA)
+      }
+      if (grepl("cancer|neoplasm|tumor|carcinoma", condition, ignore.case = TRUE)) {
+        return("Oncology")
+      } else if (grepl("heart|cardio|stroke", condition, ignore.case = TRUE)) {
+        return("Cardiovascular")
+      } else if (grepl("diabetes|endocrine", condition, ignore.case = TRUE)) {
+        return("Endocrinology")
+      } else if (grepl("neuro|brain|alzheimer|parkinson", condition, ignore.case = TRUE)) {
+        return("Neurology")
+      } else if (grepl("psych|depression|anxiety", condition, ignore.case = TRUE)) {
+        return("Psychiatry")
+      } else if (grepl("vaccine|immun", interventions, ignore.case = TRUE)) {
+        return("Immunology")
+      } else {
+        return("Other")
+      }
+    },
+    REGID = function(df) {
+      cat("Debug: Entering REGID function\n")
+      tryCatch({
+        secondary_ids <- df[[1]]$protocolSection$identificationModule$secondaryIdInfos
+        cat("Debug: Structure of secondary_ids:\n")
+        print(str(secondary_ids))
+        
+        if (is.data.frame(secondary_ids) && nrow(secondary_ids) > 0) {
+          eudract_row <- secondary_ids[secondary_ids$type == "EUDRACT_NUMBER", ]
+          if (nrow(eudract_row) > 0) {
+            result <- eudract_row$id
+            cat("Debug: REGID result:", result, "\n")
+            return(result)
+          }
+        }
+      }, error = function(e) {
+        cat("Error in REGID:", conditionMessage(e), "\n")
+      })
+      cat("Debug: REGID returning NA\n")
+      return("NA")
+    },
+    INTTYPE = function(df) {
+      cat("Debug: Entering INTTYPE function\n")
+      tryCatch({
+        design_info <- df[[1]]$protocolSection$designModule$designInfo
+        cat("Debug: Structure of design_info:\n")
+        print(str(design_info))
+        
+        if (!is.null(design_info) && !is.null(design_info$allocation)) {
+          result <- paste(design_info$allocation, collapse = "; ")
+          cat("Debug: INTTYPE result:", result, "\n")
+          return(result)
+        }
+      }, error = function(e) {
+        cat("Error in INTTYPE:", conditionMessage(e), "\n")
+      })
+      cat("Debug: INTTYPE returning NA\n")
+      return("NA")
+    },
+    STYPE = function(df) df[[1]]$protocolSection$designModule$studyType,
+    TTYPE = function(df) derive_trial_type(df),
+    ACTSUB = function(df) {
+      cat("Debug: Entering ACTSUB function\n")
+      tryCatch({
+        enrollment_info <- df[[1]]$protocolSection$statusModule$enrollmentInfo
+        cat("Debug: Structure of enrollment_info:\n")
+        print(str(enrollment_info))
+        
+        if (!is.null(enrollment_info) && !is.null(enrollment_info$count)) {
+          result <- as.character(enrollment_info$count)
+          cat("Debug: ACTSUB result:", result, "\n")
+          return(result)
+        }
+      }, error = function(e) {
+        cat("Error in ACTSUB:", conditionMessage(e), "\n")
+      })
+      cat("Debug: ACTSUB returning NA\n")
+      return("NA")
+    },
+    PLANSUB = function(df) {
+      cat("Debug: Entering PLANSUB function\n")
+      tryCatch({
+        design_info <- df[[1]]$protocolSection$designModule
+        cat("Debug: Structure of design_info:\n")
+        print(str(design_info))
+        
+        if (!is.null(design_info) && !is.null(design_info$enrollmentInfo) && !is.null(design_info$enrollmentInfo$count)) {
+          result <- as.character(design_info$enrollmentInfo$count)
+          cat("Debug: PLANSUB result:", result, "\n")
+          return(result)
+        }
+      }, error = function(e) {
+        cat("Error in PLANSUB:", conditionMessage(e), "\n")
+      })
+      cat("Debug: PLANSUB returning NA\n")
+      return("NA")
+    },
+    SENDTC = function(df) format_date_iso8601(df[[1]]$protocolSection$statusModule$completionDateStruct$date),
+    SSTDTC = function(df) format_date_iso8601(df[[1]]$protocolSection$statusModule$startDateStruct$date),
+    ADAPT = function(df) derive_adaptive_design(df),
+    ADDON = function(df) derive_addon_treatment(df),
+    AGEMAX = function(df) {
+      cat("Debug: Entering AGEMAX function\n")
+      tryCatch({
+        eligibility_module <- df[[1]]$protocolSection$eligibilityModule
+        cat("Debug: Structure of eligibility_module:\n")
+        print(str(eligibility_module))
+        
+        # Check for maximumAge field
+        if (!is.null(eligibility_module$maximumAge)) {
+          result <- eligibility_module$maximumAge
+          cat("Debug: AGEMAX result from maximumAge:", result, "\n")
+          return(result)
+        }
+        
+        # Check for ageMax field (alternative naming)
+        if (!is.null(eligibility_module$ageMax)) {
+          result <- eligibility_module$ageMax
+          cat("Debug: AGEMAX result from ageMax:", result, "\n")
+          return(result)
+        }
+        
+        # Check for a more complex structure (e.g., nested under criteria)
+        if (!is.null(eligibility_module$criteria)) {
+          criteria_text <- eligibility_module$criteria
+          # Look for age-related information in the criteria text
+          age_match <- regexpr("(?i)maximum age.*?([0-9]+)\\s*years", criteria_text, perl=TRUE)
+          if (age_match != -1) {
+            result <- regmatches(criteria_text, age_match)[[1]]
+            cat("Debug: AGEMAX result from criteria text:", result, "\n")
+            return(result)
+          }
+        }
+        
+        # Add more checks here for other potential locations or formats of max age data
+        
+      }, error = function(e) {
+        cat("Error in AGEMAX:", conditionMessage(e), "\n")
+      })
+      cat("Debug: AGEMAX returning NA\n")
+      return(NA)  # Return NA instead of "NA" string
+    },
+    AGEMIN = function(df) df[[1]]$protocolSection$eligibilityModule$minimumAge,
+    COMPTRT = function(df) {
+      cat("Debug: Entering COMPTRT function\n")
+      tryCatch({
+        interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
+        cat("Debug: Structure of interventions:\n")
+        print(str(interventions))
+        
+        if (is.data.frame(interventions) && nrow(interventions) > 0) {
+          # Filter for comparative treatments (usually standard of care drugs)
+          comp_treatments <- interventions[grepl("carboplatin|cisplatin|pemetrexed", interventions$name, ignore.case = TRUE), ]
+          if (nrow(comp_treatments) > 0) {
+            result <- paste(comp_treatments$name, collapse = "; ")
+            cat("Debug: COMPTRT result:", result, "\n")
+            return(result)
+          }
+        }
+      }, error = function(e) {
+        cat("Error in COMPTRT:", conditionMessage(e), "\n")
+      })
+      cat("Debug: COMPTRT returning NA\n")
+      return("NA")
+    },
+    CURTRT = function(df) {
+      cat("Debug: Entering CURTRT function\n")
+      tryCatch({
+        interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
+        cat("Debug: Structure of interventions:\n")
+        print(str(interventions))
+        
+        if (is.data.frame(interventions) && nrow(interventions) > 0) {
+          # Filter for current treatments (usually experimental drugs)
+          cur_treatments <- interventions[grepl("divarasib|pembrolizumab", interventions$name, ignore.case = TRUE), ]
+          if (nrow(cur_treatments) > 0) {
+            result <- paste(cur_treatments$name, collapse = "; ")
+            cat("Debug: CURTRT result:", result, "\n")
+            return(result)
+          }
+        }
+      }, error = function(e) {
+        cat("Error in CURTRT:", conditionMessage(e), "\n")
+      })
+      cat("Debug: CURTRT returning NA\n")
+      return("NA")
+    },
+    NCOHORT = function(df) {
+      cat("Debug: Entering NCOHORT function\n")
+      tryCatch({
+        interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
+        cat("Debug: Structure of interventions:\n")
+        print(str(interventions))
+        
+        if (is.data.frame(interventions) && nrow(interventions) > 0 && "armGroupLabels" %in% names(interventions)) {
+          all_labels <- unlist(interventions$armGroupLabels)
+          unique_cohorts <- unique(all_labels)
+          result <- length(unique_cohorts)
+          cat("Debug: NCOHORT result:", result, "\n")
+          return(as.character(result))
+        }
+      }, error = function(e) {
+        cat("Error in NCOHORT:", conditionMessage(e), "\n")
+      })
+      cat("Debug: NCOHORT returning NA\n")
+      return("NA")
+    },
+    DCUTDESC = function(df) derive_data_cutoff_description(df),
+    DCUTDTC = function(df) format_date_iso8601(df[[1]]$protocolSection$statusModule$primaryCompletionDateStruct$date),
+    EGBLIND = function(df) df[[1]]$protocolSection$designModule$masking,
+    INTMODEL = function(df) {
+      cat("Debug: Entering INTMODEL function\n")
+      tryCatch({
+        design_info <- df[[1]]$protocolSection$designModule$designInfo
+        cat("Debug: Structure of design_info:\n")
+        print(str(design_info))
+        
+        if (!is.null(design_info) && !is.null(design_info$interventionModel)) {
+          result <- paste(design_info$interventionModel, collapse = "; ")
+          cat("Debug: INTMODEL result:", result, "\n")
+          return(result)
+        }
+      }, error = function(e) {
+        cat("Error in INTMODEL:", conditionMessage(e), "\n")
+      })
+      cat("Debug: INTMODEL returning NA\n")
+      return("NA")
+    },
+    NARMS = function(df) df[[1]]$protocolSection$designModule$numberOfArms,
+    ONGOSIND = function(df) ifelse(df[[1]]$protocolSection$statusModule$overallStatus %in% c("Recruiting", "Active, not recruiting"), "Y", "N"),
+    OUTMSPRI = function(df) {
+      cat("Debug: Entering OUTMSPRI function\n")
+      tryCatch({
+        primary_outcomes <- df[[1]]$protocolSection$outcomesModule$primaryOutcomes
+        cat("Debug: Structure of primary_outcomes:\n")
+        print(str(primary_outcomes))
+        
+        if (is.data.frame(primary_outcomes) && nrow(primary_outcomes) > 0 && "measure" %in% names(primary_outcomes)) {
+          result <- na.omit(primary_outcomes$measure)
+          cat("Debug: OUTMSPRI result:", paste(result, collapse = "; "), "\n")
+          return(if(length(result) > 0) result else "NA")
+        }
+      }, error = function(e) {
+        cat("Error in OUTMSPRI:", conditionMessage(e), "\n")
+      })
+      cat("Debug: OUTMSPRI returning NA\n")
+      return("NA")
     },
 
     OUTMSSEC = function(df) {
-      measures <- df$secondaryOutcomeMeasures[[1]]
-      if (is.null(measures) || all(is.na(measures))) {
-        return(NA)
-      }
-      return(measures)
+      cat("Debug: Entering OUTMSSEC function\n")
+      tryCatch({
+        secondary_outcomes <- df[[1]]$protocolSection$outcomesModule$secondaryOutcomes
+        cat("Debug: Structure of secondary_outcomes:\n")
+        print(str(secondary_outcomes))
+        
+        if (is.data.frame(secondary_outcomes) && nrow(secondary_outcomes) > 0 && "measure" %in% names(secondary_outcomes)) {
+          result <- na.omit(secondary_outcomes$measure)
+          cat("Debug: OUTMSSEC result:", paste(result, collapse = "; "), "\n")
+          return(if(length(result) > 0) result else "NA")
+        }
+      }, error = function(e) {
+        cat("Error in OUTMSSEC:", conditionMessage(e), "\n")
+      })
+      cat("Debug: OUTMSSEC returning NA\n")
+      return("NA")
     },
 
     OUTMSEXP = function(df) {
-      measures <- df$otherOutcomeMeasures[[1]]
-      if (is.null(measures) || all(is.na(measures))) {
-        return(NA)
-      }
-      return(measures)
-    },
-    SEXPOP = function(df) df$gender,
-    SPONSOR = function(df) df$sponsor,
-    FCNTRY = function(df) {
-      if (is.null(df$locations) || all(is.na(df$locations))) {
-        warning("Locations data is null or NA")
-        return(NA)
-      }
+      cat("Debug: Entering OUTMSEXP function\n")
       tryCatch({
-        locations <- as.character(df$locations)
-        cat("Raw locations data:", locations, "\n")  # Debug print
-        location_parts <- strsplit(locations, "; ")
-        countries <- unique(unlist(lapply(location_parts, function(loc) {
-          parts <- strsplit(loc, ", ")[[1]]
-          cat("Location parts:", paste(parts, collapse = " | "), "\n")  # Debug print
-          if (length(parts) >= 3) {
-            return(parts[length(parts)])  # Assume the country is the last part
-          } else {
-            return(NA)
-          }
-        })))
-        cat("Extracted countries:", paste(countries, collapse = ", "), "\n")  # Debug print
-        countries <- countries[!is.na(countries)]
-        if (length(countries) > 0) {
-          return(paste(countries, collapse = "; "))
+        outcomes_module <- df[[1]]$protocolSection$outcomesModule
+        cat("Debug: Structure of outcomes_module:\n")
+        print(str(outcomes_module))
+        
+        # Check for otherOutcomes or exploratoryOutcomes
+        if (!is.null(outcomes_module$otherOutcomes)) {
+          exploratory_outcomes <- outcomes_module$otherOutcomes
+        } else if (!is.null(outcomes_module$exploratoryOutcomes)) {
+          exploratory_outcomes <- outcomes_module$exploratoryOutcomes
         } else {
-          warning("No valid countries extracted from locations")
-          return(NA)
+          exploratory_outcomes <- NULL
+        }
+        
+        if (!is.null(exploratory_outcomes)) {
+          cat("Debug: Structure of exploratory_outcomes:\n")
+          print(str(exploratory_outcomes))
+          
+          if (is.data.frame(exploratory_outcomes)) {
+            # If it's a data frame, extract measures
+            measures <- exploratory_outcomes$measure
+          } else if (is.list(exploratory_outcomes)) {
+            # If it's a list, extract measures from each element
+            measures <- sapply(exploratory_outcomes, function(x) x$measure)
+          } else {
+            measures <- exploratory_outcomes
+          }
+          
+          # Remove any NA values and collapse into a single string
+          result <- paste(na.omit(measures), collapse = "; ")
+          cat("Debug: OUTMSEXP result:", result, "\n")
+          return(result)
         }
       }, error = function(e) {
-        warning("Error extracting countries from locations: ", e$message)
-        return(NA)
+        cat("Error in OUTMSEXP:", conditionMessage(e), "\n")
       })
+      cat("Debug: OUTMSEXP returning NA\n")
+      return("NA")
+    },
+    SEXPOP = function(df) {
+      cat("Debug: Entering SEXPOP function\n")
+      tryCatch({
+        eligibility <- df[[1]]$protocolSection$eligibilityModule
+        cat("Debug: Structure of eligibility:\n")
+        print(str(eligibility))
+        
+        if (!is.null(eligibility) && !is.null(eligibility$sex)) {
+          result <- eligibility$sex
+          cat("Debug: SEXPOP result:", result, "\n")
+          return(result)
+        }
+      }, error = function(e) {
+        cat("Error in SEXPOP:", conditionMessage(e), "\n")
+      })
+      cat("Debug: SEXPOP returning NA\n")
+      return("NA")
+    },
+    SPONSOR = function(df) {
+      cat("Debug: Entering SPONSOR function\n")
+      tryCatch({
+        sponsor_info <- df[[1]]$protocolSection$identificationModule$organization
+        cat("Debug: Structure of sponsor_info:\n")
+        print(str(sponsor_info))
+        
+        if (!is.null(sponsor_info) && !is.null(sponsor_info$fullName)) {
+          result <- sponsor_info$fullName
+          cat("Debug: SPONSOR result:", result, "\n")
+          return(result)
+        }
+      }, error = function(e) {
+        cat("Error in SPONSOR:", conditionMessage(e), "\n")
+      })
+      cat("Debug: SPONSOR returning NA\n")
+      return("NA")
+    },
+    FCNTRY = function(df) {
+      cat("Debug: Entering FCNTRY function\n")
+      tryCatch({
+        locations_module <- df[[1]]$protocolSection$contactsLocationsModule
+        cat("Debug: Structure of locations_module:\n")
+        print(str(locations_module))
+        
+        if (!is.null(locations_module$locations)) {
+          locations <- locations_module$locations
+          if (is.data.frame(locations) && "country" %in% names(locations)) {
+            countries <- unique(na.omit(locations$country))
+            cat("Debug: FCNTRY results:\n")
+            print(countries)
+            return(countries)
+          }
+        }
+      }, error = function(e) {
+        cat("Error in FCNTRY:", conditionMessage(e), "\n")
+      })
+      cat("Debug: FCNTRY returning NA\n")
+      return("NA")
     },
     HLTSUBJI = function(df) derive_healthy_subjects(df),
     EXTTIND = function(df) derive_extension_trial(df),
-    PDSTIND = function(df) derive_pediatric_study(df),
+    PDSTIND = function(df) {
+      min_age <- df[[1]]$protocolSection$eligibilityModule$minimumAge
+      if (!is.null(min_age)) {
+        min_age <- as.numeric(gsub("[^0-9.]", "", min_age))
+        if (!is.na(min_age) && min_age < 18) {
+          return("Y")
+        } else {
+          return("N")
+        }
+      }
+      return(NA)
+    },
     TRT = function(df) {
-      treatments <- df$treatmentNames[[1]]
+      treatments <- df[[1]]$protocolSection$armsInterventionsModule$interventions[[1]]$description
       if (is.null(treatments) || all(is.na(treatments))) {
         return(NA)
       }
@@ -502,31 +673,98 @@ define_ts_mapping <- function() {
     },
 
     OBJPRIM = function(df) {
-      objectives <- df$primaryObjective[[1]]
-      if (is.null(objectives) || all(is.na(objectives))) {
-        return(NA)
-      }
-      return(objectives)
+      cat("Debug: Entering OBJPRIM function\n")
+      tryCatch({
+        primary_outcomes <- df[[1]]$protocolSection$outcomesModule$primaryOutcomes
+        cat("Debug: Structure of primary_outcomes:\n")
+        print(str(primary_outcomes))
+        
+        if (is.data.frame(primary_outcomes) && nrow(primary_outcomes) > 0) {
+          if ("description" %in% names(primary_outcomes)) {
+            result <- na.omit(primary_outcomes$description)
+          } else if ("measure" %in% names(primary_outcomes)) {
+            result <- na.omit(primary_outcomes$measure)
+          } else {
+            result <- character(0)
+          }
+          cat("Debug: OBJPRIM result:", paste(result, collapse = "; "), "\n")
+          return(if(length(result) > 0) result else "NA")
+        }
+      }, error = function(e) {
+        cat("Error in OBJPRIM:", conditionMessage(e), "\n")
+      })
+      cat("Debug: OBJPRIM returning NA\n")
+      return("NA")
     },
 
     OBJSEC = function(df) {
-      objectives <- df$secondaryObjectives[[1]]
-      if (is.null(objectives) || all(is.na(objectives))) {
-        return(NA)
-      }
-      return(objectives)
+      cat("Debug: Entering OBJSEC function\n")
+      tryCatch({
+        secondary_outcomes <- df[[1]]$protocolSection$outcomesModule$secondaryOutcomes
+        cat("Debug: Structure of secondary_outcomes:\n")
+        print(str(secondary_outcomes))
+        
+        if (is.data.frame(secondary_outcomes) && nrow(secondary_outcomes) > 0) {
+          if ("description" %in% names(secondary_outcomes)) {
+            result <- na.omit(secondary_outcomes$description)
+          } else if ("measure" %in% names(secondary_outcomes)) {
+            result <- na.omit(secondary_outcomes$measure)
+          } else {
+            result <- character(0)
+          }
+          cat("Debug: OBJSEC result:", paste(result, collapse = "; "), "\n")
+          return(if(length(result) > 0) result else "NA")
+        }
+      }, error = function(e) {
+        cat("Error in OBJSEC:", conditionMessage(e), "\n")
+      })
+      cat("Debug: OBJSEC returning NA\n")
+      return("NA")
     },
     LENGTH = function(df) {
-      start_date <- as.Date(df$startDate)
-      end_date <- as.Date(df$completionDate)
-      if (!is.na(start_date) && !is.na(end_date)) {
-        days <- as.numeric(end_date - start_date)
-        return(paste0("P", days, "D"))
-      } else {
-        return(NA)
+      start_date <- df[[1]]$protocolSection$statusModule$startDateStruct$date
+      end_date <- df[[1]]$protocolSection$statusModule$completionDateStruct$date
+      if (!is.null(start_date) && !is.null(end_date)) {
+        start <- as.Date(start_date)
+        end <- as.Date(end_date)
+        if (!is.na(start) && !is.na(end)) {
+          days <- as.numeric(end - start)
+          return(paste0("P", days, "D"))
+        }
       }
+      return(NA)
+    },
+    SPREFID = function(df) {
+      cat("Debug: Entering SPREFID function\n")
+      tryCatch({
+        nct_id <- df[[1]]$protocolSection$identificationModule$nctId
+        cat("Debug: NCT ID:", nct_id, "\n")
+        
+        if (!is.null(nct_id) && length(nct_id) > 0) {
+          result <- nct_id[1]  # In case there are multiple, take the first one
+          cat("Debug: SPREFID result:", result, "\n")
+          return(result)
+        }
+      }, error = function(e) {
+        cat("Error in SPREFID:", conditionMessage(e), "\n")
+      })
+      cat("Debug: SPREFID returning NA\n")
+      return("NA")
     }
   )
+  
+  # Only add AGEMAX if it's available and returns a non-NA value
+  agemax_result <- tryCatch({
+    AGEMAX(list(protocolSection = list(eligibilityModule = list())))
+  }, error = function(e) NA)
+  
+  if (!is.na(agemax_result)) {
+    mapping$AGEMAX <- AGEMAX
+  } else {
+    cat("Debug: AGEMAX function not included in mapping as it returned NA\n")
+  }
+  
+  return(mapping)
 }
 
 
@@ -536,46 +774,11 @@ define_ts_mapping <- function() {
 #' @return A character string of comparative treatments, if any.
 #' @keywords internal
 derive_comparative_treatment <- function(df) {
-  if (!is.null(df$armGroupLabels) && !is.na(df$armGroupLabels)) {
-    arms <- unlist(strsplit(df$armGroupLabels, "; "))
+  if (!is.null(df[[1]]$protocolSection$armsInterventionsModule$interventions) && !is.na(df[[1]]$protocolSection$armsInterventionsModule$interventions)) {
+    arms <- unlist(lapply(df[[1]]$protocolSection$armsInterventionsModule$interventions, function(x) x$description))
     comp_arms <- arms[!grepl("placebo|control", tolower(arms))]
     if (length(comp_arms) > 0) {
       return(paste(comp_arms, collapse = "; "))
-    }
-  }
-  return(NA)
-}
-
-#' Derive FCNTRY
-#'
-#' @param df The trial data frame.
-#' @return A character string of unique countries.
-#' @keywords internal
-derive_fcntry <- function(df) {
-  if (!is.null(df$locations)) {
-    locations <- unlist(strsplit(as.character(df$locations), ", "))
-    country <- locations[seq(3, length(locations), 3)]
-  } else {
-    country <- NA
-  }
-    unique_countries <- unique(countries[!is.na(countries)])
-    if (length(unique_countries) > 0) {
-      return(paste(unique_countries, collapse = "; "))
-    }
-  return(NA)
-}
-
-#' Derive Healthy Subjects Indicator
-#'
-#' @param df The trial data frame.
-#' @return "Y" if healthy subjects, "N" if not, NA if unknown.
-#' @keywords internal
-derive_healthy_subjects <- function(df) {
-  if (!is.null(df$healthyVolunteers) && !is.na(df$healthyVolunteers)) {
-    if (tolower(df$healthyVolunteers) == "yes") {
-      return("Y")
-    } else if (tolower(df$healthyVolunteers) == "no") {
-      return("N")
     }
   }
   return(NA)
@@ -616,14 +819,14 @@ derive_therapeutic_area <- function(condition, interventions) {
 #' @keywords internal
 derive_trial_type <- function(df) {
   types <- c()
-  if (!is.null(df$primaryOutcomeMeasure) && !is.na(df$primaryOutcomeMeasure)) {
-    if (grepl("safety", tolower(df$primaryOutcomeMeasure), fixed = TRUE)) {
+  if (!is.null(df[[1]]$protocolSection$outcomesModule$primaryOutcomes) && !is.na(df[[1]]$protocolSection$outcomesModule$primaryOutcomes)) {
+    if (grepl("safety", tolower(df[[1]]$protocolSection$outcomesModule$primaryOutcomes[[1]]$description), fixed = TRUE)) {
       types <- c(types, "SAFETY")
     }
-    if (grepl("efficacy", tolower(df$primaryOutcomeMeasure), fixed = TRUE)) {
+    if (grepl("efficacy", tolower(df[[1]]$protocolSection$outcomesModule$primaryOutcomes[[1]]$description), fixed = TRUE)) {
       types <- c(types, "EFFICACY")
     }
-    if (grepl("pharmacokinetics|bioavailability|bioequivalence", tolower(df$primaryOutcomeMeasure), fixed = TRUE)) {
+    if (grepl("pharmacokinetics|bioavailability|bioequivalence", tolower(df[[1]]$protocolSection$outcomesModule$primaryOutcomes[[1]]$description), fixed = TRUE)) {
       types <- c(types, "PK")
     }
   }
@@ -639,8 +842,8 @@ derive_trial_type <- function(df) {
 #' @return "Y" if adaptive design, "N" otherwise.
 #' @keywords internal
 derive_adaptive_design <- function(df) {
-  if ((!is.null(df$officialTitle) && !is.na(df$officialTitle) && grepl("adaptive", tolower(df$officialTitle), fixed = TRUE)) ||
-      (!is.null(df$briefTitle) && !is.na(df$briefTitle) && grepl("adaptive", tolower(df$briefTitle), fixed = TRUE))) {
+  if ((!is.null(df[[1]]$protocolSection$identificationModule$briefTitle) && !is.na(df[[1]]$protocolSection$identificationModule$briefTitle) && grepl("adaptive", tolower(df[[1]]$protocolSection$identificationModule$briefTitle), fixed = TRUE)) ||
+      (!is.null(df[[1]]$protocolSection$identificationModule$officialTitle) && !is.na(df[[1]]$protocolSection$identificationModule$officialTitle) && grepl("adaptive", tolower(df[[1]]$protocolSection$identificationModule$officialTitle), fixed = TRUE))) {
     return("Y")
   } else {
     return("N")
@@ -653,8 +856,8 @@ derive_adaptive_design <- function(df) {
 #' @return "Y" if add-on treatment, "N" otherwise.
 #' @keywords internal
 derive_addon_treatment <- function(df) {
-  if ((!is.null(df$officialTitle) && !is.na(df$officialTitle) && grepl("add-on|addon|adjunct", tolower(df$officialTitle), fixed = TRUE)) ||
-      (!is.null(df$briefTitle) && !is.na(df$briefTitle) && grepl("add-on|addon|adjunct", tolower(df$briefTitle), fixed = TRUE))) {
+  if ((!is.null(df[[1]]$protocolSection$identificationModule$briefTitle) && !is.na(df[[1]]$protocolSection$identificationModule$briefTitle) && grepl("add-on|addon|adjunct", tolower(df[[1]]$protocolSection$identificationModule$briefTitle), fixed = TRUE)) ||
+      (!is.null(df[[1]]$protocolSection$identificationModule$officialTitle) && !is.na(df[[1]]$protocolSection$identificationModule$officialTitle) && grepl("add-on|addon|adjunct", tolower(df[[1]]$protocolSection$identificationModule$officialTitle), fixed = TRUE))) {
     return("Y")
   } else {
     return("N")
@@ -667,7 +870,7 @@ derive_addon_treatment <- function(df) {
 #' @return A character string describing the data cutoff.
 #' @keywords internal
 derive_data_cutoff_description <- function(df) {
-  if (!is.null(df$overallStatus) && !is.na(df$overallStatus) && df$overallStatus %in% c("Completed", "Terminated")) {
+  if (!is.null(df[[1]]$protocolSection$statusModule$overallStatus) && !is.na(df[[1]]$protocolSection$statusModule$overallStatus) && df[[1]]$protocolSection$statusModule$overallStatus %in% c("Completed", "Terminated")) {
     return("FINAL")
   } else {
     return("INTERIM")
@@ -680,8 +883,8 @@ derive_data_cutoff_description <- function(df) {
 #' @return A date string for the data cutoff.
 #' @keywords internal
 derive_data_cutoff_date <- function(df) {
-  if (!is.null(df$overallStatus) && !is.na(df$overallStatus) && df$overallStatus %in% c("Completed", "Terminated")) {
-    return(format_date_iso8601(df$completionDate))
+  if (!is.null(df[[1]]$protocolSection$statusModule$overallStatus) && !is.na(df[[1]]$protocolSection$statusModule$overallStatus) && df[[1]]$protocolSection$statusModule$overallStatus %in% c("Completed", "Terminated")) {
+    return(format_date_iso8601(df[[1]]$protocolSection$statusModule$completionDateStruct$date))
   } else {
     return(NA)
   }
@@ -759,8 +962,8 @@ calculate_trial_length <- function(start_date, end_date) {
 #' @return "Y" if extension trial, "N" otherwise.
 #' @keywords internal
 derive_extension_trial <- function(df) {
-  if (grepl("extension|follow-up|followup", tolower(df$officialTitle), fixed = TRUE) ||
-      grepl("extension|follow-up|followup", tolower(df$briefTitle), fixed = TRUE)) {
+  if (grepl("extension|follow-up|followup", tolower(df[[1]]$protocolSection$identificationModule$briefTitle), fixed = TRUE) ||
+      grepl("extension|follow-up|followup", tolower(df[[1]]$protocolSection$identificationModule$officialTitle), fixed = TRUE)) {
     return("Y")
   } else {
     return("N")
@@ -773,10 +976,10 @@ derive_extension_trial <- function(df) {
 #' @return "Y" if healthy subjects, "N" otherwise.
 #' @keywords internal
 derive_healthy_subjects <- function(df) {
-  if (!is.null(df$healthyVolunteers) && !is.na(df$healthyVolunteers)) {
-    if (tolower(df$healthyVolunteers) == "yes") {
+  if (!is.null(df[[1]]$protocolSection$eligibilityModule$healthyVolunteers) && !is.na(df[[1]]$protocolSection$eligibilityModule$healthyVolunteers)) {
+    if (tolower(df[[1]]$protocolSection$eligibilityModule$healthyVolunteers) == "yes") {
       return("Y")
-    } else if (tolower(df$healthyVolunteers) == "no") {
+    } else if (tolower(df[[1]]$protocolSection$eligibilityModule$healthyVolunteers) == "no") {
       return("N")
     }
   }
@@ -789,53 +992,14 @@ derive_healthy_subjects <- function(df) {
 #' @return "Y" if pediatric study, "N" otherwise.
 #' @keywords internal
 derive_pediatric_study <- function(df) {
-  min_age <- as.numeric(gsub("[^0-9.]", "", df$ageMin))
-  if (!is.na(min_age) && min_age < 18) {
-    return("Y")
-  } else {
-    return("N")
+  min_age <- df[[1]]$protocolSection$eligibilityModule$minimumAge
+  if (!is.null(min_age)) {
+    min_age <- as.numeric(gsub("[^0-9.]", "", min_age))
+    if (!is.na(min_age) && min_age < 18) {
+      return("Y")
+    } else {
+      return("N")
+    }
   }
-}
-
-# Update the define_ts_mapping function to include new derivations
-define_ts_mapping <- function() {
-  mapping <- list(
-    STUDYID = function(df) df$orgStudyId,
-    TITLE = function(df) df$officialTitle,
-    TPHASE = function(df) convert_to_roman(df$phase),
-    INDIC = function(df) df$condition,
-    TDIGRP = function(df) df$condition,
-    THERAREA = function(df) derive_therapeutic_area(df$condition, df$interventions),
-    REGID = function(df) df$nctId,
-    INTTYPE = function(df) unique(df$interventionType),
-    STYPE = function(df) df$studyType,
-    TTYPE = function(df) derive_trial_type(df),
-    ACTSUB = function(df) df$enrollment,
-    PLANSUB = function(df) df$enrollment,
-    SENDTC = function(df) format_date_iso8601(df$completionDate),
-    SSTDTC = function(df) format_date_iso8601(df$startDate),
-    ADAPT = function(df) derive_adaptive_design(df),
-    ADDON = function(df) derive_addon_treatment(df),
-    AGEMAX = function(df) df$ageMax,
-    AGEMIN = function(df) df$ageMin,
-    COMPTRT = function(df) derive_comparative_treatment(df),
-    CURTRT = function(df) df$interventions,
-    DCUTDESC = function(df) derive_data_cutoff_description(df),
-    DCUTDTC = function(df) derive_data_cutoff_date(df),
-    EGBLIND = function(df) df$masking,
-    INTMODEL = function(df) df$interventionModel,
-    NARMS = function(df) df$numberOfArms,
-    ONGOSIND = function(df) ifelse(df$overallStatus %in% c("Recruiting", "Active, not recruiting"), "Y", "N"),
-    OUTMSPRI = function(df) df$primaryOutcomeMeasure,
-    OUTMSSEC = function(df) df$secondaryOutcomeMeasure,
-    SEXPOP = function(df) df$gender,
-    SPONSOR = function(df) df$sponsor,
-    FCNTRY = function(df) unique(unlist(strsplit(df$locations, ", "))[seq(3, length(unlist(strsplit(df$locations, ", "))), 3)]),
-    EXTTIND = function(df) derive_extension_trial(df),
-    HLTSUBJI = function(df) derive_healthy_subjects(df),
-    PDSTIND = function(df) derive_pediatric_study(df),
-    LENGTH = function(df) calculate_trial_length(df$startDate, df$completionDate)
-  )
-
-  return(mapping)
+  return(NA)
 }

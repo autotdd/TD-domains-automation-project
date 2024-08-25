@@ -85,51 +85,46 @@ create_ti_domain_pdf <- function(study_id, pdf_path, incl_range, excl_range, inc
     pdf_text <- pdftools::pdf_text(pdf_path)
     debug_info <- paste0(debug_info, sprintf("Number of pages in PDF: %d\n", length(pdf_text)))
     
-    # Remove footnotes and headers
     cleaned_result <- remove_footnotes_and_headers(pdf_text)
     cleaned_text <- cleaned_result$cleaned_pages
     debug_info <- paste0(debug_info, cleaned_result$debug_info)
     
-    # Check if cleaned_text is empty
-    if (length(cleaned_text) == 0) {
-      stop("Failed to read PDF or PDF is empty after cleaning")
+    footnotes <- cleaned_result$footnotes
+    debug_info <- paste0(debug_info, "Extracted footnotes:\n")
+    for (i in seq_along(footnotes)) {
+      debug_info <- paste0(debug_info, sprintf("%d. %s\n", i, footnotes[i]))
     }
     
-    # Check if incl_range and excl_range are within bounds
     if (max(incl_range) > length(cleaned_text) || max(excl_range) > length(cleaned_text)) {
       stop(sprintf("Specified page ranges are out of bounds. Cleaned PDF has %d pages, incl_range: %s, excl_range: %s", 
                    length(cleaned_text), paste(incl_range, collapse="-"), paste(excl_range, collapse="-")))
     }
     
-    # Extract text for inclusion and exclusion criteria
-    inclusion_text <- paste(cleaned_text[incl_range], collapse = "\n")
-    exclusion_text <- paste(cleaned_text[excl_range], collapse = "\n")
+    inclusion_text <- cleaned_text[incl_range]
+    exclusion_text <- cleaned_text[excl_range]
     
-    debug_info <- paste0(debug_info, "Inclusion text sample: ", substr(inclusion_text, 1, 200), "...\n")
-    debug_info <- paste0(debug_info, "Exclusion text sample: ", substr(exclusion_text, 1, 200), "...\n")
+    debug_info <- paste0(debug_info, "Inclusion text sample: ", substr(inclusion_text[[1]]$text, 1, 500), "...\n")
+    debug_info <- paste0(debug_info, "Exclusion text sample: ", substr(exclusion_text[[1]]$text, 1, 500), "...\n")
     
-    # Extract criteria
-    inclusion_criteria <- extract_criteria(inclusion_text, incl_section)
-    exclusion_criteria <- extract_criteria(exclusion_text, excl_section)
+    inclusion_result <- extract_criteria(inclusion_text, incl_section, footnotes)
+    exclusion_result <- extract_criteria(exclusion_text, excl_section, footnotes)
     
-    debug_info <- paste0(debug_info, sprintf("Number of inclusion criteria: %d\n", length(inclusion_criteria)))
-    debug_info <- paste0(debug_info, sprintf("Number of exclusion criteria: %d\n", length(exclusion_criteria)))
+    debug_info <- paste0(debug_info, sprintf("Number of inclusion criteria: %d\n", length(inclusion_result$criteria)))
+    debug_info <- paste0(debug_info, sprintf("Number of exclusion criteria: %d\n", length(exclusion_result$criteria)))
     
-    # Create TI domain data frame
     ti_domain <- data.frame(
       STUDYID = study_id,
       DOMAIN = "TI",
-      IETESTCD = c(paste0("INCL", sprintf("%03d", seq_along(inclusion_criteria))),
-                   paste0("EXCL", sprintf("%03d", seq_along(exclusion_criteria)))),
-      IETEST = c(rep("Inclusion Criteria", length(inclusion_criteria)),
-                 rep("Exclusion Criteria", length(exclusion_criteria))),
+      IETESTCD = c(paste0("INCL", sprintf("%03d", seq_along(inclusion_result$criteria))),
+                   paste0("EXCL", sprintf("%03d", seq_along(exclusion_result$criteria)))),
+      IETEST = c(rep("Inclusion Criteria", length(inclusion_result$criteria)),
+                 rep("Exclusion Criteria", length(exclusion_result$criteria))),
       IECAT = "",
       IESCAT = "",
-      IEORRES = c(inclusion_criteria, exclusion_criteria),
+      IEORRES = c(inclusion_result$criteria, exclusion_result$criteria),
       stringsAsFactors = FALSE
     )
     
-    # Save to Excel if there's data
     if (nrow(ti_domain) > 0) {
       excel_file <- file.path(output_dir, paste0(study_id, "_TI.xlsx"))
       openxlsx::write.xlsx(ti_domain, excel_file)
@@ -145,44 +140,78 @@ create_ti_domain_pdf <- function(study_id, pdf_path, incl_range, excl_range, inc
   })
 }
 
-extract_criteria <- function(text, section_header) {
-  lines <- strsplit(text, "\n")[[1]]
-  start_index <- which(grepl(section_header, lines, ignore.case = TRUE))
+extract_criteria <- function(text_with_pages, section_header, footnotes) {
+  all_lines <- unlist(lapply(text_with_pages, function(page) strsplit(page$text, "\n")[[1]]))
+  all_page_nums <- unlist(lapply(text_with_pages, function(page) rep(page$page_num, length(strsplit(page$text, "\n")[[1]]))))
+  
+  start_index <- which(grepl(section_header, all_lines, ignore.case = TRUE))
   
   if (length(start_index) == 0) {
     warning(sprintf("Section header '%s' not found in the text. Searching for alternatives.", section_header))
-    alternative_headers <- c("Inclusion Criteria", "Exclusion Criteria", "Eligibility Criteria")
+    alternative_headers <- c("Inclusion Criteria", "Exclusion Criteria", "Eligibility Criteria", "Inclusion criteria", "Exclusion criteria")
     for (alt_header in alternative_headers) {
-      start_index <- which(grepl(alt_header, lines, ignore.case = TRUE))
+      start_index <- which(grepl(alt_header, all_lines, ignore.case = TRUE))
       if (length(start_index) > 0) {
         warning(sprintf("Alternative header '%s' found.", alt_header))
         break
       }
     }
     if (length(start_index) == 0) {
-      return(character(0))
+      warning("No criteria section found. Returning all text as a single criterion.")
+      return(list(criteria = text_with_pages[[1]]$text, pages = text_with_pages[[1]]$page_num))
     }
   }
   
   criteria <- character(0)
+  criteria_pages <- integer(0)
   current_criterion <- ""
+  current_page <- all_page_nums[start_index[1]]
   
-  for (i in (start_index[1] + 1):length(lines)) {
-    line <- trimws(lines[i])
+  # Define patterns to ignore
+  ignore_patterns <- c(
+    "^\\d+(\\.\\d+)*\\s+[A-Z]",  # Section numbers
+    "^Patients must meet",       # Introductory text
+    "^The following criteria"    # Introductory text
+  )
+  
+  # Define valid criterion start patterns
+  valid_start_patterns <- "^(•|\\d+\\.|-|[a-z]\\))"
+  
+  for (i in (start_index[1] + 1):length(all_lines)) {
+    line <- trimws(all_lines[i])
     if (nchar(line) == 0) next
     
-    # Check for new criterion (bullet point or number)
-    if (grepl("^(•|\\d+\\.|-|[a-z]\\))", line) && nchar(current_criterion) > 0) {
-      criteria <- c(criteria, trim_and_clean(current_criterion))
-      current_criterion <- ""
+    # Remove footnotes and protocol version information
+    for (footnote in footnotes) {
+      if (nchar(footnote) > 0) {
+        line <- gsub(footnote, "", line, fixed = TRUE)
+      }
+    }
+    line <- gsub("\\|?\\s*Protocol\\s+[A-Za-z0-9]+,?\\s*Version\\s+\\d+(\\.\\d+)?", "", line)
+    
+    # Remove page numbers from the line
+    line <- gsub(paste0("\\b", all_page_nums[i], "\\b"), "", line)
+    
+    if (nchar(trimws(line)) == 0) next
+    
+    # Skip lines matching ignore patterns
+    if (any(sapply(ignore_patterns, function(pattern) grepl(pattern, line)))) {
+      next
     }
     
-    # Remove bullet points and numbers at the start of the line
-    line <- gsub("^(•|\\d+\\.|-|[a-z]\\))\\s*", "", line)
+    # Start a new criterion if we encounter a valid start pattern
+    if (grepl(valid_start_patterns, line)) {
+      if (nchar(current_criterion) > 0) {
+        criteria <- c(criteria, trim_and_clean(current_criterion))
+        criteria_pages <- c(criteria_pages, current_page)
+      }
+      current_criterion <- gsub(valid_start_patterns, "", line)
+      current_page <- all_page_nums[i]
+    } else if (nchar(current_criterion) > 0) {
+      # Append to the current criterion if we're in the middle of one
+      current_criterion <- paste(current_criterion, line)
+    }
     
-    current_criterion <- paste(current_criterion, line)
-    
-    # Check if we've reached the end of the criteria section
     if (grepl("(Exclusion Criteria|Study Procedures|Investigational Medicinal Products)", line, ignore.case = TRUE)) {
       break
     }
@@ -190,9 +219,15 @@ extract_criteria <- function(text, section_header) {
   
   if (nchar(current_criterion) > 0) {
     criteria <- c(criteria, trim_and_clean(current_criterion))
+    criteria_pages <- c(criteria_pages, current_page)
   }
   
-  return(criteria)
+  if (length(criteria) == 0) {
+    warning("No criteria extracted. Returning all text as a single criterion.")
+    return(list(criteria = text_with_pages[[1]]$text, pages = text_with_pages[[1]]$page_num))
+  }
+  
+  return(list(criteria = criteria, pages = criteria_pages))
 }
 
 trim_and_clean <- function(text, max_length = 200) {
@@ -211,12 +246,15 @@ remove_footnotes_and_headers <- function(pages) {
   debug_info <- ""
   
   tryCatch({
-    # Split each page into lines
-    page_lines <- lapply(pages, function(page) strsplit(page, "\n")[[1]])
+    # Split each page into lines and add page numbers
+    page_lines <- lapply(seq_along(pages), function(page_num) {
+      lines <- strsplit(pages[page_num], "\n")[[1]]
+      list(lines = lines, page_num = page_num)
+    })
     debug_info <- paste0(debug_info, sprintf("Number of pages: %d\n", length(page_lines)))
     
     # Check for empty pages
-    page_lengths <- sapply(page_lines, length)
+    page_lengths <- sapply(page_lines, function(page) length(page$lines))
     debug_info <- paste0(debug_info, "Page lengths: ", paste(page_lengths, collapse = ", "), "\n")
     
     # Remove empty pages
@@ -227,45 +265,53 @@ remove_footnotes_and_headers <- function(pages) {
       stop("All pages are empty")
     }
     
-    # Find the minimum number of lines across all non-empty pages
-    min_lines <- min(sapply(non_empty_pages, length))
-    debug_info <- paste0(debug_info, sprintf("Minimum number of lines per non-empty page: %d\n", min_lines))
-    
-    # Identify repetitive text
-    all_lines <- unlist(non_empty_pages)
-    line_counts <- table(all_lines)
-    frequent_lines <- names(line_counts[line_counts > length(non_empty_pages) * 0.5])
-    
-    debug_info <- paste0(debug_info, sprintf("Number of frequent lines identified: %d\n", length(frequent_lines)))
-    
-    # Print identified footnotes/headers
-    debug_info <- paste0(debug_info, "Identified frequent lines (potential footnotes/headers):\n")
-    for (i in seq_along(frequent_lines)) {
-      debug_info <- paste0(debug_info, sprintf("%d. %s\n", i, frequent_lines[i]))
+    # Identify potential footnotes
+    potential_footnotes <- character(0)
+    for (i in 1:length(non_empty_pages)) {
+      last_two_lines <- tail(non_empty_pages[[i]]$lines, 2)
+      if (length(last_two_lines) == 2 && all(nchar(trimws(last_two_lines)) > 0)) {
+        combined_line <- paste(last_two_lines, collapse = " ")
+        # Check if this combined line (or a similar one) appears at the bottom of other pages
+        similar_lines <- sapply(non_empty_pages, function(page) {
+          page_last_two_lines <- tail(page$lines, 2)
+          page_combined_line <- paste(page_last_two_lines, collapse = " ")
+          stringdist::stringdist(combined_line, page_combined_line) <= 10  # Allow for small differences
+        })
+        if (sum(similar_lines) > length(non_empty_pages) * 0.2) {  # If it appears on more than 20% of pages
+          potential_footnotes <- c(potential_footnotes, combined_line)
+        }
+      }
     }
     
-    # Clean pages
+    potential_footnotes <- unique(potential_footnotes)
+    
+    debug_info <- paste0(debug_info, "Potential footnotes:\n")
+    for (i in seq_along(potential_footnotes)) {
+      debug_info <- paste0(debug_info, sprintf("%d. %s\n", i, potential_footnotes[i]))
+    }
+    
+    # Clean pages while preserving page numbers
     cleaned_pages <- lapply(non_empty_pages, function(page) {
-      # Remove frequent lines
-      page <- page[!sapply(page, function(line) {
-        any(sapply(frequent_lines, function(freq_line) {
-          1 - stringdist(line, freq_line, method = "lv") / max(nchar(line), nchar(freq_line)) >= 0.9
-        }))
-      })]
-      
-      # Remove empty lines
-      page <- page[nchar(trimws(page)) > 0]
-      
-      # Join lines back into a single string
-      paste(page, collapse = "\n")
+      cleaned_lines <- page$lines
+      for (footnote in potential_footnotes) {
+        footnote_parts <- strsplit(footnote, " ")[[1]]
+        for (i in 1:(length(cleaned_lines) - 1)) {
+          if (paste(cleaned_lines[i], cleaned_lines[i+1], collapse = " ") == footnote ||
+              stringdist::stringdist(paste(cleaned_lines[i], cleaned_lines[i+1], collapse = " "), footnote) <= 10) {
+            cleaned_lines[i] <- cleaned_lines[i+1] <- ""
+          }
+        }
+      }
+      cleaned_lines <- cleaned_lines[nchar(trimws(cleaned_lines)) > 0]
+      list(text = paste(cleaned_lines, collapse = "\n"), page_num = page$page_num)
     })
     
     debug_info <- paste0(debug_info, sprintf("Number of pages after cleaning: %d\n", length(cleaned_pages)))
     
-    return(list(cleaned_pages = cleaned_pages, debug_info = debug_info))
+    return(list(cleaned_pages = cleaned_pages, debug_info = debug_info, footnotes = potential_footnotes))
   }, error = function(e) {
     error_msg <- paste("Error in remove_footnotes_and_headers:", e$message, "\n")
-    return(list(cleaned_pages = pages, debug_info = paste0(debug_info, error_msg)))
+    return(list(cleaned_pages = pages, debug_info = paste0(debug_info, error_msg), footnotes = character(0)))
   })
 }
 
@@ -329,7 +375,7 @@ process_ti_domain <- function(inclusion_criteria_df, exclusion_criteria_df, stud
       TIRL = NA,
       TIVERS = 1
     ) %>%
-    select(STUDYID, DOMAIN, IETESTCD, IETEST, IECAT, IESCAT, TIRL, TIVERS)
+    select(STUDYID, DOMAIN, IETESTCD, IETEST, IECAT, IESCAT, IEORRES, TIRL, TIVERS)
 
   # Save the data frame to an xlsx file with formatting
   save_ti_domain_to_excel(ti_domain, study_id, output_dir)
@@ -371,4 +417,13 @@ save_ti_domain_to_excel <- function(ti_domain, study_id, output_dir) {
   })
 
   return(debug_info)
+}
+
+# Helper function to extract footnotes from debug info
+extract_footnotes_from_debug <- function(debug_info) {
+  footnote_lines <- grep("^\\d+\\.", strsplit(debug_info, "\n")[[1]], value = TRUE)
+  footnotes <- sub("^\\d+\\.\\s*", "", footnote_lines)
+  # Remove any empty footnotes
+  footnotes <- footnotes[nchar(trimws(footnotes)) > 0]
+  return(footnotes)
 }

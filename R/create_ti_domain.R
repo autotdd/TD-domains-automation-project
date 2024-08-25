@@ -171,11 +171,30 @@ extract_criteria <- function(text_with_pages, section_header, footnotes) {
   ignore_patterns <- c(
     "^\\d+(\\.\\d+)*\\s+[A-Z]",  # Section numbers
     "^Patients must meet",       # Introductory text
-    "^The following criteria"    # Introductory text
+    "^The following criteria",   # Introductory text
+    "^Inclusion criteria:",      # Section header
+    "^Exclusion criteria:",      # Section header
+    "^Eligibility criteria:"     # Section header
   )
   
   # Define valid criterion start patterns
-  valid_start_patterns <- "^(•|\\d+\\.|-|[a-z]\\))"
+  valid_start_patterns <- paste0("^\\s*(",
+    "•|",                  # Bullet point
+    "\\*|",                # Asterisk
+    "\\d+\\.\\d*|",        # Numbered (e.g., 1. or 1.1)
+    "\\d+\\)|",            # Numbered with parenthesis (e.g., 1))
+    "[a-z]\\)|",           # Lowercase letter with parenthesis (e.g., a))
+    "[A-Z]\\)|",           # Uppercase letter with parenthesis (e.g., A))
+    "\\([a-z]\\)|",        # Lowercase letter in parentheses (e.g., (a))
+    "\\([A-Z]\\)|",        # Uppercase letter in parentheses (e.g., (A))
+    "\\([ivx]+\\)|",       # Lowercase Roman numerals in parentheses (e.g., (i), (iv))
+    "\\([IVX]+\\)|",       # Uppercase Roman numerals in parentheses (e.g., (I), (IV))
+    "-|",                  # Dash
+    "□|",                  # Empty checkbox
+    "☐|",                  # Another empty checkbox unicode
+    "■|",                  # Filled checkbox
+    "☑"                    # Checked checkbox unicode
+  , ")")
   
   for (i in (start_index[1] + 1):length(all_lines)) {
     line <- trimws(all_lines[i])

@@ -49,6 +49,11 @@ create_ti_domain <- function(study_id, method, pdf_path = NULL, nct_id = NULL,
                              incl_range = NULL, excl_range = NULL,
                              incl_section = NULL, excl_section = NULL, end_section = NULL,
                              output_dir = getwd()) {
+  # Ensure output_dir exists
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive = TRUE)
+  }
+
   if (method == "pdf") {
     if (is.null(pdf_path) || is.null(incl_range) || is.null(excl_range) ||
         is.null(incl_section) || is.null(excl_section) || is.null(end_section)) {
@@ -71,8 +76,16 @@ create_ti_domain <- function(study_id, method, pdf_path = NULL, nct_id = NULL,
     if (is.null(nct_id)) {
       stop("For API method, nct_id must be provided.")
     }
-    ti_domain <- create_ti_domain_api(study_id, nct_id, output_dir)
-    return(ti_domain)
+    tryCatch({
+      ti_domain <- create_ti_domain_api(study_id, nct_id, output_dir)
+      if (is.null(ti_domain)) {
+        stop("create_ti_domain_api returned NULL")
+      }
+      return(ti_domain)
+    }, error = function(e) {
+      cat("Error in create_ti_domain_api:", conditionMessage(e), "\n")
+      return(NULL)
+    })
   } else {
     stop("Invalid method. Choose either 'pdf' or 'api'.")
   }
@@ -343,63 +356,118 @@ remove_footnotes_and_headers <- function(pages) {
 #' @return A data frame representing the TI domain.
 #' @keywords internal
 create_ti_domain_api <- function(study_id, nct_id, output_dir) {
-  # Fetch study information from the API
-  study_info <- get_study_info(nct_id)
-
-  # Extract the eligibility criteria text
-  eligibility_text <- study_info[["protocolSection"]][["eligibilityModule"]][["eligibilityCriteria"]]
-
-  # Split the eligibility text into inclusion and exclusion sections
-  inclusion_text <- str_extract(eligibility_text, "(?s)(?<=Inclusion Criteria:).*?(?=Exclusion Criteria:)")
-  exclusion_text <- str_extract(eligibility_text, "(?s)(?<=Exclusion Criteria:).*")
-
-  # Extract and clean the inclusion and exclusion criteria
-  inclusion_criteria_df <- extract_criteria(inclusion_text, "INCL")
-  exclusion_criteria_df <- extract_criteria(exclusion_text, "EXCL")
-
-  # Combine and process the criteria
-  ti_domain <- process_ti_domain(inclusion_criteria_df, exclusion_criteria_df, study_id, output_dir)
-
-  return(ti_domain)
-}
-
-#' Process TI Domain
-#'
-#' This function processes the extracted criteria and creates the final TI domain data frame.
-#'
-#' @param inclusion_criteria_df A data frame of inclusion criteria.
-#' @param exclusion_criteria_df A data frame of exclusion criteria.
-#' @param study_id A character string representing the Study ID.
-#' @return A data frame representing the processed TI domain.
-#' @keywords internal
-process_ti_domain <- function(inclusion_criteria_df, exclusion_criteria_df, study_id, output_dir) {
-  # Combine the inclusion and exclusion criteria into a single data frame
-  ti_domain <- bind_rows(inclusion_criteria_df, exclusion_criteria_df)
-
-  # Remove any rows with empty IETEST
-  ti_domain <- ti_domain[ti_domain$IETEST != "", ]
-
-  # Re-number the INCL and EXCL items
-  ti_domain <- ti_domain %>%
-    group_by(IECAT) %>%
-    mutate(IETESTCD = paste0(IECAT, row_number())) %>%
-    ungroup()
-
-  # Add the fixed columns to the TI domain
-  ti_domain <- ti_domain %>%
-    mutate(
+  tryCatch({
+    # Fetch study information
+    study_info <- fetch_study_info(nct_id)
+    
+    # Process study information
+    processed_info <- process_study_info(study_info, debug = TRUE)
+    
+    if (is.null(processed_info) || !is.list(processed_info)) {
+      stop("Invalid or empty study information received from API")
+    }
+    
+    # Extract eligibility criteria
+    eligibility_module <- processed_info$protocolSection$eligibilityModule
+    
+    # Debug: Print the structure of eligibility_module
+    cat("Eligibility Module Structure:\n")
+    print(str(eligibility_module))
+    
+    if (is.null(eligibility_module) || !is.list(eligibility_module)) {
+      stop("Eligibility information not found in API response")
+    }
+    
+    # Debug: Print the names of elements in eligibility_module
+    cat("Eligibility Module Elements:\n")
+    print(names(eligibility_module))
+    
+    eligibility_criteria <- eligibility_module$eligibilityCriteria
+    
+    # Debug: Print the eligibility criteria
+    cat("Eligibility Criteria:\n")
+    print(eligibility_criteria)
+    
+    if (is.null(eligibility_criteria) || !is.character(eligibility_criteria)) {
+      stop("Eligibility criteria not found in API response")
+    }
+    
+    # Split criteria into inclusion and exclusion
+    inclusion_text <- stringr::str_extract(eligibility_criteria, "(?s)(?<=Inclusion criteria:).*?(?=Exclusion criteria:)")
+    exclusion_text <- stringr::str_extract(eligibility_criteria, "(?s)(?<=Exclusion criteria:).*")
+    
+    # Debug: Print extracted inclusion and exclusion text
+    cat("Inclusion Text:\n")
+    print(inclusion_text)
+    cat("Exclusion Text:\n")
+    print(exclusion_text)
+    
+    # Extract criteria
+    inclusion_criteria <- extract_criteria_from_text(inclusion_text)
+    exclusion_criteria <- extract_criteria_from_text(exclusion_text)
+    
+    # Debug: Print extracted criteria
+    cat("Inclusion Criteria:\n")
+    print(inclusion_criteria)
+    cat("Exclusion Criteria:\n")
+    print(exclusion_criteria)
+    
+    # Create TI domain dataframe
+    ti_domain <- data.frame(
       STUDYID = study_id,
       DOMAIN = "TI",
-      IESCAT = NA,
-      TIRL = NA,
-      TIVERS = 1
-    ) %>%
-    select(STUDYID, DOMAIN, IETESTCD, IETEST, IECAT, IESCAT, IEORRES, TIRL, TIVERS)
+      IETESTCD = c(paste0("INCL", sprintf("%03d", seq_along(inclusion_criteria))),
+                   paste0("EXCL", sprintf("%03d", seq_along(exclusion_criteria)))),
+      IETEST = c(rep("Inclusion Criteria", length(inclusion_criteria)),
+                 rep("Exclusion Criteria", length(exclusion_criteria))),
+      IECAT = "",
+      IESCAT = "",
+      IEORRES = c(inclusion_criteria, exclusion_criteria),
+      stringsAsFactors = FALSE
+    )
+    
+    # Save to Excel
+    save_ti_domain_to_excel(ti_domain, study_id, output_dir)
+    
+    return(ti_domain)
+  }, error = function(e) {
+    cat("Error in create_ti_domain_api:", conditionMessage(e), "\n")
+    return(NULL)
+  })
+}
 
-  # Save the data frame to an xlsx file with formatting
-  save_ti_domain_to_excel(ti_domain, study_id, output_dir)
-
-   return(ti_domain)
+# Helper function to extract criteria from text
+extract_criteria_from_text <- function(text, max_length = 200) {
+  if (is.null(text) || is.na(text) || nchar(text) == 0) {
+    return(character(0))
+  }
+  
+  # Split the text into lines
+  lines <- strsplit(text, "\n")[[1]]
+  
+  # Remove empty lines and trim whitespace
+  lines <- trimws(lines[nchar(lines) > 0])
+  
+  # Combine lines that don't start with a number or bullet point
+  criteria <- character(0)
+  current_criterion <- ""
+  
+  for (line in lines) {
+    if (grepl("^\\d+\\.\\s|^-\\s|^•\\s", line)) {
+      if (nchar(current_criterion) > 0) {
+        criteria <- c(criteria, trim_and_clean(current_criterion, max_length))
+      }
+      current_criterion <- sub("^\\d+\\.\\s|^-\\s|^•\\s", "", line)
+    } else {
+      current_criterion <- paste(current_criterion, line)
+    }
+  }
+  
+  if (nchar(current_criterion) > 0) {
+    criteria <- c(criteria, trim_and_clean(current_criterion, max_length))
+  }
+  
+  return(criteria)
 }
 
 #' Save TI Domain to Excel

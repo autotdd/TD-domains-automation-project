@@ -57,6 +57,17 @@ fetch_study_info_v2 <- function(nct_ids, debug = FALSE) {
 }
 
 
+#' Create TS Domain
+#'
+#' This function creates the TS domain based on the provided NCT IDs and study ID.
+#'
+#' @param nct_ids A vector of NCT IDs
+#' @param study_id The study ID
+#' @param output_dir The output directory (default: current working directory)
+#' @param debug Boolean flag to enable debug mode (default: FALSE)
+#'
+#' @return A data frame containing the TS domain data
+#' @export
 create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FALSE) {
   # Ensure debug is logical
   debug <- as.logical(debug)
@@ -438,48 +449,74 @@ define_ts_mapping <- function() {
     SSTDTC = function(df) format_date_iso8601(df[[1]]$protocolSection$statusModule$startDateStruct$date),
     ADAPT = function(df) derive_adaptive_design(df),
     ADDON = function(df) derive_addon_treatment(df),
-    AGEMAX = function(df) {
-      cat("Debug: Entering AGEMAX function\n")
+    AGEMIN = function(df) {
       tryCatch({
-        eligibility_module <- df[[1]]$protocolSection$eligibilityModule
-        cat("Debug: Structure of eligibility_module:\n")
-        print(str(eligibility_module))
-        
-        # Check for maximumAge field
-        if (!is.null(eligibility_module$maximumAge)) {
-          result <- eligibility_module$maximumAge
-          cat("Debug: AGEMAX result from maximumAge:", result, "\n")
-          return(result)
+        if(is.atomic(df)) {
+          age_min <- df
+        } else if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$eligibilityModule)) {
+          age_min <- df[[1]]$protocolSection$eligibilityModule$minimumAge
+        } else {
+          return(NA_character_)
         }
         
-        # Check for ageMax field (alternative naming)
-        if (!is.null(eligibility_module$ageMax)) {
-          result <- eligibility_module$ageMax
-          cat("Debug: AGEMAX result from ageMax:", result, "\n")
-          return(result)
+        if(is.null(age_min) || is.na(age_min) || age_min == "") return(NA_character_)
+        
+        age_parts <- strsplit(trimws(age_min), " ")[[1]]
+        if(length(age_parts) != 2) return(NA_character_)
+        
+        age_value <- as.numeric(age_parts[1])
+        age_unit <- tolower(age_parts[2])
+        
+        if(grepl("year", age_unit)) {
+          return(sprintf("P%dY", age_value))
+        } else if(grepl("month", age_unit)) {
+          return(sprintf("P%dM", age_value))
+        } else if(grepl("week", age_unit)) {
+          return(sprintf("P%dW", age_value))
+        } else if(grepl("day", age_unit)) {
+          return(sprintf("P%dD", age_value))
+        } else {
+          return(NA_character_)
         }
-        
-        # Check for a more complex structure (e.g., nested under criteria)
-        if (!is.null(eligibility_module$criteria)) {
-          criteria_text <- eligibility_module$criteria
-          # Look for age-related information in the criteria text
-          age_match <- regexpr("(?i)maximum age.*?([0-9]+)\\s*years", criteria_text, perl=TRUE)
-          if (age_match != -1) {
-            result <- regmatches(criteria_text, age_match)[[1]]
-            cat("Debug: AGEMAX result from criteria text:", result, "\n")
-            return(result)
-          }
-        }
-        
-        # Add more checks here for other potential locations or formats of max age data
-        
       }, error = function(e) {
-        cat("Error in AGEMAX:", conditionMessage(e), "\n")
+        warning("Error in AGEMIN mapping: ", e$message)
+        return(NA_character_)
       })
-      cat("Debug: AGEMAX returning NA\n")
-      return(NA)  # Return NA instead of "NA" string
     },
-    AGEMIN = function(df) df[[1]]$protocolSection$eligibilityModule$minimumAge,
+    AGEMAX = function(df) {
+      tryCatch({
+        if(is.atomic(df)) {
+          age_max <- df
+        } else if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$eligibilityModule)) {
+          age_max <- df[[1]]$protocolSection$eligibilityModule$maximumAge
+        } else {
+          return(NA_character_)
+        }
+        
+        if(is.null(age_max) || is.na(age_max) || age_max == "") return(NA_character_)
+        
+        age_parts <- strsplit(trimws(age_max), " ")[[1]]
+        if(length(age_parts) != 2) return(NA_character_)
+        
+        age_value <- as.numeric(age_parts[1])
+        age_unit <- tolower(age_parts[2])
+        
+        if(grepl("year", age_unit)) {
+          return(sprintf("P%dY", age_value))
+        } else if(grepl("month", age_unit)) {
+          return(sprintf("P%dM", age_value))
+        } else if(grepl("week", age_unit)) {
+          return(sprintf("P%dW", age_value))
+        } else if(grepl("day", age_unit)) {
+          return(sprintf("P%dD", age_value))
+        } else {
+          return(NA_character_)
+        }
+      }, error = function(e) {
+        warning("Error in AGEMAX mapping: ", e$message)
+        return(NA_character_)
+      })
+    },
     COMPTRT = function(df) {
       cat("Debug: Entering COMPTRT function\n")
       tryCatch({
@@ -753,17 +790,6 @@ define_ts_mapping <- function() {
       })
     }
   )
-  
-  # Only add AGEMAX if it's available and returns a non-NA value
-  agemax_result <- tryCatch({
-    AGEMAX(list(protocolSection = list(eligibilityModule = list())))
-  }, error = function(e) NA)
-  
-  if (!is.na(agemax_result)) {
-    mapping$AGEMAX <- AGEMAX
-  } else {
-    cat("Debug: AGEMAX function not included in mapping as it returned NA\n")
-  }
   
   return(mapping)
 }

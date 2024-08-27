@@ -47,25 +47,22 @@ by extracting inclusion and exclusion criteria either from a PDF protocol or fro
 }
 \examples{
 \dontrun{
+# Get the path to the example PDF file
+pdf_path <- system.file("extdata", "Temp_Protocol_v1.pdf", package = "autoTDD")
+
 # Example using PDF method
 ti_domain_pdf <- create_ti_domain(
-  study_id = "STUDY005",
+  study_id = "STUDY001",
   method = "pdf",
-  pdf_path = "path/to/Temp_Protocol_v1.pdf",
-  incl_range = 64:67,
-  excl_range = 67:71,
+  pdf_path = pdf_path,
+  incl_range = 6:9,
+  excl_range = 9:13,
   incl_section = "4.1.1",
   excl_section = "4.1.2",
   end_section = "4.2"
 )
 
-# Example using API method
-ti_domain_api <- create_ti_domain(
-  study_id = "STUDY005",
-  method = "api",
-  nct_id = "NCT05789082"
-)
-
-# Both methods will save an Excel file named "STUDY005_TI.xlsx" in the specified output directory
+# This will save an Excel file in the current working directory
+# named "STUDY001_TI.xlsx"
 }
 }

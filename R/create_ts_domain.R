@@ -58,6 +58,9 @@ fetch_study_info_v2 <- function(nct_ids, debug = FALSE) {
 
 
 create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FALSE) {
+  # Ensure debug is logical
+  debug <- as.logical(debug)
+
   if(debug) cat("Starting create_ts_domain function\n")
 
   # Get the path to the Trial_Summary.xlsx file
@@ -103,7 +106,6 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     })
   })
 
-
   # Remove any NULL entries (failed fetches)
   trial_data <- trial_data[!sapply(trial_data, is.null)]
 
@@ -127,22 +129,30 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
   # Initialize an empty list to store TS rows
   ts_rows <- list()
 
-  # In the create_ts_domain function, replace the existing mapping loop with this:
+  # Just before applying the mapping:
+  cat("Debug: Structure of trial_data:\n")
+  print(str(trial_data, max.level = 3))
+  cat("Debug: Class of trial_data:", class(trial_data), "\n")
+  cat("Debug: Length of trial_data:", length(trial_data), "\n")
+  if(is.list(trial_data) && length(trial_data) > 0) {
+    cat("Debug: Class of first element of trial_data:", class(trial_data[[1]]), "\n")
+  }
+
+  # Loop through each row in ts_summary and apply mapping
   for (i in 1:nrow(ts_summary)) {
     param <- ts_summary$TSPARMCD[i]
     if (param %in% names(ts_mapping)) {
+      cat("Debug: Mapping", param, "\n")
+      cat("Debug: Class of trial_data passed to mapping function:", class(trial_data), "\n")
       mapped_value <- tryCatch({
-        if(debug) cat("Mapping", param, "\n")
         result <- ts_mapping[[param]](trial_data)
-        if(debug) cat("Mapped value for", param, ":", toString(result), "\n")
+        cat("Debug: Mapped value for", param, ":", toString(result), "\n")
         result
       }, error = function(e) {
         warning(paste("Error mapping", param, ":", e$message))
-        if(debug) {
-          cat("Error details for", param, ":\n")
-          print(e)
-        }
-        return("NA")
+        cat("Error details for", param, ":\n")
+        print(e)
+        return(NA_character_)
       })
       
       if (param %in% c("OBJPRIM", "OBJSEC", "OUTMSPRI", "OUTMSSEC", "FCNTRY")) {
@@ -155,18 +165,18 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
           }
         } else {
           new_row <- ts_summary[i, ]
-          new_row$TSVAL <- if (length(mapped_value) == 1) mapped_value else "NA"
+          new_row$TSVAL <- if (length(mapped_value) == 1) mapped_value else NA_character_
           ts_rows[[length(ts_rows) + 1]] <- new_row
         }
       } else {
         # Handle other parameters
         new_row <- ts_summary[i, ]
-        new_row$TSVAL <- if (length(mapped_value) == 1) mapped_value else "NA"
+        new_row$TSVAL <- if (length(mapped_value) == 1) mapped_value else NA_character_
         ts_rows[[length(ts_rows) + 1]] <- new_row
       }
     } else {
       new_row <- ts_summary[i, ]
-      new_row$TSVAL <- "NA"
+      new_row$TSVAL <- NA_character_
       ts_rows[[length(ts_rows) + 1]] <- new_row
     }
   }
@@ -209,7 +219,7 @@ process_study_info <- function(study_info, debug = FALSE) {
 
   if(is.null(study_info) || length(study_info) == 0) {
     if(debug) cat("Error: study_info is null or empty\n")
-    return(data.frame())
+    return(NULL)
   }
 
   tryCatch({
@@ -227,7 +237,7 @@ process_study_info <- function(study_info, debug = FALSE) {
       cat("Error in process_study_info:", conditionMessage(e), "\n")
       print(e)
     }
-    return(data.frame())  # Return an empty data frame on error
+    return(NULL)  # Return NULL on error
   })
 }
 
@@ -282,26 +292,36 @@ define_ts_mapping <- function() {
     INDIC = function(df) df[[1]]$protocolSection$conditionsModule$conditions[[1]],
     TDIGRP = function(df) df[[1]]$protocolSection$conditionsModule$conditions[[1]],
     THERAREA = function(df) {
-      condition <- df[[1]]$protocolSection$conditionsModule$conditions[[1]]
-      interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions[[1]]$type
-      if (is.na(condition) || is.na(interventions)) {
-        return(NA)
-      }
-      if (grepl("cancer|neoplasm|tumor|carcinoma", condition, ignore.case = TRUE)) {
-        return("Oncology")
-      } else if (grepl("heart|cardio|stroke", condition, ignore.case = TRUE)) {
-        return("Cardiovascular")
-      } else if (grepl("diabetes|endocrine", condition, ignore.case = TRUE)) {
-        return("Endocrinology")
-      } else if (grepl("neuro|brain|alzheimer|parkinson", condition, ignore.case = TRUE)) {
-        return("Neurology")
-      } else if (grepl("psych|depression|anxiety", condition, ignore.case = TRUE)) {
-        return("Psychiatry")
-      } else if (grepl("vaccine|immun", interventions, ignore.case = TRUE)) {
-        return("Immunology")
-      } else {
-        return("Other")
-      }
+      cat("Debug: Entering THERAREA function\n")
+      cat("Debug: Class of df in THERAREA:", class(df), "\n")
+      cat("Debug: Length of df in THERAREA:", length(df), "\n")
+      tryCatch({
+        if(is.atomic(df)) {
+          cat("Debug: df is atomic in THERAREA\n")
+          return("Other")
+        } else if(is.list(df) && length(df) > 0) {
+          condition <- df[[1]]$protocolSection$conditionsModule$conditions[[1]]
+          cat("Debug: condition =", condition, "\n")
+          if (grepl("cancer|neoplasm|tumor|carcinoma", condition, ignore.case = TRUE)) {
+            return("Oncology")
+          } else if (grepl("heart|cardio|stroke", condition, ignore.case = TRUE)) {
+            return("Cardiovascular")
+          } else if (grepl("diabetes|endocrine", condition, ignore.case = TRUE)) {
+            return("Endocrinology")
+          } else if (grepl("neuro|brain|alzheimer|parkinson", condition, ignore.case = TRUE)) {
+            return("Neurology")
+          } else if (grepl("psych|depression|anxiety", condition, ignore.case = TRUE)) {
+            return("Psychiatry")
+          } else {
+            return("Other")
+          }
+        } else {
+          return(NA_character_)
+        }
+      }, error = function(e) {
+        cat("Error in THERAREA mapping:", e$message, "\n")
+        return(NA_character_)
+      })
     },
     REGID = function(df) {
       cat("Debug: Entering REGID function\n")
@@ -343,7 +363,41 @@ define_ts_mapping <- function() {
       return("NA")
     },
     STYPE = function(df) df[[1]]$protocolSection$designModule$studyType,
-    TTYPE = function(df) derive_trial_type(df),
+    TTYPE = function(df) {
+      cat("Debug: Entering TTYPE function\n")
+      cat("Debug: Class of df in TTYPE:", class(df), "\n")
+      cat("Debug: Length of df in TTYPE:", length(df), "\n")
+      tryCatch({
+        if(is.atomic(df)) {
+          cat("Debug: df is atomic in TTYPE\n")
+          return("OTHER")
+        } else if(is.list(df) && length(df) > 0) {
+          types <- character(0)
+          primary_outcomes <- df[[1]]$protocolSection$outcomesModule$primaryOutcomes
+          if (!is.null(primary_outcomes) && length(primary_outcomes) > 0) {
+            descriptions <- sapply(primary_outcomes, function(x) x$description)
+            if (any(grepl("safety", tolower(descriptions), fixed = TRUE))) {
+              types <- c(types, "SAFETY")
+            }
+            if (any(grepl("efficacy", tolower(descriptions), fixed = TRUE))) {
+              types <- c(types, "EFFICACY")
+            }
+            if (any(grepl("pharmacokinetics|bioavailability|bioequivalence", tolower(descriptions), fixed = TRUE))) {
+              types <- c(types, "PK")
+            }
+          }
+          if (length(types) == 0) {
+            types <- "OTHER"
+          }
+          return(paste(types, collapse = "; "))
+        } else {
+          return(NA_character_)
+        }
+      }, error = function(e) {
+        cat("Error in TTYPE mapping:", e$message, "\n")
+        return(NA_character_)
+      })
+    },
     ACTSUB = function(df) {
       cat("Debug: Entering ACTSUB function\n")
       tryCatch({
@@ -664,92 +718,39 @@ define_ts_mapping <- function() {
       }
       return(NA)
     },
-    TRT = function(df) {
-      treatments <- df[[1]]$protocolSection$armsInterventionsModule$interventions[[1]]$description
-      if (is.null(treatments) || all(is.na(treatments))) {
-        return(NA)
-      }
-      return(treatments)
-    },
-
-    OBJPRIM = function(df) {
-      cat("Debug: Entering OBJPRIM function\n")
-      tryCatch({
-        primary_outcomes <- df[[1]]$protocolSection$outcomesModule$primaryOutcomes
-        cat("Debug: Structure of primary_outcomes:\n")
-        print(str(primary_outcomes))
-        
-        if (is.data.frame(primary_outcomes) && nrow(primary_outcomes) > 0) {
-          if ("description" %in% names(primary_outcomes)) {
-            result <- na.omit(primary_outcomes$description)
-          } else if ("measure" %in% names(primary_outcomes)) {
-            result <- na.omit(primary_outcomes$measure)
-          } else {
-            result <- character(0)
-          }
-          cat("Debug: OBJPRIM result:", paste(result, collapse = "; "), "\n")
-          return(if(length(result) > 0) result else "NA")
-        }
-      }, error = function(e) {
-        cat("Error in OBJPRIM:", conditionMessage(e), "\n")
-      })
-      cat("Debug: OBJPRIM returning NA\n")
-      return("NA")
-    },
-
-    OBJSEC = function(df) {
-      cat("Debug: Entering OBJSEC function\n")
-      tryCatch({
-        secondary_outcomes <- df[[1]]$protocolSection$outcomesModule$secondaryOutcomes
-        cat("Debug: Structure of secondary_outcomes:\n")
-        print(str(secondary_outcomes))
-        
-        if (is.data.frame(secondary_outcomes) && nrow(secondary_outcomes) > 0) {
-          if ("description" %in% names(secondary_outcomes)) {
-            result <- na.omit(secondary_outcomes$description)
-          } else if ("measure" %in% names(secondary_outcomes)) {
-            result <- na.omit(secondary_outcomes$measure)
-          } else {
-            result <- character(0)
-          }
-          cat("Debug: OBJSEC result:", paste(result, collapse = "; "), "\n")
-          return(if(length(result) > 0) result else "NA")
-        }
-      }, error = function(e) {
-        cat("Error in OBJSEC:", conditionMessage(e), "\n")
-      })
-      cat("Debug: OBJSEC returning NA\n")
-      return("NA")
-    },
-    LENGTH = function(df) {
-      start_date <- df[[1]]$protocolSection$statusModule$startDateStruct$date
-      end_date <- df[[1]]$protocolSection$statusModule$completionDateStruct$date
-      if (!is.null(start_date) && !is.null(end_date)) {
-        start <- as.Date(start_date)
-        end <- as.Date(end_date)
-        if (!is.na(start) && !is.na(end)) {
-          days <- as.numeric(end - start)
-          return(paste0("P", days, "D"))
-        }
-      }
-      return(NA)
-    },
     SPREFID = function(df) {
-      cat("Debug: Entering SPREFID function\n")
       tryCatch({
+        if(!is.list(df) || length(df) == 0) return(NA_character_)
         nct_id <- df[[1]]$protocolSection$identificationModule$nctId
-        cat("Debug: NCT ID:", nct_id, "\n")
+        if (is.null(nct_id) || length(nct_id) == 0) return(NA_character_)
         
-        if (!is.null(nct_id) && length(nct_id) > 0) {
-          result <- nct_id[1]  # In case there are multiple, take the first one
-          cat("Debug: SPREFID result:", result, "\n")
-          return(result)
+        result <- nct_id[1]  # In case there are multiple, take the first one
+        return(result)
+      }, error = function(e) {
+        warning("Error in SPREFID mapping: ", e$message)
+        return(NA_character_)
+      })
+    },
+    TRT = function(df) {
+      cat("Debug: Entering TRT function\n")
+      cat("Debug: Class of df in TRT:", class(df), "\n")
+      cat("Debug: Length of df in TRT:", length(df), "\n")
+      tryCatch({
+        if(is.atomic(df)) {
+          cat("Debug: df is atomic in TRT\n")
+          return(as.character(df))
+        } else if(is.list(df) && length(df) > 0) {
+          interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
+          if (is.null(interventions) || length(interventions) == 0) return(NA_character_)
+          treatments <- sapply(interventions, function(x) x$description)
+          return(if(all(is.na(treatments))) NA_character_ else paste(treatments, collapse = "; "))
+        } else {
+          return(NA_character_)
         }
       }, error = function(e) {
-        cat("Error in SPREFID:", conditionMessage(e), "\n")
+        cat("Error in TRT mapping:", e$message, "\n")
+        return(NA_character_)
       })
-      cat("Debug: SPREFID returning NA\n")
-      return("NA")
     }
   )
   
@@ -791,24 +792,44 @@ derive_comparative_treatment <- function(df) {
 #' @return A character string representing the therapeutic area.
 #' @keywords internal
 derive_therapeutic_area <- function(condition, interventions) {
-  if (is.na(condition) || is.na(interventions)) {
-    return(NA)
-  }
-  if (grepl("cancer|neoplasm|tumor|carcinoma", condition, ignore.case = TRUE)) {
-    return("Oncology")
-  } else if (grepl("heart|cardio|stroke", condition, ignore.case = TRUE)) {
-    return("Cardiovascular")
-  } else if (grepl("diabetes|endocrine", condition, ignore.case = TRUE)) {
-    return("Endocrinology")
-  } else if (grepl("neuro|brain|alzheimer|parkinson", condition, ignore.case = TRUE)) {
-    return("Neurology")
-  } else if (grepl("psych|depression|anxiety", condition, ignore.case = TRUE)) {
-    return("Psychiatry")
-  } else if (grepl("vaccine|immun", interventions, ignore.case = TRUE)) {
-    return("Immunology")
-  } else {
-    return("Other")
-  }
+  tryCatch({
+    if(is.atomic(df)) {
+      # If df is an atomic vector, it might be the condition itself
+      condition <- df
+      interventions <- NULL
+    } else if(is.list(df) && length(df) > 0) {
+      condition <- df[[1]]$protocolSection$conditionsModule$conditions[[1]]
+      interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
+    } else {
+      return(NA_character_)
+    }
+    
+    if (is.null(condition)) return(NA_character_)
+    
+    intervention_type <- if(!is.null(interventions) && is.list(interventions) && length(interventions) > 0) 
+      interventions[[1]]$type 
+    else 
+      NA_character_
+    
+    if (grepl("cancer|neoplasm|tumor|carcinoma", condition, ignore.case = TRUE)) {
+      return("Oncology")
+    } else if (grepl("heart|cardio|stroke", condition, ignore.case = TRUE)) {
+      return("Cardiovascular")
+    } else if (grepl("diabetes|endocrine", condition, ignore.case = TRUE)) {
+      return("Endocrinology")
+    } else if (grepl("neuro|brain|alzheimer|parkinson", condition, ignore.case = TRUE)) {
+      return("Neurology")
+    } else if (grepl("psych|depression|anxiety", condition, ignore.case = TRUE)) {
+      return("Psychiatry")
+    } else if (!is.na(intervention_type) && grepl("vaccine|immun", intervention_type, ignore.case = TRUE)) {
+      return("Immunology")
+    } else {
+      return("Other")
+    }
+  }, error = function(e) {
+    warning("Error in THERAREA mapping: ", e$message)
+    return(NA_character_)
+  })
 }
 
 
@@ -818,22 +839,43 @@ derive_therapeutic_area <- function(condition, interventions) {
 #' @return A character string representing the trial type.
 #' @keywords internal
 derive_trial_type <- function(df) {
-  types <- c()
-  if (!is.null(df[[1]]$protocolSection$outcomesModule$primaryOutcomes) && !is.na(df[[1]]$protocolSection$outcomesModule$primaryOutcomes)) {
-    if (grepl("safety", tolower(df[[1]]$protocolSection$outcomesModule$primaryOutcomes[[1]]$description), fixed = TRUE)) {
-      types <- c(types, "SAFETY")
+  tryCatch({
+    if(is.atomic(df)) {
+      # If df is an atomic vector, we can't determine the type
+      return("OTHER")
+    } else if(!is.list(df) || length(df) == 0) {
+      return(NA_character_)
     }
-    if (grepl("efficacy", tolower(df[[1]]$protocolSection$outcomesModule$primaryOutcomes[[1]]$description), fixed = TRUE)) {
-      types <- c(types, "EFFICACY")
+    
+    types <- character(0)
+    primary_outcomes <- df[[1]]$protocolSection$outcomesModule$primaryOutcomes
+    if (!is.null(primary_outcomes) && length(primary_outcomes) > 0) {
+      descriptions <- if(is.list(primary_outcomes)) {
+        sapply(primary_outcomes, function(x) x$description)
+      } else if(is.character(primary_outcomes)) {
+        primary_outcomes
+      } else {
+        NA_character_
+      }
+      
+      if (any(grepl("safety", tolower(descriptions), fixed = TRUE))) {
+        types <- c(types, "SAFETY")
+      }
+      if (any(grepl("efficacy", tolower(descriptions), fixed = TRUE))) {
+        types <- c(types, "EFFICACY")
+      }
+      if (any(grepl("pharmacokinetics|bioavailability|bioequivalence", tolower(descriptions), fixed = TRUE))) {
+        types <- c(types, "PK")
+      }
     }
-    if (grepl("pharmacokinetics|bioavailability|bioequivalence", tolower(df[[1]]$protocolSection$outcomesModule$primaryOutcomes[[1]]$description), fixed = TRUE)) {
-      types <- c(types, "PK")
+    if (length(types) == 0) {
+      types <- "OTHER"
     }
-  }
-  if (length(types) == 0) {
-    types <- c("OTHER")
-  }
-  return(paste(types, collapse = "; "))
+    return(paste(types, collapse = "; "))
+  }, error = function(e) {
+    warning("Error in TTYPE mapping: ", e$message)
+    return(NA_character_)
+  })
 }
 
 #' Derive Adaptive Design

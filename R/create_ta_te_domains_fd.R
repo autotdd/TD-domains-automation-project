@@ -158,7 +158,7 @@ create_ta_te_domains_fd <- function(study_id, trial_design, arms_data, treatment
           TATRANS = NA,
           EPOCH = epochs[j]
         )
-    }
+    } 
   }
 
   # Create TE domain

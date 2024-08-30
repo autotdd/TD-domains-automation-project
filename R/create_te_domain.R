@@ -34,4 +34,4 @@ create_te_domain <- function(ta_df, te_rules) {
     select(STUDYID = ta_df$STUDYID[1], DOMAIN, ETCD, ELEMENT, TESTRL, TEENRL, TEDUR)
   
   return(te_df)
-}
+} 

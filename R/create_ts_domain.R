@@ -438,7 +438,7 @@ define_ts_mapping <- function() {
         return("OTHER")
       }, error = function(e) {
         cat("Error in TTYPE mapping:", e$message, "\n")
-        return(NA_character_)
+        return(NA_character_) 
       })
     },
     ACTSUB = function(df) {

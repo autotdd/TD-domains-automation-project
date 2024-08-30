@@ -53,7 +53,7 @@ create_ta_te_domains_sd <- function(study_id, arms_data, treatments, te_rules, o
     EPOCH = character(),
     stringsAsFactors = FALSE
   )
-
+ 
   # Populate TA domain data frame based on input rows
   for (i in seq_along(arms_data)) {
     arm_data <- arms_data[[i]]

@@ -174,7 +174,7 @@ create_ta_te_domains_cd <- function(study_id, trial_design, arms_data, treatment
     }
     max(10, max(nchar(as.character(col)), na.rm = TRUE))
   })
-  
+   
   # Write data and set column widths
   writeData(wb_te, "TE", te_df, headerStyle = createStyle(textDecoration = "bold", halign = "left"))
   setColWidths(wb_te, "TE", cols = 1:ncol(te_df), widths = col_widths_te)

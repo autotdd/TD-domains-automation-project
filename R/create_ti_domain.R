@@ -378,7 +378,7 @@ create_ti_domain_api <- function(study_id, nct_id, output_dir) {
     
     if (is.null(eligibility_criteria) || !is.character(eligibility_criteria)) {
       stop("Eligibility criteria not found in API response")
-    }
+    } 
     
     # Split criteria into inclusion and exclusion
     criteria_split <- strsplit(eligibility_criteria, "Exclusion Criteria:")[[1]]

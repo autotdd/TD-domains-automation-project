@@ -370,47 +370,41 @@ create_ti_domain_api <- function(study_id, nct_id, output_dir) {
     # Extract eligibility criteria
     eligibility_module <- processed_info$protocolSection$eligibilityModule
     
-    # Debug: Print the structure of eligibility_module
-    cat("Eligibility Module Structure:\n")
-    print(str(eligibility_module))
-    
     if (is.null(eligibility_module) || !is.list(eligibility_module)) {
       stop("Eligibility information not found in API response")
     }
     
-    # Debug: Print the names of elements in eligibility_module
-    cat("Eligibility Module Elements:\n")
-    print(names(eligibility_module))
-    
     eligibility_criteria <- eligibility_module$eligibilityCriteria
-    
-    # Debug: Print the eligibility criteria
-    cat("Eligibility Criteria:\n")
-    print(eligibility_criteria)
     
     if (is.null(eligibility_criteria) || !is.character(eligibility_criteria)) {
       stop("Eligibility criteria not found in API response")
     }
     
     # Split criteria into inclusion and exclusion
-    inclusion_text <- stringr::str_extract(eligibility_criteria, "(?s)(?<=Inclusion criteria:).*?(?=Exclusion criteria:)")
-    exclusion_text <- stringr::str_extract(eligibility_criteria, "(?s)(?<=Exclusion criteria:).*")
+    criteria_split <- strsplit(eligibility_criteria, "Exclusion Criteria:")[[1]]
     
-    # Debug: Print extracted inclusion and exclusion text
-    cat("Inclusion Text:\n")
-    print(inclusion_text)
-    cat("Exclusion Text:\n")
-    print(exclusion_text)
+    if (length(criteria_split) < 2) {
+      # If "Exclusion Criteria:" is not found, try to split by "Inclusion Criteria:"
+      criteria_split <- strsplit(eligibility_criteria, "Inclusion Criteria:")[[1]]
+      if (length(criteria_split) < 2) {
+        stop("Unable to separate inclusion and exclusion criteria")
+      }
+      inclusion_text <- criteria_split[2]
+      exclusion_text <- ""
+    } else {
+      inclusion_text <- sub("Inclusion Criteria:", "", criteria_split[1])
+      exclusion_text <- criteria_split[2]
+    }
     
     # Extract criteria
     inclusion_criteria <- extract_criteria_from_text(inclusion_text)
     exclusion_criteria <- extract_criteria_from_text(exclusion_text)
     
-    # Debug: Print extracted criteria
-    cat("Inclusion Criteria:\n")
-    print(inclusion_criteria)
-    cat("Exclusion Criteria:\n")
-    print(exclusion_criteria)
+    # Ensure at least one criterion exists
+    if (length(inclusion_criteria) == 0 && length(exclusion_criteria) == 0) {
+      inclusion_criteria <- c("No specific inclusion criteria provided")
+      exclusion_criteria <- c("No specific exclusion criteria provided")
+    }
     
     # Create TI domain dataframe
     ti_domain <- data.frame(
@@ -432,32 +426,42 @@ create_ti_domain_api <- function(study_id, nct_id, output_dir) {
     return(ti_domain)
   }, error = function(e) {
     cat("Error in create_ti_domain_api:", conditionMessage(e), "\n")
-    return(NULL)
+    # Instead of returning NULL, return an empty data frame with the correct structure
+    return(data.frame(
+      STUDYID = character(),
+      DOMAIN = character(),
+      IETESTCD = character(),
+      IETEST = character(),
+      IECAT = character(),
+      IESCAT = character(),
+      IEORRES = character(),
+      stringsAsFactors = FALSE
+    ))
   })
 }
 
 # Helper function to extract criteria from text
 extract_criteria_from_text <- function(text, max_length = 200) {
-  if (is.null(text) || is.na(text) || nchar(text) == 0) {
+  if (is.null(text) || is.na(text) || nchar(trimws(text)) == 0) {
     return(character(0))
   }
   
   # Split the text into lines
-  lines <- strsplit(text, "\n")[[1]]
+  lines <- strsplit(trimws(text), "\n")[[1]]
   
   # Remove empty lines and trim whitespace
   lines <- trimws(lines[nchar(lines) > 0])
   
-  # Combine lines that don't start with a number or bullet point
+  # Combine lines that don't start with a number, bullet point, or asterisk
   criteria <- character(0)
   current_criterion <- ""
   
   for (line in lines) {
-    if (grepl("^\\d+\\.\\s|^-\\s|^•\\s", line)) {
+    if (grepl("^\\d+\\.\\s|^-\\s|^•\\s|^\\*\\s", line)) {
       if (nchar(current_criterion) > 0) {
         criteria <- c(criteria, trim_and_clean(current_criterion, max_length))
       }
-      current_criterion <- sub("^\\d+\\.\\s|^-\\s|^•\\s", "", line)
+      current_criterion <- sub("^\\d+\\.\\s|^-\\s|^•\\s|^\\*\\s", "", line)
     } else {
       current_criterion <- paste(current_criterion, line)
     }
@@ -484,26 +488,56 @@ save_ti_domain_to_excel <- function(ti_domain, study_id, output_dir) {
   writeData(wb, "TI_Domain", ti_domain)
 
   # Set column widths
-  setColWidths(wb, "TI_Domain", cols = 1:6, widths = c(10, 10, 10, 20, 10, 10))
-  setColWidths(wb, "TI_Domain", cols = 7, widths = 150)  # IEORRES column
+  standard_width <- 15
+  ieorres_width <- 80  # Larger width for IEORRES column
 
-  # Apply text wrapping to all columns
-  wrapStyle <- createStyle(wrapText = TRUE, valign = "top")
-  addStyle(wb, "TI_Domain", style = wrapStyle, rows = 1:(nrow(ti_domain) + 1), cols = 1:ncol(ti_domain), gridExpand = TRUE)
+  setColWidths(wb, "TI_Domain", cols = 1:6, widths = standard_width)
+  setColWidths(wb, "TI_Domain", cols = 7, widths = ieorres_width)  # IEORRES column
 
-  # Set row height to accommodate wrapped text
-  setRowHeights(wb, "TI_Domain", rows = 2:(nrow(ti_domain) + 1), heights = 60)
+  # Define styles
+  header_style <- createStyle(
+    fontSize = 11,
+    halign = "center",
+    valign = "center",
+    wrapText = TRUE,
+    textDecoration = "bold",
+    border = c("top", "bottom", "left", "right"),
+    borderStyle = "thin"
+  )
 
-  debug_info <- sprintf("Attempting to save Excel file: %s\n", file_name)
+  content_style <- createStyle(
+    fontSize = 10,
+    halign = "left",
+    valign = "top",
+    wrapText = TRUE,
+    border = c("top", "bottom", "left", "right"),
+    borderStyle = "thin"
+  )
+
+  # Apply styles
+  addStyle(wb, "TI_Domain", style = header_style, rows = 1, cols = 1:ncol(ti_domain), gridExpand = TRUE)
+  addStyle(wb, "TI_Domain", style = content_style, rows = 2:(nrow(ti_domain) + 1), cols = 1:ncol(ti_domain), gridExpand = TRUE)
+
+  # Set row heights
+  header_height <- 20
+  content_height <- 15
+  setRowHeights(wb, "TI_Domain", rows = 1, heights = header_height)
+  setRowHeights(wb, "TI_Domain", rows = 2:(nrow(ti_domain) + 1), heights = content_height)
+
+  # Add filters to header row
+  addFilter(wb, "TI_Domain", row = 1, cols = 1:ncol(ti_domain))
+
+  # Freeze the top row
+  freezePane(wb, "TI_Domain", firstRow = TRUE)
 
   tryCatch({
     saveWorkbook(wb, file_name, overwrite = TRUE)
-    debug_info <- paste0(debug_info, sprintf("Excel file saved successfully: %s\n", file_name))
+    cat(sprintf("Excel file saved successfully: %s\n", file_name))
   }, error = function(e) {
-    debug_info <- paste0(debug_info, sprintf("Error saving Excel file: %s\n", e$message))
+    cat(sprintf("Error saving Excel file: %s\n", e$message))
   })
 
-  return(debug_info)
+  return(file_name)
 }
 
 # Helper function to extract footnotes from debug info

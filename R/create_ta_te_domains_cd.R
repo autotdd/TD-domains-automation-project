@@ -143,14 +143,45 @@ create_ta_te_domains_cd <- function(study_id, trial_design, arms_data, treatment
   ta_output_file <- file.path(output_dir, paste0(study_id, "_TA.xlsx"))
   wb_ta <- createWorkbook()
   addWorksheet(wb_ta, "TA")
-  writeData(wb_ta, "TA", ta_df, headerStyle = createStyle(textDecoration = "bold"))
+  
+  # Calculate max width for each column, with a minimum width of 10
+  col_widths <- sapply(ta_df, function(col) {
+    if (length(col) == 0 || all(is.na(col))) {
+      return(10)
+    }
+    max(10, max(nchar(as.character(col)), na.rm = TRUE))
+  })
+  
+  # Write data and set column widths
+  writeData(wb_ta, "TA", ta_df, headerStyle = createStyle(textDecoration = "bold", halign = "left"))
+  setColWidths(wb_ta, "TA", cols = 1:ncol(ta_df), widths = col_widths)
+  
+  # Apply left alignment to all cells
+  style <- createStyle(halign = "left")
+  addStyle(wb_ta, "TA", style = style, rows = 1:(nrow(ta_df) + 1), cols = 1:ncol(ta_df), gridExpand = TRUE)
+  
   saveWorkbook(wb_ta, ta_output_file, overwrite = TRUE)
 
   # Save the TE domain to a separate Excel file
   te_output_file <- file.path(output_dir, paste0(study_id, "_TE.xlsx"))
   wb_te <- createWorkbook()
   addWorksheet(wb_te, "TE")
-  writeData(wb_te, "TE", te_df, headerStyle = createStyle(textDecoration = "bold"))
+  
+  # Calculate max width for each column, with a minimum width of 10
+  col_widths_te <- sapply(te_df, function(col) {
+    if (length(col) == 0 || all(is.na(col))) {
+      return(10)
+    }
+    max(10, max(nchar(as.character(col)), na.rm = TRUE))
+  })
+  
+  # Write data and set column widths
+  writeData(wb_te, "TE", te_df, headerStyle = createStyle(textDecoration = "bold", halign = "left"))
+  setColWidths(wb_te, "TE", cols = 1:ncol(te_df), widths = col_widths_te)
+  
+  # Apply left alignment to all cells
+  addStyle(wb_te, "TE", style = style, rows = 1:(nrow(te_df) + 1), cols = 1:ncol(te_df), gridExpand = TRUE)
+  
   saveWorkbook(wb_te, te_output_file, overwrite = TRUE)
 
   return(list(TA = ta_df, TE = te_df))

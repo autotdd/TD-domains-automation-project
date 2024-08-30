@@ -192,6 +192,23 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     }
   }
 
+  # Before combining the rows, we need to properly assign TSSEQ
+  ts_rows <- lapply(split(ts_rows, sapply(ts_rows, function(x) x$TSPARMCD)), function(param_group) {
+    if (length(param_group) > 1) {
+      # If there are multiple records for this TSPARMCD, assign incremental TSSEQ
+      for (i in seq_along(param_group)) {
+        param_group[[i]]$TSSEQ <- i
+      }
+    } else {
+      # If there's only one record for this TSPARMCD, TSSEQ is 1
+      param_group[[1]]$TSSEQ <- 1
+    }
+    return(param_group)
+  })
+
+  # Flatten the list of lists back to a single list
+  ts_rows <- unlist(ts_rows, recursive = FALSE)
+
   # Combine all rows into a single dataframe
   ts_summary_final <- do.call(rbind, ts_rows)
 
@@ -379,31 +396,46 @@ define_ts_mapping <- function() {
       cat("Debug: Class of df in TTYPE:", class(df), "\n")
       cat("Debug: Length of df in TTYPE:", length(df), "\n")
       tryCatch({
-        if(is.atomic(df)) {
-          cat("Debug: df is atomic in TTYPE\n")
-          return("OTHER")
-        } else if(is.list(df) && length(df) > 0) {
-          types <- character(0)
-          primary_outcomes <- df[[1]]$protocolSection$outcomesModule$primaryOutcomes
-          if (!is.null(primary_outcomes) && length(primary_outcomes) > 0) {
-            descriptions <- sapply(primary_outcomes, function(x) x$description)
-            if (any(grepl("safety", tolower(descriptions), fixed = TRUE))) {
-              types <- c(types, "SAFETY")
-            }
-            if (any(grepl("efficacy", tolower(descriptions), fixed = TRUE))) {
-              types <- c(types, "EFFICACY")
-            }
-            if (any(grepl("pharmacokinetics|bioavailability|bioequivalence", tolower(descriptions), fixed = TRUE))) {
-              types <- c(types, "PK")
+        if(is.list(df) && length(df) > 0) {
+          if("protocolSection" %in% names(df[[1]])) {
+            cat("Debug: Found protocolSection\n")
+            protocol_section <- df[[1]]$protocolSection
+            cat("Debug: Names in protocolSection:", paste(names(protocol_section), collapse = ", "), "\n")
+            
+            if("outcomesModule" %in% names(protocol_section)) {
+              cat("Debug: Found outcomesModule\n")
+              outcomes_module <- protocol_section$outcomesModule
+              cat("Debug: Names in outcomesModule:", paste(names(outcomes_module), collapse = ", "), "\n")
+              
+              if("primaryOutcomes" %in% names(outcomes_module)) {
+                primary_outcomes <- outcomes_module$primaryOutcomes
+                cat("Debug: Found primaryOutcomes. Length:", length(primary_outcomes), "\n")
+                
+                if(length(primary_outcomes) > 0) {
+                  descriptions <- sapply(primary_outcomes, function(x) x$description)
+                  types <- character(0)
+                  if (any(grepl("safety", tolower(descriptions), fixed = TRUE))) {
+                    types <- c(types, "SAFETY")
+                  }
+                  if (any(grepl("efficacy", tolower(descriptions), fixed = TRUE))) {
+                    types <- c(types, "EFFICACY")
+                  }
+                  if (any(grepl("pharmacokinetics|bioavailability|bioequivalence", tolower(descriptions), fixed = TRUE))) {
+                    types <- c(types, "PK")
+                  }
+                  if (length(types) == 0) {
+                    types <- "OTHER"
+                  }
+                  result <- paste(types, collapse = "; ")
+                  cat("Debug: TTYPE result:", result, "\n")
+                  return(result)
+                }
+              }
             }
           }
-          if (length(types) == 0) {
-            types <- "OTHER"
-          }
-          return(paste(types, collapse = "; "))
-        } else {
-          return(NA_character_)
         }
+        cat("Debug: Returning OTHER for TTYPE\n")
+        return("OTHER")
       }, error = function(e) {
         cat("Error in TTYPE mapping:", e$message, "\n")
         return(NA_character_)
@@ -772,18 +804,36 @@ define_ts_mapping <- function() {
       cat("Debug: Entering TRT function\n")
       cat("Debug: Class of df in TRT:", class(df), "\n")
       cat("Debug: Length of df in TRT:", length(df), "\n")
+      cat("Debug: Names of df:", paste(names(df), collapse = ", "), "\n")
+      
       tryCatch({
-        if(is.atomic(df)) {
-          cat("Debug: df is atomic in TRT\n")
-          return(as.character(df))
-        } else if(is.list(df) && length(df) > 0) {
-          interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
-          if (is.null(interventions) || length(interventions) == 0) return(NA_character_)
-          treatments <- sapply(interventions, function(x) x$description)
-          return(if(all(is.na(treatments))) NA_character_ else paste(treatments, collapse = "; "))
-        } else {
-          return(NA_character_)
+        if(is.list(df) && length(df) > 0) {
+          if("protocolSection" %in% names(df[[1]])) {
+            cat("Debug: Found protocolSection\n")
+            protocol_section <- df[[1]]$protocolSection
+            cat("Debug: Names in protocolSection:", paste(names(protocol_section), collapse = ", "), "\n")
+            
+            if("armsInterventionsModule" %in% names(protocol_section)) {
+              cat("Debug: Found armsInterventionsModule\n")
+              arms_interventions <- protocol_section$armsInterventionsModule
+              cat("Debug: Names in armsInterventionsModule:", paste(names(arms_interventions), collapse = ", "), "\n")
+              
+              if("interventions" %in% names(arms_interventions)) {
+                interventions <- arms_interventions$interventions
+                cat("Debug: Found interventions. Length:", length(interventions), "\n")
+                
+                if(length(interventions) > 0) {
+                  treatments <- sapply(interventions, function(x) x$description)
+                  result <- paste(treatments, collapse = "; ")
+                  cat("Debug: TRT result:", result, "\n")
+                  return(result)
+                }
+              }
+            }
+          }
         }
+        cat("Debug: Returning NA for TRT\n")
+        return(NA_character_)
       }, error = function(e) {
         cat("Error in TRT mapping:", e$message, "\n")
         return(NA_character_)

@@ -1,0 +1,2645 @@
+{
+  "protocolSection": {
+    "identificationModule": {
+      "nctId": ["NCT04368728"],
+      "orgStudyIdInfo": {
+        "id": ["C4591001"]
+      },
+      "secondaryIdInfos": [
+        {
+          "id": "2020-002641-42",
+          "type": "EUDRACT_NUMBER"
+        }
+      ],
+      "organization": {
+        "fullName": ["BioNTech SE"],
+        "class": ["INDUSTRY"]
+      },
+      "briefTitle": ["Study to Describe the Safety, Tolerability, Immunogenicity, and Efficacy of RNA Vaccine Candidates Against COVID-19 in Healthy Individuals"],
+      "officialTitle": ["A PHASE 1/2/3, PLACEBO-CONTROLLED, RANDOMIZED, OBSERVER-BLIND, DOSE-FINDING STUDY TO EVALUATE THE SAFETY, TOLERABILITY, IMMUNOGENICITY, AND EFFICACY OF SARS-COV-2 RNA VACCINE CANDIDATES AGAINST COVID-19 IN HEALTHY INDIVIDUALS"]
+    },
+    "statusModule": {
+      "statusVerifiedDate": ["2023-02"],
+      "overallStatus": ["COMPLETED"],
+      "expandedAccessInfo": {
+        "hasExpandedAccess": [false]
+      },
+      "startDateStruct": {
+        "date": ["2020-04-29"],
+        "type": ["ACTUAL"]
+      },
+      "primaryCompletionDateStruct": {
+        "date": ["2023-02-10"],
+        "type": ["ACTUAL"]
+      },
+      "completionDateStruct": {
+        "date": ["2023-02-10"],
+        "type": ["ACTUAL"]
+      },
+      "studyFirstSubmitDate": ["2020-04-27"],
+      "studyFirstSubmitQcDate": ["2020-04-29"],
+      "studyFirstPostDateStruct": {
+        "date": ["2020-04-30"],
+        "type": ["ACTUAL"]
+      },
+      "lastUpdateSubmitDate": ["2023-02-27"],
+      "lastUpdatePostDateStruct": {
+        "date": ["2023-02-28"],
+        "type": ["ACTUAL"]
+      }
+    },
+    "sponsorCollaboratorsModule": {
+      "responsibleParty": {
+        "type": ["SPONSOR"]
+      },
+      "leadSponsor": {
+        "name": ["BioNTech SE"],
+        "class": ["INDUSTRY"]
+      },
+      "collaborators": [
+        {
+          "name": "Pfizer",
+          "class": "INDUSTRY"
+        }
+      ]
+    },
+    "oversightModule": {
+      "oversightHasDmc": [true],
+      "isFdaRegulatedDrug": [true],
+      "isFdaRegulatedDevice": [false]
+    },
+    "descriptionModule": {
+      "briefSummary": ["This is a Phase 1/2/3, randomized, placebo-controlled, observer-blind, dose-finding, vaccine candidate-selection, and efficacy study in healthy individuals.\n\nThe study consists of 2 parts: Phase 1: to identify preferred vaccine candidate(s) and dose level(s); Phase 2/3: an expanded cohort and efficacy part.\n\nThe study will evaluate the safety, tolerability, and immunogenicity of 3 different SARS-CoV-2 RNA vaccine candidates against COVID-19 and the efficacy of 1 candidate:\n\n* As a 2-dose (separated by 21 days) schedule;\n* At various different dose levels in Phase 1;\n* As a booster;\n* In 3 age groups (Phase 1: 18 to 55 years of age, 65 to 85 years of age; Phase 2/3: ≥12 years of age \\[stratified as 12-15, 16-55 or \\>55 years of age\\]).\n\nThe candidate selected for efficacy evaluation in Phase 2/3 is BNT162b2 at a dose of 30 µg.\n\nParticipants who originally received placebo will be offered the opportunity to receive BNT162b2 at defined points as part of the study.\n\nIn order to describe the boostability of BNT162, and potential heterologous protection against emerging SARS-CoV-2 VOCs, an additional dose of BNT162b2 at 30 µg will be given to Phase 1 participants approximately 6 to 12 months after their second dose of BNT162b1 or BNT162b2. This will provide an early assessment of the safety of a third dose of BNT162, as well as its immunogenicity.\n\nThe assessment of boostability will be further expanded in a subset of Phase 3 participants at selected sites in the US who will receive a third dose of BNT162b2 at 30 µg or a third and potentially a fourth dose of prototype BNT162b2VOC at 30 µg (BNT162b2s01, based upon the South African variant and hereafter referred to as BNT162b2SA). A further subset of Phase 3 participants will receive a third, lower, dose of BNT162b2 at 5 or 10 µg.\n\nTo further describe potential homologous and heterologous protection against emerging SARS-CoV-2 VOCs, a new cohort of participants will be enrolled who are COVID-19 vaccine-naïve (ie, BNT162b2-naïve) and have not experienced COVID-19. They will receive BNT162b2SA given as a 2-dose series, separated by 21 days.\n\nTo reflect current and anticipated recommendations for COVID 19 vaccine boosters, participants in C4591001 who meet specified recommendations and have not already received one, will be offered a third dose of BNT162b2 after their second dose of BNT162."]
+    },
+    "conditionsModule": {
+      "conditions": ["SARS-CoV-2 Infection", "COVID-19"],
+      "keywords": ["COVID-19", "Coronavirus", "Vaccine", "SARS-CoV-2", "RNA Vaccine"]
+    },
+    "designModule": {
+      "studyType": ["INTERVENTIONAL"],
+      "phases": ["PHASE2", "PHASE3"],
+      "designInfo": {
+        "allocation": ["RANDOMIZED"],
+        "interventionModel": ["PARALLEL"],
+        "primaryPurpose": ["PREVENTION"],
+        "maskingInfo": {
+          "masking": ["TRIPLE"],
+          "whoMasked": ["PARTICIPANT", "CARE_PROVIDER", "INVESTIGATOR"]
+        }
+      },
+      "enrollmentInfo": {
+        "count": [47079],
+        "type": ["ACTUAL"]
+      }
+    },
+    "armsInterventionsModule": {
+      "armGroups": [
+        {
+          "label": "10 µg dose, 18-55 years of age (2 doses)",
+          "type": "EXPERIMENTAL",
+          "interventionNames": ["Biological: BNT162b1", "Biological: BNT162b2"]
+        },
+        {
+          "label": "20 µg dose, 18-55 years of age (2 doses)",
+          "type": "EXPERIMENTAL",
+          "interventionNames": ["Biological: BNT162b1", "Biological: BNT162b2"]
+        },
+        {
+          "label": "30 µg dose, 18-55 years of age (2 doses)",
+          "type": "EXPERIMENTAL",
+          "interventionNames": ["Biological: BNT162b1", "Biological: BNT162b2"]
+        },
+        {
+          "label": "10 µg dose, 65-85 years of age (2 doses)",
+          "type": "EXPERIMENTAL",
+          "interventionNames": ["Biological: BNT162b1", "Biological: BNT162b2"]
+        },
+        {
+          "label": "20 µg dose, 65-85 years of age (2 doses)",
+          "type": "EXPERIMENTAL",
+          "interventionNames": ["Biological: BNT162b1", "Biological: BNT162b2"]
+        },
+        {
+          "label": "30 µg dose, 65-85 years of age (2 doses)",
+          "type": "EXPERIMENTAL",
+          "interventionNames": ["Biological: BNT162b1", "Biological: BNT162b2"]
+        },
+        {
+          "label": "30 µg dose, ≥12 years of age (2 doses)",
+          "type": "EXPERIMENTAL",
+          "interventionNames": ["Biological: BNT162b2"]
+        },
+        {
+          "label": "Placebo, 18-55 years of age",
+          "type": "PLACEBO_COMPARATOR",
+          "interventionNames": ["Other: Placebo"]
+        },
+        {
+          "label": "Placebo, 65-85 years of age",
+          "type": "PLACEBO_COMPARATOR",
+          "interventionNames": ["Other: Placebo"]
+        },
+        {
+          "label": "Placebo, ≥12 years of age",
+          "type": "PLACEBO_COMPARATOR",
+          "interventionNames": ["Other: Placebo"]
+        },
+        {
+          "label": "100 µg dose, 18-55 years of age (2 doses)",
+          "type": "EXPERIMENTAL",
+          "interventionNames": ["Biological: BNT162b1"]
+        },
+        {
+          "label": "Vaccination of Placebo recipients with BNT162b2 - Stage 1",
+          "type": "OTHER",
+          "interventionNames": ["Biological: BNT162b2"],
+          "description": "Participants ≥16 years of age who originally received placebo and are eligible for COVID-19 vaccination following any local or national recommendations will be offered the opportunity to receive BNT162b2 as part of the study."
+        },
+        {
+          "label": "Vaccination of placebo recipients with BNT162b2 - Stage 2",
+          "type": "OTHER",
+          "interventionNames": ["Biological: BNT162b2"],
+          "description": "Participants ≥16 years of age who originally received placebo will be offered the opportunity to receive BNT162b2 at defined points as part of the study."
+        },
+        {
+          "label": "Booster vaccination of Phase 1 participants with BNT162b2 at a dose of 30 µg",
+          "type": "EXPERIMENTAL",
+          "interventionNames": ["Biological: BNT162b2"]
+        },
+        {
+          "label": "Booster vaccination of Phase 3 participants with BNT162b2 at a dose of 30 µg",
+          "type": "EXPERIMENTAL",
+          "interventionNames": ["Biological: BNT162b2"]
+        },
+        {
+          "label": "Booster vaccination of Phase 3 participants with BNT162b2SA at a dose of 30 µg",
+          "type": "EXPERIMENTAL",
+          "interventionNames": ["Biological: BNT162b2SA"]
+        },
+        {
+          "label": "Vaccination of BNT162b2-naive participants with BNT162b2SA at a dose of 30 µg",
+          "type": "EXPERIMENTAL",
+          "interventionNames": ["Biological: BNT162b2SA"]
+        },
+        {
+          "label": "Booster and further vaccination of Phase 3 participants with BNT162b2SA at a dose of 30 µg",
+          "type": "EXPERIMENTAL",
+          "interventionNames": ["Biological: BNT162b2SA"]
+        },
+        {
+          "label": "Booster vaccination of Phase 3 participants with BNT162b2 at a dose of 5 µg",
+          "type": "EXPERIMENTAL",
+          "interventionNames": ["Biological: BNT162b2"]
+        },
+        {
+          "label": "Booster vaccination of Phase 3 participants with BNT162b2 at a dose of 10 µg",
+          "type": "EXPERIMENTAL",
+          "interventionNames": ["Biological: BNT162b2"]
+        }
+      ],
+      "interventions": [
+        {
+          "type": "BIOLOGICAL",
+          "name": "BNT162b1",
+          "description": "Intramuscular injection",
+          "armGroupLabels": ["10 µg dose, 18-55 years of age (2 doses)", "10 µg dose, 65-85 years of age (2 doses)", "100 µg dose, 18-55 years of age (2 doses)", "20 µg dose, 18-55 years of age (2 doses)", "20 µg dose, 65-85 years of age (2 doses)", "30 µg dose, 18-55 years of age (2 doses)", "30 µg dose, 65-85 years of age (2 doses)"]
+        },
+        {
+          "type": "BIOLOGICAL",
+          "name": "BNT162b2",
+          "description": "Intramuscular injection",
+          "armGroupLabels": ["10 µg dose, 18-55 years of age (2 doses)", "10 µg dose, 65-85 years of age (2 doses)", "20 µg dose, 18-55 years of age (2 doses)", "20 µg dose, 65-85 years of age (2 doses)", "30 µg dose, 18-55 years of age (2 doses)", "30 µg dose, 65-85 years of age (2 doses)", "30 µg dose, ≥12 years of age (2 doses)", "Booster vaccination of Phase 1 participants with BNT162b2 at a dose of 30 µg", "Booster vaccination of Phase 3 participants with BNT162b2 at a dose of 10 µg", "Booster vaccination of Phase 3 participants with BNT162b2 at a dose of 30 µg", "Booster vaccination of Phase 3 participants with BNT162b2 at a dose of 5 µg", "Vaccination of Placebo recipients with BNT162b2 - Stage 1", "Vaccination of placebo recipients with BNT162b2 - Stage 2"]
+        },
+        {
+          "type": "OTHER",
+          "name": "Placebo",
+          "description": "Intramuscular injection",
+          "armGroupLabels": ["Placebo, 18-55 years of age", "Placebo, 65-85 years of age", "Placebo, ≥12 years of age"]
+        },
+        {
+          "type": "BIOLOGICAL",
+          "name": "BNT162b2SA",
+          "description": "Intramuscular injection",
+          "armGroupLabels": ["Booster and further vaccination of Phase 3 participants with BNT162b2SA at a dose of 30 µg", "Booster vaccination of Phase 3 participants with BNT162b2SA at a dose of 30 µg", "Vaccination of BNT162b2-naive participants with BNT162b2SA at a dose of 30 µg"]
+        }
+      ]
+    },
+    "outcomesModule": {
+      "primaryOutcomes": [
+        {
+          "measure": "Percentage of participants in Phase 1 reporting local reactions",
+          "description": "Pain at the injection site, redness, and swelling as self-reported on electronic diaries.",
+          "timeFrame": "For 7 days after dose 1 and dose 2"
+        },
+        {
+          "measure": "Percentage of participants in Phase 1 reporting systemic events",
+          "description": "Fever, fatigue, headache, chills, vomiting, diarrhea, new or worsened muscle pain, and new or worsened joint pain as self-reported on electronic diaries.",
+          "timeFrame": "For 7 days after dose 1 and dose 2"
+        },
+        {
+          "measure": "Percentage of participants in Phase 1 reporting adverse events",
+          "description": "As elicited by investigational site staff",
+          "timeFrame": "From dose 1 through 1 month after the last dose"
+        },
+        {
+          "measure": "Percentage of participants in Phase 1 reporting serious adverse events",
+          "description": "As elicited by investigational site staff",
+          "timeFrame": "From dose 1 through 6 months after the last dose"
+        },
+        {
+          "measure": "Percentage of Phase 1 participants with abnormal hematology and chemistry laboratory values",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "1 day after dose 1"
+        },
+        {
+          "measure": "Percentage of Phase 1 participants with abnormal hematology and chemistry laboratory values",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "7 days after dose 1"
+        },
+        {
+          "measure": "Percentage of Phase 1 participants with abnormal hematology and chemistry laboratory values",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "7 days after dose 2"
+        },
+        {
+          "measure": "Percentage of Phase 1 participants with grading shifts in hematology and chemistry laboratory assessments",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "Between baseline and 1 day after dose 1"
+        },
+        {
+          "measure": "Percentage of Phase 1 participants with grading shifts in hematology and chemistry laboratory assessments",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "Between baseline and 7 days after dose 1"
+        },
+        {
+          "measure": "Percentage of Phase 1 participants with grading shifts in hematology and chemistry laboratory assessments",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "Between before dose 2 and 7 days after dose 2"
+        },
+        {
+          "measure": "In the first 360 participants randomized into Phase 2/3, percentage of participants reporting local reactions",
+          "description": "Pain at the injection site, redness, and swelling as self-reported on electronic diaries.",
+          "timeFrame": "For 7 days after dose 1 and dose 2"
+        },
+        {
+          "measure": "In the first 360 participants randomized into Phase 2/3, percentage of participants reporting systemic events",
+          "description": "Fever, fatigue, headache, chills, vomiting, diarrhea, new or worsened muscle pain, and new or worsened joint pain as self-reported on electronic diaries.",
+          "timeFrame": "For 7 days after dose 1 and dose 2"
+        },
+        {
+          "measure": "In the first 360 participants randomized into Phase 2/3, percentage of participants reporting adverse events",
+          "description": "As elicited by investigational site staff",
+          "timeFrame": "From dose 1 through 1 month after the last dose"
+        },
+        {
+          "measure": "In the first 360 participants randomized into Phase 2/3, percentage of participants reporting serious adverse events",
+          "description": "As elicited by investigational site staff",
+          "timeFrame": "From dose 1 through 6 months after the last dose"
+        },
+        {
+          "measure": "In a subset of at least 6000 participants randomized in Phase 2/3, percentage of participants reporting local reactions",
+          "description": "Pain at the injection site, redness, and swelling as self-reported on electronic diaries.",
+          "timeFrame": "For 7 days after dose 1 and dose 2"
+        },
+        {
+          "measure": "In a subset of at least 6000 participants randomized in Phase 2/3, percentage of participants reporting systemic events",
+          "description": "Fever, fatigue, headache, chills, vomiting, diarrhea, new or worsened muscle pain, and new or worsened joint pain as self-reported on electronic diaries.",
+          "timeFrame": "For 7 days after dose 1 and dose 2"
+        },
+        {
+          "measure": "Percentage of participants in Phase 2/3 reporting adverse events",
+          "description": "As elicited by investigational site staff",
+          "timeFrame": "From dose 1 through 1 month after the last dose"
+        },
+        {
+          "measure": "Percentage of participants in Phase 2/3 reporting serious adverse events",
+          "description": "As elicited by investigational site staff",
+          "timeFrame": "From dose 1 through 6 months after the last dose"
+        },
+        {
+          "measure": "Confirmed COVID-19 in Phase 2/3 participants without evidence of infection before vaccination",
+          "description": "Per 1000 person-years of follow-up",
+          "timeFrame": "From 7 days after the second dose of study intervention to the end of the study, up to 2 years"
+        },
+        {
+          "measure": "Confirmed COVID-19 in Phase 2/3 participants with and without evidence of infection before vaccination",
+          "description": "Per 1000 person-years of follow-up",
+          "timeFrame": "From 7 days after the second dose of study intervention to the end of the study, up to 2 years"
+        },
+        {
+          "measure": "Percentage of participants 12-15 years of age in Phase 3 reporting adverse events",
+          "description": "As elicited by investigational site staff",
+          "timeFrame": "From dose 1 through 1 month after the last dose"
+        },
+        {
+          "measure": "Percentage of participants 12-15 years of age in Phase 3 reporting adverse events",
+          "description": "As elicited by investigational site staff",
+          "timeFrame": "From dose 1 through 6 months after the last dose"
+        },
+        {
+          "measure": "In participants 12-15 years of age randomized in Phase 3, percentage of participants reporting local reactions",
+          "description": "Pain at the injection site, redness, and swelling as self-reported on electronic diaries.",
+          "timeFrame": "For 7 days after dose 1 and dose 2"
+        },
+        {
+          "measure": "In participants 12-15 years of age randomized in Phase 3, percentage of participants reporting systemic events",
+          "description": "Fever, fatigue, headache, chills, vomiting, diarrhea, new or worsened muscle pain, and new or worsened joint pain as self-reported on electronic diaries.",
+          "timeFrame": "For 7 days after dose 1 and dose 2"
+        },
+        {
+          "measure": "In participants who receive BNT162b2SA given as 1 or 2 doses, percentage of participants reporting adverse events",
+          "description": "As elicited by investigational site staff",
+          "timeFrame": "From dose 1 through 1 month after the last dose"
+        },
+        {
+          "measure": "In participants who receive BNT162b2SA given as 1 or 2 doses, percentage of participants reporting serious adverse events",
+          "description": "As elicited by investigational site staff",
+          "timeFrame": "From dose 1 through 5 or 6 months after the last dose"
+        },
+        {
+          "measure": "In participants, who receive BNT162b2SA given as 1 or 2 doses, percentage of participants reporting local reactions",
+          "description": "Pain at the injection site, redness, and swelling as self-reported on electronic diaries.",
+          "timeFrame": "For 7 days after dose 1 (and dose 2)"
+        },
+        {
+          "measure": "In participants who receive BNT162b2SA given as 1 or 2 doses, percentage of participants reporting systemic events",
+          "description": "Fever, fatigue, headache, chills, vomiting, diarrhea, new or worsened muscle pain, and new or worsened joint pain as self-reported on electronic diaries.",
+          "timeFrame": "For 7 days after dose 1 (and dose 2)"
+        },
+        {
+          "measure": "In participants who receive a third dose of BNT162b2 as part of the subset for evaluation of boostability and protection against emerging VOCs, percentage of participants reporting adverse events",
+          "description": "As elicited by investigational site staff",
+          "timeFrame": "From the third dose through 1 month after the third dose"
+        },
+        {
+          "measure": "In participants who receive a third dose of BNT162b2 as part of the subset for evaluation of boostability and protection against emerging VOCs, percentage of participants reporting serious adverse events",
+          "description": "As elicited by investigational site staff",
+          "timeFrame": "From the third dose through 6 months after the third dose"
+        },
+        {
+          "measure": "In participants who receive a third dose of BNT162b2 as part of the subset for evaluation of boostability and protection against emerging VOCs, percentage of participants reporting local reactions",
+          "description": "Pain at the injection site, redness, and swelling as self-reported on electronic diaries.",
+          "timeFrame": "For 7 days after the third dose"
+        },
+        {
+          "measure": "In participants who receive a third dose of BNT162b2 as part of the subset for evaluation of boostability and protection against emerging VOCs, percentage of participants reporting systemic events",
+          "description": "Fever, fatigue, headache, chills, vomiting, diarrhea, new or worsened muscle pain, and new or worsened joint pain as self-reported on electronic diaries.",
+          "timeFrame": "For 7 days after the third dose"
+        },
+        {
+          "measure": "In participants who receive a third dose of BNT162b2 as a result of current or anticipated recommendations, percentage of participants reporting adverse events",
+          "description": "As elicited by investigational site staff",
+          "timeFrame": "From the third dose through 1 month after the third dose"
+        },
+        {
+          "measure": "In participants who receive a third dose of BNT162b2 as a result of current or anticipated recommendations, percentage of participants reporting serious adverse events",
+          "description": "As elicited by investigational site staff",
+          "timeFrame": "From the third dose through 6 months after the third dose"
+        },
+        {
+          "measure": "Noninferiority of the SARS-CoV-2 reference strain neutralizing titers after a third dose of BNT162b2 at 30 µg compared to after 2 doses of BNT162b2, in the same individuals",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "1 month after the third dose"
+        },
+        {
+          "measure": "Noninferiority of the SARS-CoV-2 SA strain neutralizing titers after one dose of BNT162b2SA compared to the SARS-CoV-2 reference strain neutralizing titers after 2 doses of BNT162b2, in the same individuals",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "1 month after the third dose"
+        },
+        {
+          "measure": "Noninferiority of the SARS-CoV-2 SA strain neutralizing titers after 2 doses of BNT162b2SA compared to the SARS-CoV-2 reference strain neutralizing titers after 2 doses of BNT162b2",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "1 month after the second dose"
+        }
+      ],
+      "secondaryOutcomes": [
+        {
+          "measure": "In Phase 1 participants, SARS-CoV-2 serum neutralizing antibody levels, expressed as GMTs",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "Through 2 years after the final dose"
+        },
+        {
+          "measure": "In Phase 1 participants, GMFR in SARS-CoV-2 serum neutralizing titers from before vaccination to each subsequent time point",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "Through 2 years after the final dose"
+        },
+        {
+          "measure": "Proportion of participants in Phase 1 achieving a greater than or equal to 4-fold rise from before vaccination in SARS-CoV-2 serum neutralizing antibody levels",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "Through 2 years after the final dose"
+        },
+        {
+          "measure": "In Phase 1 participants, SARS-CoV-2 anti-S1 binding antibody levels and anti-RBD binding antibody levels, expressed as GMCs",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "Through 2 years after the final dose"
+        },
+        {
+          "measure": "Proportion of participants in Phase 1 achieving a greater than or equal to 4-fold rise from before vaccination in SARS-CoV-2 anti-S1 binding antibody levels and anti-RBD binding antibody levels",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "Through 2 years after the final dose"
+        },
+        {
+          "measure": "In Phase 1 participants, GMFR in SARS-CoV-2 anti-S1 binding antibody levels and anti-RBD binding antibody levels from before vaccination to each subsequent time point",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "Through 2 years after the final dose"
+        },
+        {
+          "measure": "In Phase 1 participants, GMR of the geometric mean of SARS-CoV-2 serum neutralizing titers to the geometric mean of SARS CoV 2 (anti-S1 and anti-RBD) binding antibody levels",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "Through 2 years after the final dose"
+        },
+        {
+          "measure": "Confirmed COVID-19 in Phase 2/3 participants without evidence of infection before vaccination",
+          "description": "Per 1000 person-years of follow-up",
+          "timeFrame": "From 14 days after the second dose of study intervention to the end of the study, up to 2 years"
+        },
+        {
+          "measure": "Confirmed COVID-19 in Phase 2/3 participants with and without evidence of infection before vaccination",
+          "description": "Per 1000 person-years of follow-up",
+          "timeFrame": "From 14 days after the second dose of study intervention to the end of the study, up to 2 years"
+        },
+        {
+          "measure": "Confirmed severe COVID-19 in Phase 2/3 participants without evidence of infection before vaccination",
+          "description": "Per 1000 person-years of follow-up",
+          "timeFrame": "From 7 days after the second dose of study intervention to the end of the study, up to 2 years"
+        },
+        {
+          "measure": "Confirmed severe COVID-19 in Phase 2/3 participants without evidence of infection before vaccination",
+          "description": "Per 1000 person-years of follow-up",
+          "timeFrame": "From 14 days after the second dose of study intervention to the end of the study, up to 2 years"
+        },
+        {
+          "measure": "Confirmed severe COVID-19 in Phase 2/3 participants with and without evidence of infection before vaccination",
+          "description": "Per 1000 person-years of follow-up",
+          "timeFrame": "From 7 days after the second dose of study intervention to the end of the study, up to 2 years"
+        },
+        {
+          "measure": "Confirmed severe COVID-19 in Phase 2/3 participants with and without evidence of infection before vaccination",
+          "description": "Per 1000 person-years of follow-up",
+          "timeFrame": "From 14 days after the second dose of study intervention to the end of the study, up to 2 years"
+        },
+        {
+          "measure": "Confirmed COVID-19 (according to the CDC-defined symptoms) in Phase 2/3 participants without evidence of infection before vaccination",
+          "description": "Per 1000 person-years of follow-up",
+          "timeFrame": "From 7 days after the second dose of study intervention to the end of the study, up to 2 years"
+        },
+        {
+          "measure": "Confirmed COVID-19 (according to the CDC-defined symptoms) in Phase 2/3 participants without evidence of infection before vaccination",
+          "description": "Per 1000 person-years of follow-up",
+          "timeFrame": "From 14 days after the second dose of study intervention to the end of the study, up to 2 years"
+        },
+        {
+          "measure": "Confirmed COVID-19 (according to the CDC-defined symptoms) in Phase 2/3 participants with and without evidence of infection before vaccination",
+          "description": "Per 1000 person-years of follow-up",
+          "timeFrame": "From 7 days after the second dose of study intervention to the end of the study, up to 2 years"
+        },
+        {
+          "measure": "Confirmed COVID-19 (according to the CDC-defined symptoms) in Phase 2/3 participants with and without evidence of infection before vaccination",
+          "description": "Per 1000 person-years of follow-up",
+          "timeFrame": "From 14 days after the second dose of study intervention to the end of the study, up to 2 years"
+        },
+        {
+          "measure": "GMR of SARS CoV 2 neutralizing titers in the 2 age groups (12-15 years of age to 16-25 years of age)",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "1 month after the second dose"
+        },
+        {
+          "measure": "Incidence of asymptomatic SARS CoV-2 infection based on N binding antibody seroconversion in participants with no serological or virological evidence of past SARS CoV-2 infection or confirmed COVID-19 prior to 1 month after receipt of the second dose",
+          "description": "Per 1000 person-years of follow-up",
+          "timeFrame": "Through 1 month after the second dose"
+        },
+        {
+          "measure": "Incidence of asymptomatic SARS CoV-2 infection based on central laboratory-confirmed NAAT in participants with no serological or virological evidence (up to the start of the asymptomatic surveillance period) of past SARS-CoV-2 infection",
+          "description": "Per 1000 person-years of follow-up",
+          "timeFrame": "Through 6 months after the second dose"
+        },
+        {
+          "measure": "Noninferiority of the SARS-CoV-2 SA strain neutralizing titers after a third dose of BNT162b2 at 30 µg compared to the SARS-CoV-2 reference strain neutralizing titers after 2 doses of BNT162b2, in the same individuals",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "1 month after the third dose"
+        },
+        {
+          "measure": "Noninferiority of the SARS-CoV-2 reference strain neutralizing titers after one dose of BNT162b2SA compared to after 2 doses of BNT162b2, in the same individuals",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "1 month after the first dose of BNT162b2SA"
+        },
+        {
+          "measure": "Comparison of the SARS-CoV-2 SA strain neutralizing titers after 1 dose of BNT162b2SA to after a third dose of BNT162b2 at 30 µg",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "1 month after the first dose of BNT162b2SA/third dose of BNT162b2"
+        },
+        {
+          "measure": "Comparison of the SARS-CoV-2 SA strain neutralizing titers after 2 doses of BNT162b2SA to the SARS-CoV-2 reference strain neutralizing titers after 2 doses of BNT162b2, in the same individuals",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "1 month after the second dose of BNT162b2SA"
+        },
+        {
+          "measure": "Comparison of the SARS-CoV-2 SA strain neutralizing titers after 2 doses of BNT162b2SA to after 2 doses of BNT162b2",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "1 month after the second dose"
+        },
+        {
+          "measure": "Comparison of the SARS-CoV-2 reference strain neutralizing titers after 2 doses of BNT162b2SA to after 2 doses of BNT162b2",
+          "description": "As measured at the central laboratory",
+          "timeFrame": "1 month after the second dose"
+        }
+      ]
+    },
+    "eligibilityModule": {
+      "eligibilityCriteria": ["Inclusion Criteria:\n\n• Male or female participants between the ages of 18 and 55 years, inclusive, 65 and 85 years, inclusive, or ≥12 years, inclusive, at randomization (dependent upon study phase). For the boostability and protection-against-VOCs subset: Existing participants enrolled to receive a third dose of BNT162b2 at 30 µg or BNT162b2SA; male or female participants between the ages of 18 and 55 years, inclusive, at rerandomization.\n\nNewly enrolled participants enrolled to receive 2 doses of BNT162b2SA; male or female participants between the ages of 18 and 55 years, inclusive, at enrollment.\n\nExisting participants enrolled to receive a third dose of BNT162b2 at 5 or 10 µg; male or female participants ≥18 years at rerandomization.\n\nNote that participants \\<18 years of age cannot be enrolled in the EU.\n\n* Participants who are willing and able to comply with all scheduled visits, vaccination plan, laboratory tests, lifestyle considerations, and other study procedures.\n* Healthy participants who are determined by medical history, physical examination, and clinical judgment of the investigator to be eligible for inclusion in the study.\n* Participants who, in the judgment of the investigator, are at risk for acquiring COVID-19.\n* Boostability and protection-against-VOCs existing participant subset only: Participants who provided a serum sample at Visit 3, with Visit 3 occurring within the protocol-specified window.\n* Capable of giving personal signed informed consent\n\nExclusion Criteria:\n\n* Other medical or psychiatric condition including recent (within the past year) or active suicidal ideation/behavior or laboratory abnormality that may increase the risk of study participation or, in the investigator's judgment, make the participant inappropriate for the study.\n* Phases 1 and 2 only: Known infection with human immunodeficiency virus (HIV), hepatitis C virus (HCV), or hepatitis B virus (HBV).\n* History of severe adverse reaction associated with a vaccine and/or severe allergic reaction (eg, anaphylaxis) to any component of the study intervention(s).\n* Receipt of medications intended to prevent COVID 19.\n* Previous clinical (based on COVID-19 symptoms/signs alone, if a SARS-CoV-2 NAAT result was not available) or microbiological (based on COVID-19 symptoms/signs and a positive SARS-CoV-2 NAAT result) diagnosis of COVID 19\n* Phase 1 only: Individuals at high risk for severe COVID-19, including those with any of the following risk factors:\n\n  * Hypertension\n  * Diabetes mellitus\n  * Chronic pulmonary disease\n  * Asthma\n  * Current vaping or smoking\n  * History of chronic smoking within the prior year\n  * BMI \\>30 kg/m2\n  * Anticipating the need for immunosuppressive treatment within the next 6 months\n* Phase 1 only: Individuals currently working in occupations with high risk of exposure to SARS-CoV-2 (eg, healthcare worker, emergency response personnel).\n* Immunocompromised individuals with known or suspected immunodeficiency, as determined by history and/or laboratory/physical examination.\n* Phase 1 only: Individuals with a history of autoimmune disease or an active autoimmune disease requiring therapeutic intervention.\n* Bleeding diathesis or condition associated with prolonged bleeding that would, in the opinion of the investigator, contraindicate intramuscular injection.\n* Women who are pregnant or breastfeeding.\n* Previous vaccination with any coronavirus vaccine.\n* Individuals who receive treatment with immunosuppressive therapy, including cytotoxic agents or systemic corticosteroids, eg, for cancer or an autoimmune disease, or planned receipt throughout the study.\n* Phase 1 only: Regular receipt of inhaled/nebulized corticosteroids.\n* Receipt of blood/plasma products or immunoglobulin, from 60 days before study intervention administration or planned receipt throughout the study.\n* Participation in other studies involving study intervention within 28 days prior to study entry through and including 6 months after the last dose of study intervention, with the exception of non-Pfizer interventional studies for prevention of COVID 19, which are prohibited throughout study participation.\n* Previous participation in other studies involving study intervention containing lipid nanoparticles.\n* Phase 1 only: Positive serological test for SARS-CoV-2 IgM and/or IgG antibodies at the screening visit.\n* Phase 1 only: Any screening hematology and/or blood chemistry laboratory value that meets the definition of a ≥ Grade 1 abnormality.\n* Phase 1 only: Positive test for HIV, hepatitis B surface antigen (HBsAg), hepatitis B core antibodies (HBc Abs), or hepatitis C virus antibodies (HCV Abs) at the screening visit.\n* Phase 1 only: SARS-CoV-2 NAAT-positive nasal swab within 24 hours before receipt of study intervention.\n* Investigator site staff or Pfizer employees directly involved in the conduct of the study, site staff otherwise supervised by the investigator, and their respective family members."],
+      "healthyVolunteers": [true],
+      "sex": ["ALL"],
+      "minimumAge": ["12 Years"],
+      "stdAges": ["CHILD", "ADULT", "OLDER_ADULT"]
+    },
+    "contactsLocationsModule": {
+      "overallOfficials": [
+        {
+          "name": "Pfizer CT.gov Call Center",
+          "affiliation": "Pfizer",
+          "role": "STUDY_DIRECTOR"
+        }
+      ],
+      "locations": [
+        {
+          "facility": "North Alabama Research Center, LLC",
+          "city": "Athens",
+          "state": "Alabama",
+          "zip": "35611",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 34.8024,
+            "lon": -86.9722
+          }
+        },
+        {
+          "facility": "Birmingham Clinical Research Unit",
+          "city": "Birmingham",
+          "state": "Alabama",
+          "zip": "35216",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 33.5207,
+            "lon": -86.8025
+          }
+        },
+        {
+          "facility": "Medical Affiliated Research Center",
+          "city": "Huntsville",
+          "state": "Alabama",
+          "zip": "35801",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 34.7304,
+            "lon": -86.5859
+          }
+        },
+        {
+          "facility": "Optimal Research, LLC",
+          "city": "Huntsville",
+          "state": "Alabama",
+          "zip": "35802",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 34.7304,
+            "lon": -86.5859
+          }
+        },
+        {
+          "facility": "Alliance for Multispecialty Research, LLC",
+          "city": "Mobile",
+          "state": "Alabama",
+          "zip": "36608",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 30.6944,
+            "lon": -88.043
+          }
+        },
+        {
+          "facility": "Chinle Comprehensive Health Care Facility",
+          "city": "Chinle",
+          "state": "Arizona",
+          "zip": "86503",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 36.1544,
+            "lon": -109.5526
+          }
+        },
+        {
+          "facility": "Johns Hopkins Center for American Indian Health",
+          "city": "Chinle",
+          "state": "Arizona",
+          "zip": "86503",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 36.1544,
+            "lon": -109.5526
+          }
+        },
+        {
+          "facility": "The Pain Center of Arizona",
+          "city": "Phoenix",
+          "state": "Arizona",
+          "zip": "85018",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 33.4484,
+            "lon": -112.074
+          }
+        },
+        {
+          "facility": "HOPE Research Institute",
+          "city": "Phoenix",
+          "state": "Arizona",
+          "zip": "85023",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 33.4484,
+            "lon": -112.074
+          }
+        },
+        {
+          "facility": "Alliance for Multispecialty Research, LLC",
+          "city": "Tempe",
+          "state": "Arizona",
+          "zip": "85281",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 33.4148,
+            "lon": -111.9093
+          }
+        },
+        {
+          "facility": "Whiteriver Indian Hospital",
+          "city": "Whiteriver",
+          "state": "Arizona",
+          "zip": "85941",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 33.837,
+            "lon": -109.9643
+          }
+        },
+        {
+          "facility": "Anaheim Clinical Trials, LLC",
+          "city": "Anaheim",
+          "state": "California",
+          "zip": "92801",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 33.8353,
+            "lon": -117.9145
+          }
+        },
+        {
+          "facility": "Collaborative Neuroscience Research, LLC",
+          "city": "Long Beach",
+          "state": "California",
+          "zip": "90806",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 33.767,
+            "lon": -118.1892
+          }
+        },
+        {
+          "facility": "Long Beach Clinical Trials Services Inc.",
+          "city": "Long Beach",
+          "state": "California",
+          "zip": "90806",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 33.767,
+            "lon": -118.1892
+          }
+        },
+        {
+          "facility": "Kaiser Permanente Los Angeles Medical Center",
+          "city": "Los Angeles",
+          "state": "California",
+          "zip": "90027",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 34.0522,
+            "lon": -118.2437
+          }
+        },
+        {
+          "facility": "National Research Institute",
+          "city": "Los Angeles",
+          "state": "California",
+          "zip": "90057",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 34.0522,
+            "lon": -118.2437
+          }
+        },
+        {
+          "facility": "Velocity Clinical Research, North Hollywood",
+          "city": "North Hollywood",
+          "state": "California",
+          "zip": "91606",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 34.1722,
+            "lon": -118.379
+          }
+        },
+        {
+          "facility": "Paradigm Clinical Research Center",
+          "city": "Redding",
+          "state": "California",
+          "zip": "96001",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 40.5865,
+            "lon": -122.3917
+          }
+        },
+        {
+          "facility": "Kaiser Permanente Sacramento",
+          "city": "Sacramento",
+          "state": "California",
+          "zip": "95815",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 38.5816,
+            "lon": -121.4944
+          }
+        },
+        {
+          "facility": "Clinical and Translational Science Center (CTSC) Clinical Research Center (CCRC)",
+          "city": "Sacramento",
+          "state": "California",
+          "zip": "95817",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 38.5816,
+            "lon": -121.4944
+          }
+        },
+        {
+          "facility": "UC Davis Medical Center",
+          "city": "Sacramento",
+          "state": "California",
+          "zip": "95817",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 38.5816,
+            "lon": -121.4944
+          }
+        },
+        {
+          "facility": "California Research Foundation",
+          "city": "San Diego",
+          "state": "California",
+          "zip": "92123-1881",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 32.7153,
+            "lon": -117.1573
+          }
+        },
+        {
+          "facility": "Kaiser Permanente Santa Clara",
+          "city": "Santa Clara",
+          "state": "California",
+          "zip": "95051",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 37.3541,
+            "lon": -121.9552
+          }
+        },
+        {
+          "facility": "Bayview Research Group",
+          "city": "Valley Village",
+          "state": "California",
+          "zip": "91607",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 34.1649,
+            "lon": -118.3965
+          }
+        },
+        {
+          "facility": "Diablo Clinical Research, Inc.",
+          "city": "Walnut Creek",
+          "state": "California",
+          "zip": "94598",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 37.9063,
+            "lon": -122.065
+          }
+        },
+        {
+          "facility": "Lynn Institute of Denver",
+          "city": "Aurora",
+          "state": "Colorado",
+          "zip": "80012",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 39.7294,
+            "lon": -104.8319
+          }
+        },
+        {
+          "facility": "Clinical Research Consulting, LLC",
+          "city": "Milford",
+          "state": "Connecticut",
+          "zip": "06460",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 41.2223,
+            "lon": -73.0565
+          }
+        },
+        {
+          "facility": "Yale Center for Clinical Investigations (CSRU)",
+          "city": "New Haven",
+          "state": "Connecticut",
+          "zip": "06519",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 41.3081,
+            "lon": -72.9282
+          }
+        },
+        {
+          "facility": "Alliance for Multispecialty Research",
+          "city": "Coral Gables",
+          "state": "Florida",
+          "zip": "33134",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 25.7215,
+            "lon": -80.2684
+          }
+        },
+        {
+          "facility": "DeLand Clinical Research Unit",
+          "city": "DeLand",
+          "state": "Florida",
+          "zip": "32720",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 29.0283,
+            "lon": -81.3031
+          }
+        },
+        {
+          "facility": "Fleming Island Center for Clinical Research",
+          "city": "Fleming Island",
+          "state": "Florida",
+          "zip": "32003",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 30.0933,
+            "lon": -81.719
+          }
+        },
+        {
+          "facility": "Indago Research & Health Center, Inc",
+          "city": "Hialeah",
+          "state": "Florida",
+          "zip": "33012",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 25.8576,
+            "lon": -80.2781
+          }
+        },
+        {
+          "facility": "Research Centers of America",
+          "city": "Hollywood",
+          "state": "Florida",
+          "zip": "33024",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 26.0112,
+            "lon": -80.1495
+          }
+        },
+        {
+          "facility": "Jacksonville Center for Clinical Research",
+          "city": "Jacksonville",
+          "state": "Florida",
+          "zip": "32216",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 30.3322,
+            "lon": -81.6556
+          }
+        },
+        {
+          "facility": "Clinical Neuroscience Solutions, Inc.",
+          "city": "Jacksonville",
+          "state": "Florida",
+          "zip": "32256",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 30.3322,
+            "lon": -81.6556
+          }
+        },
+        {
+          "facility": "Acevedo Clinical Research Associates",
+          "city": "Miami",
+          "state": "Florida",
+          "zip": "33142",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 25.7743,
+            "lon": -80.1937
+          }
+        },
+        {
+          "facility": "Clinical Neuroscience Solutions, Inc. dba CNS Healthcare",
+          "city": "Orlando",
+          "state": "Florida",
+          "zip": "32801",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 28.5383,
+            "lon": -81.3792
+          }
+        },
+        {
+          "facility": "Atlanta Center for Medical Research",
+          "city": "Atlanta",
+          "state": "Georgia",
+          "zip": "30331",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 33.749,
+            "lon": -84.388
+          }
+        },
+        {
+          "facility": "IACT Health",
+          "city": "Columbus",
+          "state": "Georgia",
+          "zip": "31904",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 32.461,
+            "lon": -84.9877
+          }
+        },
+        {
+          "facility": "Meridian Clinical Research, LLC",
+          "city": "Savannah",
+          "state": "Georgia",
+          "zip": "31406",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 32.0835,
+            "lon": -81.0998
+          }
+        },
+        {
+          "facility": "Clinical Research Atlanta",
+          "city": "Stockbridge",
+          "state": "Georgia",
+          "zip": "30281",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 33.5443,
+            "lon": -84.2338
+          }
+        },
+        {
+          "facility": "East-West Medical Research Institute",
+          "city": "Honolulu",
+          "state": "Hawaii",
+          "zip": "96814",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 21.3069,
+            "lon": -157.8583
+          }
+        },
+        {
+          "facility": "Solaris Clinical Research",
+          "city": "Meridian",
+          "state": "Idaho",
+          "zip": "83646",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 43.6121,
+            "lon": -116.3915
+          }
+        },
+        {
+          "facility": "Optimal Research",
+          "city": "Peoria",
+          "state": "Illinois",
+          "zip": "61614",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 40.6936,
+            "lon": -89.589
+          }
+        },
+        {
+          "facility": "University of Iowa Hospitals & Clinics Investigational Drug Servces",
+          "city": "Iowa City",
+          "state": "Iowa",
+          "zip": "42242",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 41.6611,
+            "lon": -91.5302
+          }
+        },
+        {
+          "facility": "University of Iowa Hospitals & Clinics",
+          "city": "Iowa City",
+          "state": "Iowa",
+          "zip": "52242",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 41.6611,
+            "lon": -91.5302
+          }
+        },
+        {
+          "facility": "Meridian Clinical Research, LLC",
+          "city": "Sioux City",
+          "state": "Iowa",
+          "zip": "51106",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 42.5,
+            "lon": -96.4003
+          }
+        },
+        {
+          "facility": "Alliance for Multispecialty Research, LLC",
+          "city": "Newton",
+          "state": "Kansas",
+          "zip": "67114",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 38.0467,
+            "lon": -97.345
+          }
+        },
+        {
+          "facility": "Alliance for Multispecialty Research, LLC",
+          "city": "Wichita",
+          "state": "Kansas",
+          "zip": "67207",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 37.6922,
+            "lon": -97.3375
+          }
+        },
+        {
+          "facility": "Kentucky Pediatric/ Adult Research",
+          "city": "Bardstown",
+          "state": "Kentucky",
+          "zip": "40004",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 37.8092,
+            "lon": -85.4669
+          }
+        },
+        {
+          "facility": "Benchmark Research",
+          "city": "Metairie",
+          "state": "Louisiana",
+          "zip": "70006",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 29.9841,
+            "lon": -90.1529
+          }
+        },
+        {
+          "facility": "Ochsner Clinic Foundation",
+          "city": "New Orleans",
+          "state": "Louisiana",
+          "zip": "70121",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 29.9547,
+            "lon": -90.0751
+          }
+        },
+        {
+          "facility": "LSU Health Sciences Center at Shreveport Clinical Trials Office",
+          "city": "Shreveport",
+          "state": "Louisiana",
+          "zip": "71101",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 32.5251,
+            "lon": -93.7502
+          }
+        },
+        {
+          "facility": "LSUHSC-Shreveport",
+          "city": "Shreveport",
+          "state": "Louisiana",
+          "zip": "71103",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 32.5251,
+            "lon": -93.7502
+          }
+        },
+        {
+          "facility": "Pharmaron CPC, Inc.",
+          "city": "Baltimore",
+          "state": "Maryland",
+          "zip": "21201",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 39.2904,
+            "lon": -76.6122
+          }
+        },
+        {
+          "facility": "University of Maryland Medical Center Investigational Drug Service Pharmacy",
+          "city": "Baltimore",
+          "state": "Maryland",
+          "zip": "21201",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 39.2904,
+            "lon": -76.6122
+          }
+        },
+        {
+          "facility": "University of Maryland, Baltimore, Health Sciences Research Facility III",
+          "city": "Baltimore",
+          "state": "Maryland",
+          "zip": "21201",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 39.2904,
+            "lon": -76.6122
+          }
+        },
+        {
+          "facility": "University of Maryland, Center for Vaccine Development and Global Health",
+          "city": "Baltimore",
+          "state": "Maryland",
+          "zip": "21201",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 39.2904,
+            "lon": -76.6122
+          }
+        },
+        {
+          "facility": "Johns Hopkins Bayview Medical Center",
+          "city": "Baltimore",
+          "state": "Maryland",
+          "zip": "21224",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 39.2904,
+            "lon": -76.6122
+          }
+        },
+        {
+          "facility": "Boston Medical Center",
+          "city": "Boston",
+          "state": "Massachusetts",
+          "zip": "02118",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 42.3584,
+            "lon": -71.0598
+          }
+        },
+        {
+          "facility": "UMass Memorial Medical Center - University Campus",
+          "city": "Worcester",
+          "state": "Massachusetts",
+          "zip": "01655",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 42.2626,
+            "lon": -71.8023
+          }
+        },
+        {
+          "facility": "Michigan Center for Medical Research",
+          "city": "Farmington Hills",
+          "state": "Michigan",
+          "zip": "48334",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 42.4853,
+            "lon": -83.3772
+          }
+        },
+        {
+          "facility": "MedPharmics, LLC",
+          "city": "Gulfport",
+          "state": "Mississippi",
+          "zip": "39503",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 30.3674,
+            "lon": -89.0928
+          }
+        },
+        {
+          "facility": "Clinical Research Professionals",
+          "city": "Chesterfield",
+          "state": "Missouri",
+          "zip": "63005",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 38.6631,
+            "lon": -90.5771
+          }
+        },
+        {
+          "facility": "Sundance Clinical Research, LLC",
+          "city": "Saint Louis",
+          "state": "Missouri",
+          "zip": "63141",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 38.6273,
+            "lon": -90.1979
+          }
+        },
+        {
+          "facility": "Bozeman Health Deaconess Hospital dba Bozeman Health Clinical Research",
+          "city": "Bozeman",
+          "state": "Montana",
+          "zip": "59715",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 45.6797,
+            "lon": -111.0386
+          }
+        },
+        {
+          "facility": "Bozeman Health Deaconess Hospital",
+          "city": "Bozeman",
+          "state": "Montana",
+          "zip": "59715",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 45.6797,
+            "lon": -111.0386
+          }
+        },
+        {
+          "facility": "Methodist Physicians Clinic / CCT Research",
+          "city": "Fremont",
+          "state": "Nebraska",
+          "zip": "68025",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 41.4333,
+            "lon": -96.4981
+          }
+        },
+        {
+          "facility": "Meridian Clinical Research, LLC",
+          "city": "Norfolk",
+          "state": "Nebraska",
+          "zip": "68701",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 42.0283,
+            "lon": -97.417
+          }
+        },
+        {
+          "facility": "Quality Clinical Research, Inc.",
+          "city": "Omaha",
+          "state": "Nebraska",
+          "zip": "68114",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 41.2563,
+            "lon": -95.9404
+          }
+        },
+        {
+          "facility": "Meridian Clinical Research, LLC",
+          "city": "Omaha",
+          "state": "Nebraska",
+          "zip": "68134",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 41.2563,
+            "lon": -95.9404
+          }
+        },
+        {
+          "facility": "Wake Research-Clinical Research Center of Nevada, LLC",
+          "city": "Las Vegas",
+          "state": "Nevada",
+          "zip": "89106",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 36.175,
+            "lon": -115.1372
+          }
+        },
+        {
+          "facility": "Amici Clinical Research",
+          "city": "Raritan",
+          "state": "New Jersey",
+          "zip": "08869",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 40.5695,
+            "lon": -74.6329
+          }
+        },
+        {
+          "facility": "South Jersey Infectious Disease",
+          "city": "Somers Point",
+          "state": "New Jersey",
+          "zip": "08244",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 39.3176,
+            "lon": -74.5946
+          }
+        },
+        {
+          "facility": "Johns Hopkins Center for American Indian Health",
+          "city": "Gallup",
+          "state": "New Mexico",
+          "zip": "87301",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 35.5281,
+            "lon": -108.7426
+          }
+        },
+        {
+          "facility": "Johns Hopkins Center for American Indian Health",
+          "city": "Shiprock",
+          "state": "New Mexico",
+          "zip": "87420",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 36.7856,
+            "lon": -108.687
+          }
+        },
+        {
+          "facility": "Meridian Clinical Research, LLC",
+          "city": "Binghamton",
+          "state": "New York",
+          "zip": "13901",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 42.0987,
+            "lon": -75.918
+          }
+        },
+        {
+          "facility": "Meridian Clinical Research LLC",
+          "city": "Endwell",
+          "state": "New York",
+          "zip": "13760",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 42.1129,
+            "lon": -76.021
+          }
+        },
+        {
+          "facility": "NYU Langone Health",
+          "city": "New York",
+          "state": "New York",
+          "zip": "10016",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 40.7143,
+            "lon": -74.006
+          }
+        },
+        {
+          "facility": "Icahn School of Medicine at Mount Sinai",
+          "city": "New York",
+          "state": "New York",
+          "zip": "10029",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 40.7143,
+            "lon": -74.006
+          }
+        },
+        {
+          "facility": "Rochester Clinical Research, Inc.",
+          "city": "Rochester",
+          "state": "New York",
+          "zip": "14609",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 43.1548,
+            "lon": -77.6156
+          }
+        },
+        {
+          "facility": "University of Rochester Medical Center- Kari Steinmetz",
+          "city": "Rochester",
+          "state": "New York",
+          "zip": "14642",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 43.1548,
+            "lon": -77.6156
+          }
+        },
+        {
+          "facility": "University of Rochester Medical Center",
+          "city": "Rochester",
+          "state": "New York",
+          "zip": "14642",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 43.1548,
+            "lon": -77.6156
+          }
+        },
+        {
+          "facility": "SUNY Upstate Medical University Global Health Research Unit",
+          "city": "Syracuse",
+          "state": "New York",
+          "zip": "13215",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 43.0481,
+            "lon": -76.1474
+          }
+        },
+        {
+          "facility": "Meridian Clinical Research LLC",
+          "city": "Vestal",
+          "state": "New York",
+          "zip": "13850",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 42.0851,
+            "lon": -76.0538
+          }
+        },
+        {
+          "facility": "PMG Research of Raleigh, LLC d/b/a PMG Research of Cary",
+          "city": "Cary",
+          "state": "North Carolina",
+          "zip": "27518",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 35.7915,
+            "lon": -78.7811
+          }
+        },
+        {
+          "facility": "PMG Research of Charlotte LLC",
+          "city": "Charlotte",
+          "state": "North Carolina",
+          "zip": "28209",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 35.2271,
+            "lon": -80.8431
+          }
+        },
+        {
+          "facility": "Accessioning Unit and Repository",
+          "city": "Durham",
+          "state": "North Carolina",
+          "zip": "27703",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 35.994,
+            "lon": -78.8986
+          }
+        },
+        {
+          "facility": "Duke Vaccine and Trials Unit",
+          "city": "Durham",
+          "state": "North Carolina",
+          "zip": "27703",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 35.994,
+            "lon": -78.8986
+          }
+        },
+        {
+          "facility": "Clinical Research Pickett Road",
+          "city": "Durham",
+          "state": "North Carolina",
+          "zip": "27705",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 35.994,
+            "lon": -78.8986
+          }
+        },
+        {
+          "facility": "Duke Investigational Drug Service Pharmacy",
+          "city": "Durham",
+          "state": "North Carolina",
+          "zip": "27710",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 35.994,
+            "lon": -78.8986
+          }
+        },
+        {
+          "facility": "PharmQuest",
+          "city": "Greensboro",
+          "state": "North Carolina",
+          "zip": "27408",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 36.0726,
+            "lon": -79.792
+          }
+        },
+        {
+          "facility": "PMG Research of Hickory, LLC",
+          "city": "Hickory",
+          "state": "North Carolina",
+          "zip": "28601",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 35.7332,
+            "lon": -81.3412
+          }
+        },
+        {
+          "facility": "PMG Research of Raleigh, LLC",
+          "city": "Raleigh",
+          "state": "North Carolina",
+          "zip": "27609",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 35.7721,
+            "lon": -78.6386
+          }
+        },
+        {
+          "facility": "M3 Wake Research, Inc.",
+          "city": "Raleigh",
+          "state": "North Carolina",
+          "zip": "27612",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 35.7721,
+            "lon": -78.6386
+          }
+        },
+        {
+          "facility": "PMG Research of Salisbury, LLC",
+          "city": "Salisbury",
+          "state": "North Carolina",
+          "zip": "28144",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 35.671,
+            "lon": -80.4742
+          }
+        },
+        {
+          "facility": "PMG Research of Wilmington, LLC",
+          "city": "Wilmington",
+          "state": "North Carolina",
+          "zip": "28401",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 34.2257,
+            "lon": -77.9447
+          }
+        },
+        {
+          "facility": "PMG Research of Winston-Salem, LLC",
+          "city": "Winston-Salem",
+          "state": "North Carolina",
+          "zip": "27103",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 36.0999,
+            "lon": -80.2442
+          }
+        },
+        {
+          "facility": "Lillestol Research Llc",
+          "city": "Fargo",
+          "state": "North Dakota",
+          "zip": "58104",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 46.8772,
+            "lon": -96.7898
+          }
+        },
+        {
+          "facility": "Meridian Clinical Research, LLC",
+          "city": "Cincinnati",
+          "state": "Ohio",
+          "zip": "45219",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 39.1271,
+            "lon": -84.5143
+          }
+        },
+        {
+          "facility": "Cincinnati Children's Hospital Medical Center",
+          "city": "Cincinnati",
+          "state": "Ohio",
+          "zip": "45229",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 39.1271,
+            "lon": -84.5143
+          }
+        },
+        {
+          "facility": "Meridian Clinical Research LLC",
+          "city": "Cincinnati",
+          "state": "Ohio",
+          "zip": "45246",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 39.1271,
+            "lon": -84.5143
+          }
+        },
+        {
+          "facility": "University Hospitals Cleveland Medical Center",
+          "city": "Cleveland",
+          "state": "Ohio",
+          "zip": "44106",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 41.4995,
+            "lon": -81.6954
+          }
+        },
+        {
+          "facility": "VA Northeast Ohio Healthcare System",
+          "city": "Cleveland",
+          "state": "Ohio",
+          "zip": "44106",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 41.4995,
+            "lon": -81.6954
+          }
+        },
+        {
+          "facility": "Velocity Clinical Research, Inc.",
+          "city": "Cleveland",
+          "state": "Ohio",
+          "zip": "44122",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 41.4995,
+            "lon": -81.6954
+          }
+        },
+        {
+          "facility": "Aventiv Research Inc.",
+          "city": "Columbus",
+          "state": "Ohio",
+          "zip": "43213",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 39.9612,
+            "lon": -82.9988
+          }
+        },
+        {
+          "facility": "Dayton Clinical Research",
+          "city": "Dayton",
+          "state": "Ohio",
+          "zip": "45406",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 39.7589,
+            "lon": -84.1916
+          }
+        },
+        {
+          "facility": "Dayton Clinical Research",
+          "city": "Dayton",
+          "state": "Ohio",
+          "zip": "45409",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 39.7589,
+            "lon": -84.1916
+          }
+        },
+        {
+          "facility": "PriMED Clinical Research",
+          "city": "Dayton",
+          "state": "Ohio",
+          "zip": "45419",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 39.7589,
+            "lon": -84.1916
+          }
+        },
+        {
+          "facility": "Senders Pediatrics",
+          "city": "South Euclid",
+          "state": "Ohio",
+          "zip": "44121",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 41.5231,
+            "lon": -81.5185
+          }
+        },
+        {
+          "facility": "Lynn Institute of Norman",
+          "city": "Norman",
+          "state": "Oklahoma",
+          "zip": "73072",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 35.2226,
+            "lon": -97.4395
+          }
+        },
+        {
+          "facility": "Kaiser Permanente Northwest-Center for Health Research",
+          "city": "Portland",
+          "state": "Oregon",
+          "zip": "97227",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 45.5234,
+            "lon": -122.6762
+          }
+        },
+        {
+          "facility": "Lehigh Valley Health Network/Network Office of Research and Innovation",
+          "city": "Allentown",
+          "state": "Pennsylvania",
+          "zip": "18102",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 40.6084,
+            "lon": -75.4902
+          }
+        },
+        {
+          "facility": "Velocity Clinical Research, Providence",
+          "city": "East Greenwich",
+          "state": "Rhode Island",
+          "zip": "02818",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 41.6604,
+            "lon": -71.4559
+          }
+        },
+        {
+          "facility": "Main Street Physician's Care",
+          "city": "Little River",
+          "state": "South Carolina",
+          "zip": "29566",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 33.8732,
+            "lon": -78.6142
+          }
+        },
+        {
+          "facility": "Main Street Physician's Care",
+          "city": "Loris",
+          "state": "South Carolina",
+          "zip": "29569",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 34.0563,
+            "lon": -78.8903
+          }
+        },
+        {
+          "facility": "Holston Medical Group",
+          "city": "Bristol",
+          "state": "Tennessee",
+          "zip": "37620",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 36.5951,
+            "lon": -82.1887
+          }
+        },
+        {
+          "facility": "Holston Medical Group",
+          "city": "Kingsport",
+          "state": "Tennessee",
+          "zip": "37660",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 36.5484,
+            "lon": -82.5618
+          }
+        },
+        {
+          "facility": "Alliance for Multispecialty Research, LLC",
+          "city": "Knoxville",
+          "state": "Tennessee",
+          "zip": "37909",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 35.9606,
+            "lon": -83.9207
+          }
+        },
+        {
+          "facility": "Alliance for Multispecialty Research, LLC",
+          "city": "Knoxville",
+          "state": "Tennessee",
+          "zip": "37920",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 35.9606,
+            "lon": -83.9207
+          }
+        },
+        {
+          "facility": "Clinical Neuroscience Solutions, Inc.",
+          "city": "Memphis",
+          "state": "Tennessee",
+          "zip": "38119",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 35.1495,
+            "lon": -90.049
+          }
+        },
+        {
+          "facility": "Clinical Research Associates, Inc.",
+          "city": "Nashville",
+          "state": "Tennessee",
+          "zip": "37203",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 36.1659,
+            "lon": -86.7844
+          }
+        },
+        {
+          "facility": "Trinity Clinical Research",
+          "city": "Tullahoma",
+          "state": "Tennessee",
+          "zip": "37388",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 35.362,
+            "lon": -86.2094
+          }
+        },
+        {
+          "facility": "Benchmark Research",
+          "city": "Austin",
+          "state": "Texas",
+          "zip": "78705",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 30.2672,
+            "lon": -97.7431
+          }
+        },
+        {
+          "facility": "ARC Clinical Research at Four Points",
+          "city": "Austin",
+          "state": "Texas",
+          "zip": "78726",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 30.2672,
+            "lon": -97.7431
+          }
+        },
+        {
+          "facility": "Tekton Research, Inc.",
+          "city": "Austin",
+          "state": "Texas",
+          "zip": "78745",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 30.2672,
+            "lon": -97.7431
+          }
+        },
+        {
+          "facility": "Tekton Research",
+          "city": "Austin",
+          "state": "Texas",
+          "zip": "78745",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 30.2672,
+            "lon": -97.7431
+          }
+        },
+        {
+          "facility": "North Texas Infectious Diseases Consultants, P.A.",
+          "city": "Dallas",
+          "state": "Texas",
+          "zip": "75246",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 32.7831,
+            "lon": -96.8067
+          }
+        },
+        {
+          "facility": "Ventavia Research Group, LLC",
+          "city": "Fort Worth",
+          "state": "Texas",
+          "zip": "76104",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 32.7254,
+            "lon": -97.3208
+          }
+        },
+        {
+          "facility": "Benchmark Research",
+          "city": "Fort Worth",
+          "state": "Texas",
+          "zip": "76135",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 32.7254,
+            "lon": -97.3208
+          }
+        },
+        {
+          "facility": "Texas Health Resources",
+          "city": "Fort Worth",
+          "state": "Texas",
+          "zip": "76135",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 32.7254,
+            "lon": -97.3208
+          }
+        },
+        {
+          "facility": "University of Texas Medical Branch",
+          "city": "Galveston",
+          "state": "Texas",
+          "zip": "77555",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 29.3013,
+            "lon": -94.7977
+          }
+        },
+        {
+          "facility": "Ventavia Research Group, LLC",
+          "city": "Houston",
+          "state": "Texas",
+          "zip": "77008",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 29.7633,
+            "lon": -95.3633
+          }
+        },
+        {
+          "facility": "Texas Center for Drug Development, Inc.",
+          "city": "Houston",
+          "state": "Texas",
+          "zip": "77081",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 29.7633,
+            "lon": -95.3633
+          }
+        },
+        {
+          "facility": "Ventavia Research Group, LLC",
+          "city": "Keller",
+          "state": "Texas",
+          "zip": "76248",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 32.9346,
+            "lon": -97.2517
+          }
+        },
+        {
+          "facility": "SMS Clinical Research, LLC",
+          "city": "Mesquite",
+          "state": "Texas",
+          "zip": "75149",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 32.7668,
+            "lon": -96.5992
+          }
+        },
+        {
+          "facility": "LinQ Research, LLC",
+          "city": "Pearland",
+          "state": "Texas",
+          "zip": "77584",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 29.5636,
+            "lon": -95.2861
+          }
+        },
+        {
+          "facility": "Benchmark Research.",
+          "city": "San Angelo",
+          "state": "Texas",
+          "zip": "76904",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 31.4638,
+            "lon": -100.437
+          }
+        },
+        {
+          "facility": "Clinical Trials of Texas, Inc.",
+          "city": "San Antonio",
+          "state": "Texas",
+          "zip": "78229",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 29.4241,
+            "lon": -98.4936
+          }
+        },
+        {
+          "facility": "Diagnostics Research Group",
+          "city": "San Antonio",
+          "state": "Texas",
+          "zip": "78229",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 29.4241,
+            "lon": -98.4936
+          }
+        },
+        {
+          "facility": "Martin Diagnostic Clinic",
+          "city": "Tomball",
+          "state": "Texas",
+          "zip": "77375",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 30.0972,
+            "lon": -95.6161
+          }
+        },
+        {
+          "facility": "J. Lewis Research, Inc. / Foothill Family Clinic",
+          "city": "Salt Lake City",
+          "state": "Utah",
+          "zip": "84109",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 40.7608,
+            "lon": -111.8911
+          }
+        },
+        {
+          "facility": "J. Lewis Research, Inc. / Foothill Family Clinic South",
+          "city": "Salt Lake City",
+          "state": "Utah",
+          "zip": "84121",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 40.7608,
+            "lon": -111.8911
+          }
+        },
+        {
+          "facility": "Clinical Alliance for Research & Education - Infectious Diseases, LLC (CARE-ID)",
+          "city": "Annandale",
+          "state": "Virginia",
+          "zip": "22003",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 38.8304,
+            "lon": -77.1964
+          }
+        },
+        {
+          "facility": "Virginia Research Center LLC",
+          "city": "Midlothian",
+          "state": "Virginia",
+          "zip": "23114",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 37.506,
+            "lon": -77.6492
+          }
+        },
+        {
+          "facility": "Benaroya Research Institute at Virginia Mason",
+          "city": "Seattle",
+          "state": "Washington",
+          "zip": "98101",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 47.6062,
+            "lon": -122.3321
+          }
+        },
+        {
+          "facility": "Wenatchee Valley Hospital",
+          "city": "Wenatchee",
+          "state": "Washington",
+          "zip": "98801",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 47.4235,
+            "lon": -120.3103
+          }
+        },
+        {
+          "facility": "Hospital Militar Central Cirujano Mayor Dr. Cosme Argerich",
+          "city": "Caba",
+          "zip": "1426",
+          "country": "Argentina",
+          "geoPoint": {
+            "lat": -34.6131,
+            "lon": -58.3772
+          }
+        },
+        {
+          "facility": "Hospital Santo Antonio/ Associacao Obras Sociais Irma Dulce",
+          "city": "Salvador",
+          "state": "Bahia",
+          "zip": "CEP: 40415-006",
+          "country": "Brazil",
+          "geoPoint": {
+            "lat": -12.9711,
+            "lon": -38.5108
+          }
+        },
+        {
+          "facility": "CEPIC - Centro Paulista de Investigacao Clinica e Servicos Medicos Ltda (Casa Branca)",
+          "city": "Sao Paulo",
+          "zip": "04266-010",
+          "country": "Brazil",
+          "geoPoint": {
+            "lat": -23.5475,
+            "lon": -46.6361
+          }
+        },
+        {
+          "facility": "CRS Clinical Research Services Berlin GmbH",
+          "city": "Berlin",
+          "zip": "13353",
+          "country": "Germany",
+          "geoPoint": {
+            "lat": 52.5244,
+            "lon": 13.4105
+          }
+        },
+        {
+          "facility": "Medizentrum Essen Borbeck",
+          "city": "Essen",
+          "zip": "45355",
+          "country": "Germany",
+          "geoPoint": {
+            "lat": 51.4566,
+            "lon": 7.0123
+          }
+        },
+        {
+          "facility": "IKF Pneumologie GmbH & Co KG",
+          "city": "Frankfurt am Main",
+          "zip": "60596",
+          "country": "Germany",
+          "geoPoint": {
+            "lat": 50.1155,
+            "lon": 8.6842
+          }
+        },
+        {
+          "facility": "Universitätsklinikum Hamburg-Eppendorf",
+          "city": "Hamburg",
+          "zip": "20359",
+          "country": "Germany",
+          "geoPoint": {
+            "lat": 53.5753,
+            "lon": 10.0153
+          }
+        },
+        {
+          "facility": "CRS Clinical Research Services Mannheim GmbH",
+          "city": "Mannheim",
+          "zip": "68167",
+          "country": "Germany",
+          "geoPoint": {
+            "lat": 49.4891,
+            "lon": 8.4669
+          }
+        },
+        {
+          "facility": "Studienzentrum Brinkum Dr. Lars Pohlmeier und Torsten Drescher",
+          "city": "Stuhr",
+          "zip": "28816",
+          "country": "Germany",
+          "geoPoint": {
+            "lat": 53.0333,
+            "lon": 8.75
+          }
+        },
+        {
+          "facility": "Newtown Clinical Research Centre",
+          "city": "Johannesburg",
+          "state": "Gauteng",
+          "zip": "2113",
+          "country": "South Africa",
+          "geoPoint": {
+            "lat": -26.2023,
+            "lon": 28.0436
+          }
+        },
+        {
+          "facility": "Jongaie Research",
+          "city": "Pretoria",
+          "state": "Gauteng",
+          "zip": "0183",
+          "country": "South Africa",
+          "geoPoint": {
+            "lat": -25.7449,
+            "lon": 28.1878
+          }
+        },
+        {
+          "facility": "Limpopo Clinical Research Initiative",
+          "city": "Thabazimbi",
+          "state": "Limpopo",
+          "zip": "0380",
+          "country": "South Africa",
+          "geoPoint": {
+            "lat": -24.5917,
+            "lon": 27.4115
+          }
+        },
+        {
+          "facility": "Tiervlei Trial Centre, Basement Level, Karl Bremer Hospital",
+          "city": "Cape Town",
+          "state": "Western CAPE",
+          "zip": "7530",
+          "country": "South Africa",
+          "geoPoint": {
+            "lat": -33.9258,
+            "lon": 18.4232
+          }
+        },
+        {
+          "facility": "Ankara Universitesi Tip Fakultesi, Ibni Sina Hastanesi",
+          "city": "Ankara",
+          "zip": "06230",
+          "country": "Turkey",
+          "geoPoint": {
+            "lat": 39.9199,
+            "lon": 32.8543
+          }
+        },
+        {
+          "facility": "Hacettepe Universitesi Tip Fakultesi",
+          "city": "Ankara",
+          "zip": "06230",
+          "country": "Turkey",
+          "geoPoint": {
+            "lat": 39.9199,
+            "lon": 32.8543
+          }
+        },
+        {
+          "facility": "Istanbul Yedikule Gogus Hastaliklari ve Gogus Cerrahisi Egitim Arastirma Hastanesi",
+          "city": "Istanbul",
+          "zip": "34020",
+          "country": "Turkey",
+          "geoPoint": {
+            "lat": 41.0138,
+            "lon": 28.9497
+          }
+        },
+        {
+          "facility": "Istanbul Universitesi Istanbul Tip Fakultesi",
+          "city": "Istanbul",
+          "zip": "34093",
+          "country": "Turkey",
+          "geoPoint": {
+            "lat": 41.0138,
+            "lon": 28.9497
+          }
+        },
+        {
+          "facility": "Istanbul Universitesi-Cerrahpasa, Cerrahpasa Tip Fakultesi",
+          "city": "Istanbul",
+          "zip": "34098",
+          "country": "Turkey",
+          "geoPoint": {
+            "lat": 41.0138,
+            "lon": 28.9497
+          }
+        },
+        {
+          "facility": "Medipol Mega Universite Hastanesi",
+          "city": "Istanbul",
+          "zip": "34214",
+          "country": "Turkey",
+          "geoPoint": {
+            "lat": 41.0138,
+            "lon": 28.9497
+          }
+        },
+        {
+          "facility": "Acibadem Atakent Hastanesi",
+          "city": "Istanbul",
+          "zip": "34303",
+          "country": "Turkey",
+          "geoPoint": {
+            "lat": 41.0138,
+            "lon": 28.9497
+          }
+        },
+        {
+          "facility": "Kocaeli Universitesi Tip Fakultesi",
+          "city": "Kocaeli",
+          "zip": "41380",
+          "country": "Turkey",
+          "geoPoint": {
+            "lat": 39.625,
+            "lon": 27.5114
+          }
+        },
+        {
+          "facility": "Sakarya Universitesi Egitim ve Arastirma Hastanesi",
+          "city": "Sakarya",
+          "zip": "54100",
+          "country": "Turkey",
+          "geoPoint": {}
+        }
+      ]
+    },
+    "referencesModule": {
+      "references": [
+        {
+          "pmid": "36055877",
+          "type": "DERIVED",
+          "citation": "Fraiman J, Erviti J, Jones M, Greenland S, Whelan P, Kaplan RM, Doshi P. Serious adverse events of special interest following mRNA COVID-19 vaccination in randomized trials in adults. Vaccine. 2022 Sep 22;40(40):5798-5805. doi: 10.1016/j.vaccine.2022.08.036. Epub 2022 Aug 31."
+        },
+        {
+          "pmid": "35792746",
+          "type": "DERIVED",
+          "citation": "Kurhade C, Zou J, Xia H, Liu M, Yang Q, Cutler M, Cooper D, Muik A, Sahin U, Jansen KU, Ren P, Xie X, Swanson KA, Shi PY. Neutralization of Omicron sublineages and Deltacron SARS-CoV-2 by three doses of BNT162b2 vaccine or BA.1 infection. Emerg Microbes Infect. 2022 Dec;11(1):1828-1832. doi: 10.1080/22221751.2022.2099305."
+        },
+        {
+          "pmid": "35739094",
+          "type": "DERIVED",
+          "citation": "Kurhade C, Zou J, Xia H, Cai H, Yang Q, Cutler M, Cooper D, Muik A, Jansen KU, Xie X, Swanson KA, Shi PY. Neutralization of Omicron BA.1, BA.2, and BA.3 SARS-CoV-2 by 3 doses of BNT162b2 vaccine. Nat Commun. 2022 Jun 23;13(1):3602. doi: 10.1038/s41467-022-30681-1."
+        },
+        {
+          "pmid": "35131133",
+          "type": "DERIVED",
+          "citation": "Thomas SJ, Perez JL, Lockhart SP, Hariharan S, Kitchin N, Bailey R, Liau K, Lagkadinou E, Tureci O, Sahin U, Xu X, Koury K, Dychter SS, Lu C, Gentile TC, Gruber WC. Efficacy and safety of the BNT162b2 mRNA COVID-19 vaccine in participants with a history of cancer: subgroup analysis of a global phase 3 randomized clinical trial. Vaccine. 2022 Mar 1;40(10):1483-1492. doi: 10.1016/j.vaccine.2021.12.046. Epub 2021 Dec 24."
+        },
+        {
+          "pmid": "34525277",
+          "type": "DERIVED",
+          "citation": "Thomas SJ, Moreira ED Jr, Kitchin N, Absalon J, Gurtman A, Lockhart S, Perez JL, Perez Marc G, Polack FP, Zerbini C, Bailey R, Swanson KA, Xu X, Roychoudhury S, Koury K, Bouguermouh S, Kalina WV, Cooper D, Frenck RW Jr, Hammitt LL, Tureci O, Nell H, Schaefer A, Unal S, Yang Q, Liberator P, Tresnan DB, Mather S, Dormitzer PR, Sahin U, Gruber WC, Jansen KU; C4591001 Clinical Trial Group. Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine through 6 Months. N Engl J Med. 2021 Nov 4;385(19):1761-1773. doi: 10.1056/NEJMoa2110345. Epub 2021 Sep 15."
+        },
+        {
+          "pmid": "34043894",
+          "type": "DERIVED",
+          "citation": "Frenck RW Jr, Klein NP, Kitchin N, Gurtman A, Absalon J, Lockhart S, Perez JL, Walter EB, Senders S, Bailey R, Swanson KA, Ma H, Xu X, Koury K, Kalina WV, Cooper D, Jennings T, Brandon DM, Thomas SJ, Tureci O, Tresnan DB, Mather S, Dormitzer PR, Sahin U, Jansen KU, Gruber WC; C4591001 Clinical Trial Group. Safety, Immunogenicity, and Efficacy of the BNT162b2 Covid-19 Vaccine in Adolescents. N Engl J Med. 2021 Jul 15;385(3):239-250. doi: 10.1056/NEJMoa2107456. Epub 2021 May 27."
+        },
+        {
+          "pmid": "33524990",
+          "type": "DERIVED",
+          "citation": "Vogel AB, Kanevsky I, Che Y, Swanson KA, Muik A, Vormehr M, Kranz LM, Walzer KC, Hein S, Guler A, Loschko J, Maddur MS, Ota-Setlik A, Tompkins K, Cole J, Lui BG, Ziegenhals T, Plaschke A, Eisel D, Dany SC, Fesser S, Erbar S, Bates F, Schneider D, Jesionek B, Sanger B, Wallisch AK, Feuchter Y, Junginger H, Krumm SA, Heinen AP, Adams-Quack P, Schlereth J, Schille S, Kroner C, de la Caridad Guimil Garcia R, Hiller T, Fischer L, Sellers RS, Choudhary S, Gonzalez O, Vascotto F, Gutman MR, Fontenot JA, Hall-Ursone S, Brasky K, Griffor MC, Han S, Su AAH, Lees JA, Nedoma NL, Mashalidis EH, Sahasrabudhe PV, Tan CY, Pavliakova D, Singh G, Fontes-Garfias C, Pride M, Scully IL, Ciolino T, Obregon J, Gazi M, Carrion R Jr, Alfson KJ, Kalina WV, Kaushal D, Shi PY, Klamp T, Rosenbaum C, Kuhn AN, Tureci O, Dormitzer PR, Jansen KU, Sahin U. BNT162b vaccines protect rhesus macaques from SARS-CoV-2. Nature. 2021 Apr;592(7853):283-289. doi: 10.1038/s41586-021-03275-y. Epub 2021 Feb 1."
+        },
+        {
+          "pmid": "33301246",
+          "type": "DERIVED",
+          "citation": "Polack FP, Thomas SJ, Kitchin N, Absalon J, Gurtman A, Lockhart S, Perez JL, Perez Marc G, Moreira ED, Zerbini C, Bailey R, Swanson KA, Roychoudhury S, Koury K, Li P, Kalina WV, Cooper D, Frenck RW Jr, Hammitt LL, Tureci O, Nell H, Schaefer A, Unal S, Tresnan DB, Mather S, Dormitzer PR, Sahin U, Jansen KU, Gruber WC; C4591001 Clinical Trial Group. Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine. N Engl J Med. 2020 Dec 31;383(27):2603-2615. doi: 10.1056/NEJMoa2034577. Epub 2020 Dec 10."
+        },
+        {
+          "pmid": "33053279",
+          "type": "DERIVED",
+          "citation": "Walsh EE, Frenck RW Jr, Falsey AR, Kitchin N, Absalon J, Gurtman A, Lockhart S, Neuzil K, Mulligan MJ, Bailey R, Swanson KA, Li P, Koury K, Kalina W, Cooper D, Fontes-Garfias C, Shi PY, Tureci O, Tompkins KR, Lyke KE, Raabe V, Dormitzer PR, Jansen KU, Sahin U, Gruber WC. Safety and Immunogenicity of Two RNA-Based Covid-19 Vaccine Candidates. N Engl J Med. 2020 Dec 17;383(25):2439-2450. doi: 10.1056/NEJMoa2027906. Epub 2020 Oct 14."
+        },
+        {
+          "pmid": "32785213",
+          "type": "DERIVED",
+          "citation": "Mulligan MJ, Lyke KE, Kitchin N, Absalon J, Gurtman A, Lockhart S, Neuzil K, Raabe V, Bailey R, Swanson KA, Li P, Koury K, Kalina W, Cooper D, Fontes-Garfias C, Shi PY, Tureci O, Tompkins KR, Walsh EE, Frenck R, Falsey AR, Dormitzer PR, Gruber WC, Sahin U, Jansen KU. Phase I/II study of COVID-19 RNA vaccine BNT162b1 in adults. Nature. 2020 Oct;586(7830):589-593. doi: 10.1038/s41586-020-2639-4. Epub 2020 Aug 12. Erratum In: Nature. 2021 Feb;590(7844):E26. doi: 10.1038/s41586-020-03098-3."
+        }
+      ],
+      "seeAlsoLinks": [
+        {
+          "label": "To obtain contact information for a study center near you, click here.",
+          "url": "https://pmiform.com/clinical-trial-info-request?StudyID=C4591001"
+        }
+      ]
+    },
+    "ipdSharingStatementModule": {
+      "ipdSharing": ["NO"]
+    }
+  },
+  "derivedSection": {
+    "miscInfoModule": {
+      "versionHolder": ["2024-08-29"],
+      "submissionTracking": {
+        "estimatedResultsFirstSubmitDate": ["2024-02-09"],
+        "submissionInfos": [
+          {
+            "releaseDate": "2024-02-09",
+            "resetDate": "2024-03-06",
+            "mcpReleaseN": 47
+          },
+          {
+            "releaseDate": "2024-05-10",
+            "resetDate": "2024-06-06",
+            "mcpReleaseN": 48
+          }
+        ]
+      }
+    },
+    "conditionBrowseModule": {
+      "meshes": [
+        {
+          "id": "D000086382",
+          "term": "COVID-19"
+        }
+      ],
+      "ancestors": [
+        {
+          "id": "D000011024",
+          "term": "Pneumonia, Viral"
+        },
+        {
+          "id": "D000011014",
+          "term": "Pneumonia"
+        },
+        {
+          "id": "D000012141",
+          "term": "Respiratory Tract Infections"
+        },
+        {
+          "id": "D000007239",
+          "term": "Infections"
+        },
+        {
+          "id": "D000014777",
+          "term": "Virus Diseases"
+        },
+        {
+          "id": "D000018352",
+          "term": "Coronavirus Infections"
+        },
+        {
+          "id": "D000003333",
+          "term": "Coronaviridae Infections"
+        },
+        {
+          "id": "D000030341",
+          "term": "Nidovirales Infections"
+        },
+        {
+          "id": "D000012327",
+          "term": "RNA Virus Infections"
+        },
+        {
+          "id": "D000008171",
+          "term": "Lung Diseases"
+        },
+        {
+          "id": "D000012140",
+          "term": "Respiratory Tract Diseases"
+        }
+      ],
+      "browseLeaves": [
+        {
+          "id": "M2561",
+          "name": "COVID-19",
+          "asFound": "COVID-19",
+          "relevance": "HIGH"
+        },
+        {
+          "id": "M10283",
+          "name": "Infections",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M6368",
+          "name": "Communicable Diseases",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M20490",
+          "name": "Coronavirus Infections",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M13904",
+          "name": "Pneumonia",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M13914",
+          "name": "Pneumonia, Viral",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M14978",
+          "name": "Respiratory Tract Infections",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M17522",
+          "name": "Virus Diseases",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M6555",
+          "name": "Coronaviridae Infections",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M23685",
+          "name": "Nidovirales Infections",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M15149",
+          "name": "RNA Virus Infections",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M11168",
+          "name": "Lung Diseases",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M14977",
+          "name": "Respiratory Tract Diseases",
+          "relevance": "LOW"
+        }
+      ],
+      "browseBranches": [
+        {
+          "abbrev": "BC01",
+          "name": "Infections"
+        },
+        {
+          "abbrev": "BC08",
+          "name": "Respiratory Tract (Lung and Bronchial) Diseases"
+        },
+        {
+          "abbrev": "All",
+          "name": "All Conditions"
+        },
+        {
+          "abbrev": "BC23",
+          "name": "Symptoms and General Pathology"
+        }
+      ]
+    },
+    "interventionBrowseModule": {
+      "browseLeaves": [
+        {
+          "id": "M17360",
+          "name": "Vaccines",
+          "relevance": "LOW"
+        }
+      ],
+      "browseBranches": [
+        {
+          "abbrev": "All",
+          "name": "All Drugs and Chemicals"
+        }
+      ]
+    }
+  },
+  "hasResults": [false]
+}

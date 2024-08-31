@@ -6,3 +6,5 @@ anil.txt
 autoTDD.Rcheck/
 autoTDD*.tar.gz
 autoTDD*.tgz
+inst/json/.DS_Store
+

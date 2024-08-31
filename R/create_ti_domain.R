@@ -37,14 +37,13 @@
 #'   end_section = "4.2"
 #' )
 #'
-#' # This will save an Excel file in the current working directory
-#' # named "STUDY001_TI.xlsx"
+#' # Example using API method
+#' ti_domain_api <- create_ti_domain(
+#'   study_id = "STUDY001",
+#'   method = "api",
+#'   nct_id = "NCT00000419"
+#' )
 #' }
-#' @importFrom pdftools pdf_text
-#' @importFrom dplyr %>%
-#' @importFrom stringr str_replace_all str_trim str_split str_locate fixed str_sub
-#' @importFrom openxlsx createWorkbook addWorksheet writeData setColWidths createStyle addStyle saveWorkbook
-#' @export
 create_ti_domain <- function(study_id, method, pdf_path = NULL, nct_id = NULL,
                              incl_range = NULL, excl_range = NULL,
                              incl_section = NULL, excl_section = NULL, end_section = NULL,
@@ -67,7 +66,7 @@ create_ti_domain <- function(study_id, method, pdf_path = NULL, nct_id = NULL,
     # Print debugging information
     cat(result$debug_info)
     
-    if (length(result$ti_domain) == 0) {
+    if (nrow(result$ti_domain) == 0) {
       stop("No inclusion or exclusion criteria found.")
     }
     
@@ -78,13 +77,22 @@ create_ti_domain <- function(study_id, method, pdf_path = NULL, nct_id = NULL,
     }
     tryCatch({
       ti_domain <- create_ti_domain_api(study_id, nct_id, output_dir)
-      if (is.null(ti_domain)) {
-        stop("create_ti_domain_api returned NULL")
+      if (nrow(ti_domain) == 0) {
+        stop("create_ti_domain_api returned an empty data frame")
       }
       return(ti_domain)
     }, error = function(e) {
       cat("Error in create_ti_domain_api:", conditionMessage(e), "\n")
-      return(NULL)
+      return(data.frame(
+        STUDYID = character(),
+        DOMAIN = character(),
+        IETESTCD = character(),
+        IETEST = character(),
+        IECAT = character(),
+        IESCAT = character(),
+        IEORRES = character(),
+        stringsAsFactors = FALSE
+      ))
     })
   } else {
     stop("Invalid method. Choose either 'pdf' or 'api'.")
@@ -110,7 +118,7 @@ create_ti_domain_pdf <- function(study_id, pdf_path, incl_range, excl_range, inc
     
     if (max(incl_range) > length(cleaned_text) || max(excl_range) > length(cleaned_text)) {
       stop(sprintf("Specified page ranges are out of bounds. Cleaned PDF has %d pages, incl_range: %s, excl_range: %s", 
-                   length(cleaned_text), paste(incl_range, collapse="-"), paste(excl_range, collapse="-")))
+                   length(cleaned_text), paste(incl_range, collapse = "-"), paste(excl_range, collapse = "-")))
     }
     
     inclusion_text <- cleaned_text[incl_range]
@@ -153,115 +161,6 @@ create_ti_domain_pdf <- function(study_id, pdf_path, incl_range, excl_range, inc
   })
 }
 
-extract_criteria <- function(text_with_pages, section_header, footnotes) {
-  all_lines <- unlist(lapply(text_with_pages, function(page) strsplit(page$text, "\n")[[1]]))
-  all_page_nums <- unlist(lapply(text_with_pages, function(page) rep(page$page_num, length(strsplit(page$text, "\n")[[1]]))))
-  
-  start_index <- which(grepl(section_header, all_lines, ignore.case = TRUE))
-  
-  if (length(start_index) == 0) {
-    warning(sprintf("Section header '%s' not found in the text. Searching for alternatives.", section_header))
-    alternative_headers <- c("Inclusion Criteria", "Exclusion Criteria", "Eligibility Criteria", "Inclusion criteria", "Exclusion criteria")
-    for (alt_header in alternative_headers) {
-      start_index <- which(grepl(alt_header, all_lines, ignore.case = TRUE))
-      if (length(start_index) > 0) {
-        warning(sprintf("Alternative header '%s' found.", alt_header))
-        break
-      }
-    }
-    if (length(start_index) == 0) {
-      warning("No criteria section found. Returning all text as a single criterion.")
-      return(list(criteria = text_with_pages[[1]]$text, pages = text_with_pages[[1]]$page_num))
-    }
-  }
-  
-  criteria <- character(0)
-  criteria_pages <- integer(0)
-  current_criterion <- ""
-  current_page <- all_page_nums[start_index[1]]
-  
-  # Define patterns to ignore
-  ignore_patterns <- c(
-    "^\\d+(\\.\\d+)*\\s+[A-Z]",  # Section numbers
-    "^Patients must meet",       # Introductory text
-    "^The following criteria",   # Introductory text
-    "^Inclusion criteria:",      # Section header
-    "^Exclusion criteria:",      # Section header
-    "^Eligibility criteria:"     # Section header
-  )
-  
-  # Define valid criterion start patterns
-  valid_start_patterns <- paste0("^\\s*(",
-    "•|",                  # Bullet point
-    "\\*|",                # Asterisk
-    "\\d+\\.\\d*|",        # Numbered (e.g., 1. or 1.1)
-    "\\d+\\)|",            # Numbered with parenthesis (e.g., 1))
-    "[a-z]\\)|",           # Lowercase letter with parenthesis (e.g., a))
-    "[A-Z]\\)|",           # Uppercase letter with parenthesis (e.g., A))
-    "\\([a-z]\\)|",        # Lowercase letter in parentheses (e.g., (a))
-    "\\([A-Z]\\)|",        # Uppercase letter in parentheses (e.g., (A))
-    "\\([ivx]+\\)|",       # Lowercase Roman numerals in parentheses (e.g., (i), (iv))
-    "\\([IVX]+\\)|",       # Uppercase Roman numerals in parentheses (e.g., (I), (IV))
-    "-|",                  # Dash
-    "□|",                  # Empty checkbox
-    "☐|",                  # Another empty checkbox unicode
-    "■|",                  # Filled checkbox
-    "☑"                    # Checked checkbox unicode
-  , ")")
-  
-  for (i in (start_index[1] + 1):length(all_lines)) {
-    line <- trimws(all_lines[i])
-    if (nchar(line) == 0) next
-    
-    # Remove footnotes and protocol version information
-    for (footnote in footnotes) {
-      if (nchar(footnote) > 0) {
-        line <- gsub(footnote, "", line, fixed = TRUE)
-      }
-    }
-    line <- gsub("\\|?\\s*Protocol\\s+[A-Za-z0-9]+,?\\s*Version\\s+\\d+(\\.\\d+)?", "", line)
-    
-    # Remove page numbers from the line
-    line <- gsub(paste0("\\b", all_page_nums[i], "\\b"), "", line)
-    
-    if (nchar(trimws(line)) == 0) next
-    
-    # Skip lines matching ignore patterns
-    if (any(sapply(ignore_patterns, function(pattern) grepl(pattern, line)))) {
-      next
-    }
-    
-    # Start a new criterion if we encounter a valid start pattern
-    if (grepl(valid_start_patterns, line)) {
-      if (nchar(current_criterion) > 0) {
-        criteria <- c(criteria, trim_and_clean(current_criterion))
-        criteria_pages <- c(criteria_pages, current_page)
-      }
-      current_criterion <- gsub(valid_start_patterns, "", line)
-      current_page <- all_page_nums[i]
-    } else if (nchar(current_criterion) > 0) {
-      # Append to the current criterion if we're in the middle of one
-      current_criterion <- paste(current_criterion, line)
-    }
-    
-    if (grepl("(Exclusion Criteria|Study Procedures|Investigational Medicinal Products)", line, ignore.case = TRUE)) {
-      break
-    }
-  }
-  
-  if (nchar(current_criterion) > 0) {
-    criteria <- c(criteria, trim_and_clean(current_criterion))
-    criteria_pages <- c(criteria_pages, current_page)
-  }
-  
-  if (length(criteria) == 0) {
-    warning("No criteria extracted. Returning all text as a single criterion.")
-    return(list(criteria = text_with_pages[[1]]$text, pages = text_with_pages[[1]]$page_num))
-  }
-  
-  return(list(criteria = criteria, pages = criteria_pages))
-}
-
 trim_and_clean <- function(text, max_length = 200) {
   text <- gsub("^\\s+|\\s+$", "", text)  # Remove leading and trailing whitespace
   text <- gsub("\\s+", " ", text)  # Replace multiple spaces with a single space
@@ -272,80 +171,7 @@ trim_and_clean <- function(text, max_length = 200) {
   return(text)
 }
 
-library(stringdist)
 
-remove_footnotes_and_headers <- function(pages) {
-  debug_info <- ""
-  
-  tryCatch({
-    # Split each page into lines and add page numbers
-    page_lines <- lapply(seq_along(pages), function(page_num) {
-      lines <- strsplit(pages[page_num], "\n")[[1]]
-      list(lines = lines, page_num = page_num)
-    })
-    debug_info <- paste0(debug_info, sprintf("Number of pages: %d\n", length(page_lines)))
-    
-    # Check for empty pages
-    page_lengths <- sapply(page_lines, function(page) length(page$lines))
-    debug_info <- paste0(debug_info, "Page lengths: ", paste(page_lengths, collapse = ", "), "\n")
-    
-    # Remove empty pages
-    non_empty_pages <- page_lines[page_lengths > 0]
-    debug_info <- paste0(debug_info, sprintf("Number of non-empty pages: %d\n", length(non_empty_pages)))
-    
-    if (length(non_empty_pages) == 0) {
-      stop("All pages are empty")
-    }
-    
-    # Identify potential footnotes
-    potential_footnotes <- character(0)
-    for (i in 1:length(non_empty_pages)) {
-      last_two_lines <- tail(non_empty_pages[[i]]$lines, 2)
-      if (length(last_two_lines) == 2 && all(nchar(trimws(last_two_lines)) > 0)) {
-        combined_line <- paste(last_two_lines, collapse = " ")
-        # Check if this combined line (or a similar one) appears at the bottom of other pages
-        similar_lines <- sapply(non_empty_pages, function(page) {
-          page_last_two_lines <- tail(page$lines, 2)
-          page_combined_line <- paste(page_last_two_lines, collapse = " ")
-          stringdist::stringdist(combined_line, page_combined_line) <= 10  # Allow for small differences
-        })
-        if (sum(similar_lines) > length(non_empty_pages) * 0.2) {  # If it appears on more than 20% of pages
-          potential_footnotes <- c(potential_footnotes, combined_line)
-        }
-      }
-    }
-    
-    potential_footnotes <- unique(potential_footnotes)
-    
-    debug_info <- paste0(debug_info, "Potential footnotes:\n")
-    for (i in seq_along(potential_footnotes)) {
-      debug_info <- paste0(debug_info, sprintf("%d. %s\n", i, potential_footnotes[i]))
-    }
-    
-    # Clean pages while preserving page numbers
-    cleaned_pages <- lapply(non_empty_pages, function(page) {
-      cleaned_lines <- page$lines
-      for (footnote in potential_footnotes) {
-        footnote_parts <- strsplit(footnote, " ")[[1]]
-        for (i in 1:(length(cleaned_lines) - 1)) {
-          if (paste(cleaned_lines[i], cleaned_lines[i+1], collapse = " ") == footnote ||
-              stringdist::stringdist(paste(cleaned_lines[i], cleaned_lines[i+1], collapse = " "), footnote) <= 10) {
-            cleaned_lines[i] <- cleaned_lines[i+1] <- ""
-          }
-        }
-      }
-      cleaned_lines <- cleaned_lines[nchar(trimws(cleaned_lines)) > 0]
-      list(text = paste(cleaned_lines, collapse = "\n"), page_num = page$page_num)
-    })
-    
-    debug_info <- paste0(debug_info, sprintf("Number of pages after cleaning: %d\n", length(cleaned_pages)))
-    
-    return(list(cleaned_pages = cleaned_pages, debug_info = debug_info, footnotes = potential_footnotes))
-  }, error = function(e) {
-    error_msg <- paste("Error in remove_footnotes_and_headers:", e$message, "\n")
-    return(list(cleaned_pages = pages, debug_info = paste0(debug_info, error_msg), footnotes = character(0)))
-  })
-}
 
 #' Create TI Domain from API
 #'
@@ -480,6 +306,7 @@ extract_criteria_from_text <- function(text, max_length = 200) {
 #'
 #' @param ti_domain A data frame representing the TI domain.
 #' @param study_id A character string representing the Study ID.
+#' @param output_dir A character string representing the output directory.
 #' @keywords internal
 save_ti_domain_to_excel <- function(ti_domain, study_id, output_dir) {
   file_name <- file.path(output_dir, paste0(study_id, "_TI.xlsx"))
@@ -488,38 +315,27 @@ save_ti_domain_to_excel <- function(ti_domain, study_id, output_dir) {
   writeData(wb, "TI_Domain", ti_domain)
 
   # Set column widths
-  standard_width <- 15
-  ieorres_width <- 80  # Larger width for IEORRES column
-
-  setColWidths(wb, "TI_Domain", cols = 1:6, widths = standard_width)
-  setColWidths(wb, "TI_Domain", cols = 7, widths = ieorres_width)  # IEORRES column
+  setColWidths(wb, "TI_Domain", cols = 1:ncol(ti_domain), widths = "auto")
 
   # Define styles
   header_style <- createStyle(
     fontSize = 11,
+    textDecoration = "bold",
     halign = "center",
     valign = "center",
-    wrapText = TRUE,
-    textDecoration = "bold",
-    border = c("top", "bottom", "left", "right"),
-    borderStyle = "thin"
+    wrapText = TRUE
   )
-
+  
   content_style <- createStyle(
     fontSize = 10,
     halign = "left",
-    valign = "top",
-    wrapText = TRUE,
-    border = c("top", "bottom", "left", "right"),
-    borderStyle = "thin"
+    valign = "center",
+    wrapText = TRUE
   )
 
   # Apply styles
   addStyle(wb, "TI_Domain", style = header_style, rows = 1, cols = 1:ncol(ti_domain), gridExpand = TRUE)
   addStyle(wb, "TI_Domain", style = content_style, rows = 2:(nrow(ti_domain) + 1), cols = 1:ncol(ti_domain), gridExpand = TRUE)
-
-  # Add filters to header row
-  addFilter(wb, "TI_Domain", row = 1, cols = 1:ncol(ti_domain))
 
   # Freeze the top row
   freezePane(wb, "TI_Domain", firstRow = TRUE)
@@ -532,13 +348,4 @@ save_ti_domain_to_excel <- function(ti_domain, study_id, output_dir) {
   })
 
   return(file_name)
-}
-
-# Helper function to extract footnotes from debug info
-extract_footnotes_from_debug <- function(debug_info) {
-  footnote_lines <- grep("^\\d+\\.", strsplit(debug_info, "\n")[[1]], value = TRUE)
-  footnotes <- sub("^\\d+\\.\\s*", "", footnote_lines)
-  # Remove any empty footnotes
-  footnotes <- footnotes[nchar(trimws(footnotes)) > 0]
-  return(footnotes)
 }

@@ -1,0 +1,543 @@
+{
+  "protocolSection": {
+    "identificationModule": {
+      "nctId": ["NCT00000419"],
+      "orgStudyIdInfo": {
+        "id": ["U01 AR42540 NIAMS-028A"]
+      },
+      "secondaryIdInfos": [
+        {
+          "id": "U01AR042540",
+          "type": "NIH",
+          "link": "https://reporter.nih.gov/quickSearch/U01AR042540"
+        }
+      ],
+      "organization": {
+        "fullName": ["NYU Langone Health"],
+        "class": ["OTHER"]
+      },
+      "briefTitle": ["Safety of Estrogens in Lupus: Hormone Replacement Therapy"],
+      "officialTitle": ["Safety of Estrogens in Lupus Erythematosus - National Assessment (SELENA): Hormone Replacement Therapy"]
+    },
+    "statusModule": {
+      "statusVerifiedDate": ["2013-05"],
+      "overallStatus": ["TERMINATED"],
+      "startDateStruct": {
+        "date": ["1996-04"]
+      },
+      "completionDateStruct": {
+        "date": ["2002-08"]
+      },
+      "studyFirstSubmitDate": ["1999-11-03"],
+      "studyFirstSubmitQcDate": ["1999-11-03"],
+      "studyFirstPostDateStruct": {
+        "date": ["1999-11-04"],
+        "type": ["ESTIMATED"]
+      },
+      "lastUpdateSubmitDate": ["2013-05-01"],
+      "lastUpdatePostDateStruct": {
+        "date": ["2013-05-03"],
+        "type": ["ESTIMATED"]
+      }
+    },
+    "sponsorCollaboratorsModule": {
+      "leadSponsor": {
+        "name": ["NYU Langone Health"],
+        "class": ["OTHER"]
+      },
+      "collaborators": [
+        {
+          "name": "National Institute of Arthritis and Musculoskeletal and Skin Diseases (NIAMS)",
+          "class": "NIH"
+        },
+        {
+          "name": "Office of Research on Women's Health (ORWH)",
+          "class": "NIH"
+        }
+      ]
+    },
+    "descriptionModule": {
+      "briefSummary": ["Safety of Estrogens in Lupus Erythematosus - National Assessment (SELENA) is a study to test whether postmenopausal women with systemic lupus erythematosus (SLE, or lupus) can safely use the hormone estrogen. In this part of the study, we will look at the effects of estrogen replacement therapy on the activity and severity of disease in women with SLE."],
+      "detailedDescription": ["This study tests the effect of exogenous female hormones on disease activity and severity in women with systemic lupus erythematosus (SLE). Physicians generally do not prescribe hormone replacement therapy (HRT) to women with SLE because of the widely held view that such treatment can activate SLE. This practice is based on the greater incidence of SLE in women than in men, biologic abnormalities of estrogen metabolism, murine models of lupus, several anecdotes of patients having disease flares while receiving exogenous hormones, and a single retrospective study in patients with preexisting renal disease. By contrast, recent retrospective studies suggest that the rate of flare is not significantly increased in patients taking HRT.\n\nWe will examine, in a multicenter, randomized, double-blind, placebo-controlled trial, the effect of hormonal replacement with conjugated estrogens on disease activity in postmenopausal women with SLE. We will recruit patients from clinics and private practices that include over 4,000 women with SLE, most belonging to minority groups.\n\nWe will give patients hormones for 1 year.\n\nNOTE: This trial has been terminated as of August 2002 upon recommendation of the Data Safety Monitoring Board (DSMB), based on the findings of the WHI Trial. Study subjects have discontinued study drug but will continue followup visits to study doctors through May 2003"]
+    },
+    "conditionsModule": {
+      "conditions": ["Systemic Lupus Erythematosus"],
+      "keywords": ["SLE", "SELENA", "Estrogen Replacement Therapy (ERT)", "Postmenopause", "Osteoporosis", "Estrogens", "Steroids", "Progestin", "Placebo"]
+    },
+    "designModule": {
+      "studyType": ["INTERVENTIONAL"],
+      "phases": ["PHASE3"],
+      "designInfo": {
+        "allocation": ["RANDOMIZED"],
+        "interventionModel": ["SINGLE_GROUP"],
+        "primaryPurpose": ["TREATMENT"],
+        "maskingInfo": {
+          "masking": ["DOUBLE"]
+        }
+      },
+      "enrollmentInfo": {
+        "count": [350]
+      }
+    },
+    "armsInterventionsModule": {
+      "interventions": [
+        {
+          "type": "DRUG",
+          "name": "Premarin and Provera"
+        }
+      ]
+    },
+    "eligibilityModule": {
+      "eligibilityCriteria": ["Inclusion Criteria:\n\n* Female\n* Unequivocal diagnosis of SLE\n* Inactive disease or stable on 0.5 mg/kg/day or less of prednisone\n* Chemical evidence of menopause or have stopped periods for at least 6 months\n\nExclusion Criteria:\n\n* Blood pressure \\>145/95 on three occasions\n* Deep vein, arterial thrombosis or pulmonary embolus\n* GPL \\>40; MPL \\>40; APL \\>50; dRVVT \\>37 sec\n* APL antibody syndrome ever\n* Gynecologic or breast cancer\n* Hepatic dysfunction or liver tumors\n* Diabetes mellitus (NOT due to steroids) with vascular disease\n* Congenital hyperlipidemia\n* Complicated migraine\n* Severe disease activity (SLEDAI \\>12)\n* Increase in SLEDAI \\>2 points in 3 months\n* Unexplained vaginal bleeding\n* Use of estrogen (HRT or OCP) for \\>1 month at any time after SLE diagnosis\n* FSH \\<40\n* Premenopausal myocardial infarction"],
+      "healthyVolunteers": [false],
+      "sex": ["FEMALE"],
+      "minimumAge": ["18 Years"],
+      "maximumAge": ["85 Years"],
+      "stdAges": ["ADULT", "OLDER_ADULT"]
+    },
+    "contactsLocationsModule": {
+      "overallOfficials": [
+        {
+          "name": "Jill Buyon, M.D.",
+          "affiliation": "Hospital for Joint Diseases, Department of Rheumatology",
+          "role": "PRINCIPAL_INVESTIGATOR"
+        },
+        {
+          "name": "Michelle Petri, M.D.",
+          "affiliation": "Johns Hopkins Hospital, Department of Rheumatology",
+          "role": "STUDY_DIRECTOR"
+        }
+      ],
+      "locations": [
+        {
+          "facility": "UAB Medical Center",
+          "city": "Birmingham",
+          "state": "Alabama",
+          "zip": "35294",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 33.5207,
+            "lon": -86.8025
+          }
+        },
+        {
+          "facility": "UCLA Medical Center, Dept. of Rheumatology",
+          "city": "Los Angeles",
+          "state": "California",
+          "zip": "90024",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 34.0522,
+            "lon": -118.2437
+          }
+        },
+        {
+          "facility": "University of Chicago Pritzker School of Medicine",
+          "city": "Chicago",
+          "state": "Illinois",
+          "zip": "60637",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 41.85,
+            "lon": -87.65
+          }
+        },
+        {
+          "facility": "Louisiana School of Medicine",
+          "city": "Shreveport",
+          "state": "Louisiana",
+          "zip": "71130-3932",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 32.5251,
+            "lon": -93.7502
+          }
+        },
+        {
+          "facility": "Johns Hopkins Hospital",
+          "city": "Baltimore",
+          "state": "Maryland",
+          "zip": "21205",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 39.2904,
+            "lon": -76.6122
+          }
+        },
+        {
+          "facility": "Univ. of Michigan Med. Ctr., Rheumatology Div.",
+          "city": "Ann Arbor",
+          "state": "Michigan",
+          "zip": "48109-0358",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 42.2776,
+            "lon": -83.7409
+          }
+        },
+        {
+          "facility": "Albert Einstein College of Medicine, Jacoby Hospital, Dept. of Rheumatology",
+          "city": "Bronx",
+          "state": "New York",
+          "zip": "10461",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 40.8499,
+            "lon": -73.8664
+          }
+        },
+        {
+          "facility": "Hospital for Joint Diseases",
+          "city": "New York",
+          "state": "New York",
+          "zip": "10003",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 40.7143,
+            "lon": -74.006
+          }
+        },
+        {
+          "facility": "Hospital for Special Surgery",
+          "city": "New York",
+          "state": "New York",
+          "zip": "10021",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 40.7143,
+            "lon": -74.006
+          }
+        },
+        {
+          "facility": "UNC Medical Center, Dept. of Rheumatology",
+          "city": "Chapel Hill",
+          "state": "North Carolina",
+          "zip": "27599-7280",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 35.9132,
+            "lon": -79.0558
+          }
+        },
+        {
+          "facility": "Oklahoma Medical Research Foundation",
+          "city": "Oklahoma City",
+          "state": "Oklahoma",
+          "zip": "73104",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 35.4676,
+            "lon": -97.5164
+          }
+        },
+        {
+          "facility": "Univ. of Pennsylvania Medical Center",
+          "city": "Philadelphia",
+          "state": "Pennsylvania",
+          "zip": "19104",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 39.9523,
+            "lon": -75.1638
+          }
+        },
+        {
+          "facility": "Univ. of Pittsburgh, Dept. of Rheumatology",
+          "city": "Pittsburgh",
+          "state": "Pennsylvania",
+          "zip": "15213",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 40.4406,
+            "lon": -79.9959
+          }
+        },
+        {
+          "facility": "University of Texas Health Sciences Center",
+          "city": "Houston",
+          "state": "Texas",
+          "zip": "77030",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 29.7633,
+            "lon": -95.3633
+          }
+        },
+        {
+          "facility": "Medical College of Virginia, Ambulatory Care Center",
+          "city": "Richmond",
+          "state": "Virginia",
+          "zip": "23219",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 37.5538,
+            "lon": -77.4603
+          }
+        },
+        {
+          "facility": "Medical College of Wisconsin",
+          "city": "Milwaukee",
+          "state": "Wisconsin",
+          "zip": "53226",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 43.0389,
+            "lon": -87.9065
+          }
+        }
+      ]
+    },
+    "referencesModule": {
+      "references": [
+        {
+          "pmid": "10568907",
+          "type": "BACKGROUND",
+          "citation": "Petri M, Buyon J, Kim M. Classification and definition of major flares in SLE clinical trials. Lupus. 1999;8(8):685-91. doi: 10.1191/096120399680411281."
+        },
+        {
+          "pmid": "10568898",
+          "type": "BACKGROUND",
+          "citation": "Kim MY, Buyon JP, Petri M, Skovron ML, Shore RE. Equivalence trials in SLE research: issues to consider. Lupus. 1999;8(8):620-6. doi: 10.1191/096120399680411308."
+        },
+        {
+          "pmid": "11123033",
+          "type": "BACKGROUND",
+          "citation": "Buyon JP. Clinical trials in systemic lupus erythematosus. Curr Rheumatol Rep. 2000 Feb;2(1):11-12. doi: 10.1007/s11926-996-0062-y. No abstract available."
+        },
+        {
+          "pmid": "9458619",
+          "type": "BACKGROUND",
+          "citation": "Buyon JP. Hormone replacement therapy in postmenopausal women with systemic lupus erythematosus. J Am Med Womens Assoc (1972). 1998 Winter;53(1):13-7."
+        },
+        {
+          "pmid": "9259444",
+          "type": "BACKGROUND",
+          "citation": "Buyon JP, Dooley MA, Meyer WR, Petri M, Licciardi F. Recommendations for exogenous estrogen to prevent glucocorticoid-induced osteoporosis in premenopausal women with oligo- or amenorrhea: comment on the American College of Rheumatology recommendations for the prevention and treatment of glucocorticoid-induced osteoporosis. Arthritis Rheum. 1997 Aug;40(8):1548-9. doi: 10.1002/art.1780400831. No abstract available."
+        },
+        {
+          "type": "BACKGROUND",
+          "citation": "Buyon JP, Wallace DJ. The endocrine system, use of exogenous estrogens, and the urogenital tract. In Dubois' Lupus Erythematosus, 6th edition. Wallace DJ, Hahn BH, eds. Philadelphia: Lippincott Williams & Wilkins, 2002; pp. 821-841."
+        },
+        {
+          "pmid": "15968009",
+          "type": "RESULT",
+          "citation": "Buyon JP, Petri MA, Kim MY, Kalunian KC, Grossman J, Hahn BH, Merrill JT, Sammaritano L, Lockshin M, Alarcon GS, Manzi S, Belmont HM, Askanase AD, Sigler L, Dooley MA, Von Feldt J, McCune WJ, Friedman A, Wachs J, Cronin M, Hearth-Holmes M, Tan M, Licciardi F. The effect of combined estrogen and progesterone hormone replacement therapy on disease activity in systemic lupus erythematosus: a randomized trial. Ann Intern Med. 2005 Jun 21;142(12 Pt 1):953-62. doi: 10.7326/0003-4819-142-12_part_1-200506210-00004."
+        }
+      ]
+    }
+  },
+  "derivedSection": {
+    "miscInfoModule": {
+      "versionHolder": ["2024-08-30"]
+    },
+    "conditionBrowseModule": {
+      "meshes": [
+        {
+          "id": "D000008180",
+          "term": "Lupus Erythematosus, Systemic"
+        }
+      ],
+      "ancestors": [
+        {
+          "id": "D000003240",
+          "term": "Connective Tissue Diseases"
+        },
+        {
+          "id": "D000001327",
+          "term": "Autoimmune Diseases"
+        },
+        {
+          "id": "D000007154",
+          "term": "Immune System Diseases"
+        }
+      ],
+      "browseLeaves": [
+        {
+          "id": "M12947",
+          "name": "Osteoporosis",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M11177",
+          "name": "Lupus Erythematosus, Systemic",
+          "relevance": "HIGH",
+          "asFound": "Systemic Lupus Erythematosus"
+        },
+        {
+          "id": "M6464",
+          "name": "Connective Tissue Diseases",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M4629",
+          "name": "Autoimmune Diseases",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M10200",
+          "name": "Immune System Diseases",
+          "relevance": "LOW"
+        }
+      ],
+      "browseBranches": [
+        {
+          "abbrev": "BC05",
+          "name": "Musculoskeletal Diseases"
+        },
+        {
+          "abbrev": "BC18",
+          "name": "Nutritional and Metabolic Diseases"
+        },
+        {
+          "abbrev": "All",
+          "name": "All Conditions"
+        },
+        {
+          "abbrev": "BC17",
+          "name": "Skin and Connective Tissue Diseases"
+        },
+        {
+          "abbrev": "BC20",
+          "name": "Immune System Diseases"
+        }
+      ]
+    },
+    "interventionBrowseModule": {
+      "meshes": [
+        {
+          "id": "D000017258",
+          "term": "Medroxyprogesterone Acetate"
+        },
+        {
+          "id": "D000004966",
+          "term": "Estrogens, Conjugated (USP)"
+        }
+      ],
+      "ancestors": [
+        {
+          "id": "D000080066",
+          "term": "Contraceptive Agents, Hormonal"
+        },
+        {
+          "id": "D000003270",
+          "term": "Contraceptive Agents"
+        },
+        {
+          "id": "D000012102",
+          "term": "Reproductive Control Agents"
+        },
+        {
+          "id": "D000045505",
+          "term": "Physiological Effects of Drugs"
+        },
+        {
+          "id": "D000003271",
+          "term": "Contraceptive Agents, Female"
+        },
+        {
+          "id": "D000003272",
+          "term": "Contraceptive Agents, Male"
+        },
+        {
+          "id": "D000018931",
+          "term": "Antineoplastic Agents, Hormonal"
+        },
+        {
+          "id": "D000000970",
+          "term": "Antineoplastic Agents"
+        },
+        {
+          "id": "D000004967",
+          "term": "Estrogens"
+        },
+        {
+          "id": "D000006728",
+          "term": "Hormones"
+        },
+        {
+          "id": "D000006730",
+          "term": "Hormones, Hormone Substitutes, and Hormone Antagonists"
+        }
+      ],
+      "browseLeaves": [
+        {
+          "id": "M9789",
+          "name": "Hormones",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M19554",
+          "name": "Medroxyprogesterone Acetate",
+          "relevance": "HIGH",
+          "asFound": "Hepatitis B Vaccine"
+        },
+        {
+          "id": "M11508",
+          "name": "Medroxyprogesterone",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M8116",
+          "name": "Estrogens",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M8115",
+          "name": "Estrogens, Conjugated (USP)",
+          "relevance": "HIGH",
+          "asFound": "Sweet"
+        },
+        {
+          "id": "M14244",
+          "name": "Progestins",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M6494",
+          "name": "Contraceptive Agents",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M2116",
+          "name": "Contraceptive Agents, Hormonal",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M6495",
+          "name": "Contraceptive Agents, Female",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M6496",
+          "name": "Contraceptive Agents, Male",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M20966",
+          "name": "Antineoplastic Agents, Hormonal",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M9788",
+          "name": "Hormone Antagonists",
+          "relevance": "LOW"
+        }
+      ],
+      "browseBranches": [
+        {
+          "abbrev": "All",
+          "name": "All Drugs and Chemicals"
+        },
+        {
+          "abbrev": "ANeo",
+          "name": "Antineoplastic Agents"
+        },
+        {
+          "abbrev": "Repr",
+          "name": "Reproductive Control Agents"
+        }
+      ]
+    }
+  },
+  "hasResults": [false]
+}

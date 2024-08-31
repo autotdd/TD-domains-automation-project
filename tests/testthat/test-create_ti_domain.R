@@ -27,15 +27,19 @@ test_that("create_ti_domain works with PDF method", {
 })
 
 test_that("create_ti_domain works with API method", {
-  study_id <- "STUDY002"
+  study_id <- "STUDY001"
   method <- "api"
-  nct_id <- "NCT05789082"  # Replace with a valid NCT ID
+  nct_id <- "NCT00000419"
   output_dir <- tempdir()
 
-  expect_error(create_ti_domain(
+  ti_domain <- create_ti_domain(
     study_id = study_id,
     method = method,
     nct_id = nct_id,
     output_dir = output_dir
-  ), NA)
+  )
+
+  expect_true(is.data.frame(ti_domain))
+  expect_true(nrow(ti_domain) > 0)
+  expect_true(file.exists(file.path(output_dir, paste0(study_id, "_TI.xlsx"))))
 })

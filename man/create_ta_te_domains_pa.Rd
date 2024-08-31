@@ -53,7 +53,7 @@ arms_data <- list(
 )
 treatments_list <- list(
   c("A", "B", "C"),
-  c("D", "E", "F")
+  c("D", "E", "F") 
 )
 te_rules <- data.frame(
   ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C",

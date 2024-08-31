@@ -518,12 +518,6 @@ save_ti_domain_to_excel <- function(ti_domain, study_id, output_dir) {
   addStyle(wb, "TI_Domain", style = header_style, rows = 1, cols = 1:ncol(ti_domain), gridExpand = TRUE)
   addStyle(wb, "TI_Domain", style = content_style, rows = 2:(nrow(ti_domain) + 1), cols = 1:ncol(ti_domain), gridExpand = TRUE)
 
-  # Set row heights
-  header_height <- 20
-  content_height <- 15
-  setRowHeights(wb, "TI_Domain", rows = 1, heights = header_height)
-  setRowHeights(wb, "TI_Domain", rows = 2:(nrow(ti_domain) + 1), heights = content_height)
-
   # Add filters to header row
   addFilter(wb, "TI_Domain", row = 1, cols = 1:ncol(ti_domain))
 

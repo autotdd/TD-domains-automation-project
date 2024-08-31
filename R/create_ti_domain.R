@@ -171,6 +171,116 @@ remove_footnotes_and_headers <- function(pages) {
   })
 }
 
+extract_criteria <- function(text_with_pages, section_header, footnotes) {
+  all_lines <- unlist(lapply(text_with_pages, function(page) strsplit(page$text, "\n")[[1]]))
+  all_page_nums <- unlist(lapply(text_with_pages, function(page) rep(page$page_num, length(strsplit(page$text, "\n")[[1]]))))
+  
+  start_index <- which(grepl(section_header, all_lines, ignore.case = TRUE))
+  
+  if (length(start_index) == 0) {
+    warning(sprintf("Section header '%s' not found in the text. Searching for alternatives.", section_header))
+    alternative_headers <- c("Inclusion Criteria", "Exclusion Criteria", "Eligibility Criteria", "Inclusion criteria", "Exclusion criteria")
+    for (alt_header in alternative_headers) {
+      start_index <- which(grepl(alt_header, all_lines, ignore.case = TRUE))
+      if (length(start_index) > 0) {
+        warning(sprintf("Alternative header '%s' found.", alt_header))
+        break
+      }
+    }
+    if (length(start_index) == 0) {
+      warning("No criteria section found. Returning all text as a single criterion.")
+      return(list(criteria = text_with_pages[[1]]$text, pages = text_with_pages[[1]]$page_num))
+    }
+  }
+  
+  criteria <- character(0)
+  criteria_pages <- integer(0)
+  current_criterion <- ""
+  current_page <- all_page_nums[start_index[1]]
+  
+  # Define patterns to ignore
+  ignore_patterns <- c(
+    "^\\d+(\\.\\d+)*\\s+[A-Z]",  # Section numbers
+    "^Patients must meet",       # Introductory text
+    "^The following criteria",   # Introductory text
+    "^Inclusion criteria:",      # Section header
+    "^Exclusion criteria:",      # Section header
+    "^Eligibility criteria:"     # Section header
+  )
+  
+  # Define valid criterion start patterns
+  valid_start_patterns <- paste0("^\\s*(",
+    "•|",                  # Bullet point
+    "\\*|",                # Asterisk
+    "\\d+\\.\\d*|",        # Numbered (e.g., 1. or 1.1)
+    "\\d+\\)|",            # Numbered with parenthesis (e.g., 1))
+    "[a-z]\\)|",           # Lowercase letter with parenthesis (e.g., a))
+    "[A-Z]\\)|",           # Uppercase letter with parenthesis (e.g., A))
+    "\\([a-z]\\)|",        # Lowercase letter in parentheses (e.g., (a))
+    "\\([A-Z]\\)|",        # Uppercase letter in parentheses (e.g., (A))
+    "\\([ivx]+\\)|",       # Lowercase Roman numerals in parentheses (e.g., (i), (iv))
+    "\\([IVX]+\\)|",       # Uppercase Roman numerals in parentheses (e.g., (I), (IV))
+    "-|",                  # Dash
+    "□|",                  # Empty checkbox
+    "☐|",                  # Another empty checkbox unicode
+    "■|",                  # Filled checkbox
+    "☑"                    # Checked checkbox unicode
+  , ")")
+  
+  for (i in (start_index[1] + 1):length(all_lines)) {
+    line <- trimws(all_lines[i])
+    if (nchar(line) == 0) next
+    
+    # Remove footnotes and protocol version information
+    for (footnote in footnotes) {
+      if (nchar(footnote) > 0) {
+        line <- gsub(footnote, "", line, fixed = TRUE)
+      }
+    }
+    line <- gsub("\\|?\\s*Protocol\\s+[A-Za-z0-9]+,?\\s*Version\\s+\\d+(\\.\\d+)?", "", line)
+    
+    # Remove page numbers from the line
+    line <- gsub(paste0("\\b", all_page_nums[i], "\\b"), "", line)
+    
+    if (nchar(trimws(line)) == 0) next
+    
+    # Skip lines matching ignore patterns
+    if (any(sapply(ignore_patterns, function(pattern) grepl(pattern, line)))) {
+      next
+    }
+    
+    # Start a new criterion if we encounter a valid start pattern
+    if (grepl(valid_start_patterns, line)) {
+      if (nchar(current_criterion) > 0) {
+        criteria <- c(criteria, trim_and_clean(current_criterion))
+        criteria_pages <- c(criteria_pages, current_page)
+      }
+      current_criterion <- gsub(valid_start_patterns, "", line)
+      current_page <- all_page_nums[i]
+    } else if (nchar(current_criterion) > 0) {
+      # Append to the current criterion if we're in the middle of one
+      current_criterion <- paste(current_criterion, line)
+    }
+    
+    if (grepl("(Exclusion Criteria|Study Procedures|Investigational Medicinal Products)", line, ignore.case = TRUE)) {
+      break
+    }
+  }
+  
+  if (nchar(current_criterion) > 0) {
+    criteria <- c(criteria, trim_and_clean(current_criterion))
+    criteria_pages <- c(criteria_pages, current_page)
+  }
+  
+  if (length(criteria) == 0) {
+    warning("No criteria extracted. Returning all text as a single criterion.")
+    return(list(criteria = text_with_pages[[1]]$text, pages = text_with_pages[[1]]$page_num))
+  }
+  
+  return(list(criteria = criteria, pages = criteria_pages))
+}
+
+
 create_ti_domain_pdf <- function(study_id, pdf_path, incl_range, excl_range, incl_section, excl_section, end_section, output_dir) {
   debug_info <- ""
   

@@ -99,6 +99,78 @@ create_ti_domain <- function(study_id, method, pdf_path = NULL, nct_id = NULL,
   }
 }
 
+remove_footnotes_and_headers <- function(pages) {
+  debug_info <- ""
+  tryCatch({
+    # Split each page into lines and add page numbers
+    page_lines <- lapply(seq_along(pages), function(page_num) {
+      lines <- strsplit(pages[page_num], "\n")[[1]]
+      list(lines = lines, page_num = page_num)
+    })
+    debug_info <- paste0(debug_info, sprintf("Number of pages: %d\n", length(page_lines)))
+    
+    # Check for empty pages
+    page_lengths <- sapply(page_lines, function(page) length(page$lines))
+    debug_info <- paste0(debug_info, "Page lengths: ", paste(page_lengths, collapse = ", "), "\n")
+    
+    # Remove empty pages
+    non_empty_pages <- page_lines[page_lengths > 0]
+    debug_info <- paste0(debug_info, sprintf("Number of non-empty pages: %d\n", length(non_empty_pages)))
+    
+    if (length(non_empty_pages) == 0) {
+      stop("All pages are empty")
+    }
+    
+    # Identify potential footnotes
+    potential_footnotes <- character(0)
+    for (i in 1:length(non_empty_pages)) {
+      last_two_lines <- tail(non_empty_pages[[i]]$lines, 2)
+      if (length(last_two_lines) == 2 && all(nchar(trimws(last_two_lines)) > 0)) {
+        combined_line <- paste(last_two_lines, collapse = " ")
+        # Check if this combined line (or a similar one) appears at the bottom of other pages
+        similar_lines <- sapply(non_empty_pages, function(page) {
+          page_last_two_lines <- tail(page$lines, 2)
+          page_combined_line <- paste(page_last_two_lines, collapse = " ")
+          stringdist::stringdist(combined_line, page_combined_line) <= 10  # Allow for small differences
+        })
+        if (sum(similar_lines) > length(non_empty_pages) * 0.2) {  # If it appears on more than 20% of pages
+          potential_footnotes <- c(potential_footnotes, combined_line)
+        }
+      }
+    }
+    
+    potential_footnotes <- unique(potential_footnotes)
+    
+    debug_info <- paste0(debug_info, "Potential footnotes:\n")
+    for (i in seq_along(potential_footnotes)) {
+      debug_info <- paste0(debug_info, sprintf("%d. %s\n", i, potential_footnotes[i]))
+    }
+    
+    # Clean pages while preserving page numbers
+    cleaned_pages <- lapply(non_empty_pages, function(page) {
+      cleaned_lines <- page$lines
+      for (footnote in potential_footnotes) {
+        footnote_parts <- strsplit(footnote, " ")[[1]]
+        for (i in 1:(length(cleaned_lines) - 1)) {
+          if (paste(cleaned_lines[i], cleaned_lines[i+1], collapse = " ") == footnote ||
+              stringdist::stringdist(paste(cleaned_lines[i], cleaned_lines[i+1], collapse = " "), footnote) <= 10) {
+            cleaned_lines[i] <- cleaned_lines[i+1] <- ""
+          }
+        }
+      }
+      cleaned_lines <- cleaned_lines[nchar(trimws(cleaned_lines)) > 0]
+      list(text = paste(cleaned_lines, collapse = "\n"), page_num = page$page_num)
+    })
+    
+    debug_info <- paste0(debug_info, sprintf("Number of pages after cleaning: %d\n", length(cleaned_pages)))
+    
+    return(list(cleaned_pages = cleaned_pages, debug_info = debug_info, footnotes = potential_footnotes))
+  }, error = function(e) {
+    error_msg <- paste("Error in remove_footnotes_and_headers:", e$message, "\n")
+    return(list(cleaned_pages = pages, debug_info = paste0(debug_info, error_msg), footnotes = character(0)))
+  })
+}
+
 create_ti_domain_pdf <- function(study_id, pdf_path, incl_range, excl_range, incl_section, excl_section, end_section, output_dir) {
   debug_info <- ""
   

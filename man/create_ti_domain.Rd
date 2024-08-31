@@ -62,7 +62,11 @@ ti_domain_pdf <- create_ti_domain(
   end_section = "4.2"
 )
 
-# This will save an Excel file in the current working directory
-# named "STUDY001_TI.xlsx"
+# Example using API method
+ti_domain_api <- create_ti_domain(
+  study_id = "STUDY001",
+  method = "api",
+  nct_id = "NCT00000419"
+)
 }
 }

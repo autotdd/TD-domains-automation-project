@@ -19,7 +19,7 @@
 #' @export
 #' @importFrom dplyr mutate select bind_rows group_by ungroup
 #' @importFrom stringr str_split str_extract str_replace_all str_trim str_locate_all str_sub str_locate fixed
-#' @importFrom openxlsx createWorkbook addWorksheet writeData setColWidths createStyle addStyle saveWorkbook
+#' @importFrom openxlsx createWorkbook addWorksheet writeData setColWidths createStyle addStyle saveWorkbook freezePane
 #' @examples
 #' \dontrun{
 #' # Get the path to the example PDF file

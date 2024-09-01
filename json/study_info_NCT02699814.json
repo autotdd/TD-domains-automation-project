@@ -1,0 +1,247 @@
+{
+  "protocolSection": {
+    "identificationModule": {
+      "nctId": ["NCT02699814"],
+      "orgStudyIdInfo": {
+        "id": ["IRB#15-000757"]
+      },
+      "organization": {
+        "fullName": ["University of California, Los Angeles"],
+        "class": ["OTHER"]
+      },
+      "briefTitle": ["H3: Healthy Minds, Healthy Children, Healthy Chicago Project Evaluation"],
+      "officialTitle": ["H3: Healthy Minds, Healthy Children, Healthy Chicago Project Evaluation"],
+      "acronym": ["H3"]
+    },
+    "statusModule": {
+      "statusVerifiedDate": ["2019-09"],
+      "overallStatus": ["COMPLETED"],
+      "expandedAccessInfo": {
+        "hasExpandedAccess": [false]
+      },
+      "startDateStruct": {
+        "date": ["2016-03"],
+        "type": ["ACTUAL"]
+      },
+      "primaryCompletionDateStruct": {
+        "date": ["2018-08"],
+        "type": ["ACTUAL"]
+      },
+      "completionDateStruct": {
+        "date": ["2019-03-31"],
+        "type": ["ACTUAL"]
+      },
+      "studyFirstSubmitDate": ["2016-01-25"],
+      "studyFirstSubmitQcDate": ["2016-03-02"],
+      "studyFirstPostDateStruct": {
+        "date": ["2016-03-04"],
+        "type": ["ESTIMATED"]
+      },
+      "lastUpdateSubmitDate": ["2019-09-26"],
+      "lastUpdatePostDateStruct": {
+        "date": ["2019-09-30"],
+        "type": ["ACTUAL"]
+      }
+    },
+    "sponsorCollaboratorsModule": {
+      "responsibleParty": {
+        "type": ["PRINCIPAL_INVESTIGATOR"],
+        "investigatorFullName": ["Bonnie Zima, MD MPH"],
+        "investigatorTitle": ["Principal Investigator"],
+        "investigatorAffiliation": ["University of California, Los Angeles"]
+      },
+      "leadSponsor": {
+        "name": ["University of California, Los Angeles"],
+        "class": ["OTHER"]
+      },
+      "collaborators": [
+        {
+          "name": "University of Illinois at Chicago",
+          "class": "OTHER"
+        }
+      ]
+    },
+    "oversightModule": {
+      "oversightHasDmc": [false]
+    },
+    "descriptionModule": {
+      "briefSummary": ["The goal of this project is to develop and pilot test a community-based integrated care model to improve the prevention, early detection and treatment of child mental health problems that is replicable, effective, and sustainable. Project procedures include child mental health screening, on-site brief mental health interventions, referral to specialty mental health, use of co-located child psychiatrist, detection of need for primary care in specialty mental health program. Subjects will be enrolled for 1 year, with interviews at baseline and 3, 6 and 12 months.\n\nDr. Bonnie Zima at UCLA has been contracted by the project funder to design and implement the evaluation of the project, which includes developing data collection procedures, training staff on implementation of data collection workflow, coordinating with sites to ensure evaluation design and IRB protocols are followed, and coordinating with both study sites to verify data reliability.\n\nSome potential anticipated risks include being uncomfortable answering questions associated with the measures used in the study, and although unlikely, someone may access participant information that is confidential. Some benefits include helping to find ways to improve how to deliver mental health care for children served in publicly-funded primary care and mental health clinics."],
+      "detailedDescription": ["UCLA is in charge of the evaluation of the H3 project, including evaluation design and overseeing data collection by project sites. UCLA will receive data collected by each site and perform the analysis of the data for the sites to be shared with the Illinois Children's Healthcare Foundation and clinic sites. This study will evaluate an existing intervention, meaning that participation in the evaluation is not required in order to receive H3 services.\n\nThe information below is included in the evaluation design document attached in 10.1, 1.0:\n\nThe overarching goal of the Healthy Minds, Healthy Children, Healthy Chicago Initiative (H3) is to develop a community-based integrated care model to improve the prevention, early detection and treatment of child mental health problems that is replicable, effective, and sustainable.\n\nThe final study design is a longitudinal cohort study of 400 children ages 0-17 years and their families served at the two intervention clinic sites (n=200/site) The study time points are baseline, 3-, 6-, and 12-months.\n\nThe data sources are parent and youth report, and clinic administrative data when feasible for the programs to transfer these data following IRB-approved procedures. The unit of analysis is the child. The main proximal (or short term) clinical outcomes are related to the H3 intervention care processes (e.g., brief mental health interventions, referral to specialty mental health care, co-located child psychiatrist). The time period will likely vary by child depending on clinical need, but it is anticipated that most of these care processes will be provided during the early phase when the child and parent is introduced to the new care model. The main distal outcomes (or more long-term) are clinical improvement (e.g., child symptom reduction, improved functioning) and some correspond to the care process delivered (e.g., if parent receives parent training, improvement parenting skills are assessed). The time points for tracking clinical improvement are 3, 6 and 12 months after the baseline interview that is done when the parent and child are enrolled in the evaluation. The independent variables (or factors that may influence care processes and clinical outcomes) are child sociodemographic characteristics (e.g. age, sex, race/ethnicity), psychosocial complexity, and primary caregiver characteristics that the clinic team or Community Advisory Board deemed relevant (e.g., parenting stress, probable depression). Embedded within the description of a child's psychosocial complexity are indicators of social determinants (e.g. exposure to trauma) that may adversely impact a child's development and well-being.\n\nFindings from this evaluation will provide data on the acceptability and feasibility of the H3 care models, as well as early indicators of whether these care models are promising."]
+    },
+    "conditionsModule": {
+      "conditions": ["Developmental Delay", "Mental Health Disorder"],
+      "keywords": ["Depression", "Children", "Anxiety"]
+    },
+    "designModule": {
+      "studyType": ["INTERVENTIONAL"],
+      "phases": [null],
+      "designInfo": {
+        "allocation": ["NA"],
+        "interventionModel": ["SINGLE_GROUP"],
+        "primaryPurpose": ["HEALTH_SERVICES_RESEARCH"],
+        "maskingInfo": {
+          "masking": ["NONE"]
+        }
+      },
+      "enrollmentInfo": {
+        "count": [277],
+        "type": ["ACTUAL"]
+      }
+    },
+    "armsInterventionsModule": {
+      "armGroups": [
+        {
+          "label": "H3 Parent/Child Dyads",
+          "type": "EXPERIMENTAL",
+          "description": "A child is eligible for the H3 partnered evaluation if he or she is: 1) between the ages of 0.0-16.99 years; 2) speaks Spanish or English; 3) screens positive for a developmental delay or mental health problem. For children in the intervention groups, the additional eligibility criteria are: 1) referral to the H3 care program by a pediatrician based on clinical judgment; and 2) no prior history of receiving any H3 services in the past year.",
+          "interventionNames": ["Behavioral: H3 Services"]
+        }
+      ],
+      "interventions": [
+        {
+          "type": "BEHAVIORAL",
+          "name": "H3 Services",
+          "description": "A community-based integrated care model to improve the prevention, early detection and treatment of child mental health problems",
+          "armGroupLabels": ["H3 Parent/Child Dyads"]
+        }
+      ]
+    },
+    "outcomesModule": {
+      "primaryOutcomes": [
+        {
+          "measure": "H3 intervention care processes",
+          "description": "tracking administration (yes/no) of \"brief mental health interventions\", \"referral to specialty mental health care\", \"use of co-located child psychiatrist\", \"detected need for primary care\"",
+          "timeFrame": "12 months"
+        }
+      ],
+      "secondaryOutcomes": [
+        {
+          "measure": "Mental health functioning",
+          "description": "PHQ9",
+          "timeFrame": "Baseline, 3, 6 and 12 months"
+        },
+        {
+          "measure": "Child development",
+          "description": "Pediatric Symptom Checklist",
+          "timeFrame": "12 monthsBaseline, 3, 6 and 12 months"
+        },
+        {
+          "measure": "Child functioning",
+          "description": "Columbia Impairment Scale",
+          "timeFrame": "Baseline, 3, 6 and 12 months"
+        },
+        {
+          "measure": "Response to trauma and resilience",
+          "description": "Traumatic Events Screening Inventory",
+          "timeFrame": "Baseline, 3, 6 and 12 months"
+        },
+        {
+          "measure": "Care process delivered",
+          "description": "Questionnaire administered at baseline, 3, 6, and 12 months asking parent and child about any care processes that he/she received.",
+          "timeFrame": "Baseline, 3, 6 and 12 months"
+        }
+      ]
+    },
+    "eligibilityModule": {
+      "eligibilityCriteria": ["Inclusion Criteria:\n\n* between the ages of 0.0-16.99 years\n* speaks Spanish or English\n* screens positive for a developmental delay or mental health problem\n* referral to the H3 care program by a pediatrician based on clinical judgment\n* no prior history of receiving any H3 services in the past year\n\nExclusion Criteria (based on the child's characteristics):\n\n* 17 years old (to avoid reconsent at 12 month follow-up)\n* has previously had H3 services in the past year\n* can not speak English or Spanish"],
+      "healthyVolunteers": [false],
+      "sex": ["ALL"],
+      "maximumAge": ["16 Years"],
+      "stdAges": ["CHILD"]
+    },
+    "contactsLocationsModule": {
+      "overallOfficials": [
+        {
+          "name": "Bonnie Zima, MD, MPH",
+          "affiliation": "University of California, Los Angeles",
+          "role": "PRINCIPAL_INVESTIGATOR"
+        }
+      ],
+      "locations": [
+        {
+          "facility": "Miles Square Health Center, Englewood",
+          "city": "Chicago",
+          "state": "Illinois",
+          "zip": "60621",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 41.85,
+            "lon": -87.65
+          }
+        },
+        {
+          "facility": "Erie Family Health Center, West Town",
+          "city": "Chicago",
+          "state": "Illinois",
+          "zip": "60622",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 41.85,
+            "lon": -87.65
+          }
+        }
+      ]
+    },
+    "referencesModule": {
+      "references": [
+        {
+          "pmid": "31012861",
+          "type": "DERIVED",
+          "citation": "McCreary M, Arevian AC, Brady M, Mosqueda Chichits AE, Zhang L, Tang L, Zima B. A Clinical Care Monitoring and Data Collection Tool (H3 Tracker) to Assess Uptake and Engagement in Mental Health Care Services in a Community-Based Pediatric Integrated Care Model: Longitudinal Cohort Study. JMIR Ment Health. 2019 Apr 23;6(4):e12358. doi: 10.2196/12358."
+        }
+      ]
+    }
+  },
+  "derivedSection": {
+    "miscInfoModule": {
+      "versionHolder": ["2024-08-30"]
+    },
+    "conditionBrowseModule": {
+      "meshes": [
+        {
+          "id": "D000001523",
+          "term": "Mental Disorders"
+        }
+      ],
+      "browseLeaves": [
+        {
+          "id": "M4815",
+          "name": "Mental Disorders",
+          "asFound": "Mental Health Disorder",
+          "relevance": "HIGH"
+        },
+        {
+          "id": "M7058",
+          "name": "Depression",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M7061",
+          "name": "Depressive Disorder",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M4324",
+          "name": "Anxiety Disorders",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M14473",
+          "name": "Psychotic Disorders",
+          "relevance": "LOW"
+        }
+      ],
+      "browseBranches": [
+        {
+          "abbrev": "BXM",
+          "name": "Behaviors and Mental Disorders"
+        },
+        {
+          "abbrev": "All",
+          "name": "All Conditions"
+        }
+      ]
+    }
+  },
+  "hasResults": [false]
+}

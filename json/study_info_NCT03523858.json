@@ -1,0 +1,1727 @@
+{
+  "protocolSection": {
+    "identificationModule": {
+      "nctId": ["NCT03523858"],
+      "orgStudyIdInfo": {
+        "id": ["MN39159"]
+      },
+      "organization": {
+        "fullName": ["Hoffmann-La Roche"],
+        "class": ["INDUSTRY"]
+      },
+      "briefTitle": ["A Study to Evaluate Ocrelizumab Treatment in Participants With Progressive Multiple Sclerosis"],
+      "officialTitle": ["An Open-Label, Single-Arm 4-Year Study to Evaluate Effectiveness and Safety of Ocrelizumab Treatment in Patients With Progressive Multiple Sclerosis"],
+      "acronym": ["CONSONANCE"]
+    },
+    "statusModule": {
+      "statusVerifiedDate": ["2024-08"],
+      "overallStatus": ["ACTIVE_NOT_RECRUITING"],
+      "expandedAccessInfo": {
+        "hasExpandedAccess": [false]
+      },
+      "startDateStruct": {
+        "date": ["2018-05-28"],
+        "type": ["ACTUAL"]
+      },
+      "primaryCompletionDateStruct": {
+        "date": ["2026-01-15"],
+        "type": ["ESTIMATED"]
+      },
+      "completionDateStruct": {
+        "date": ["2026-12-04"],
+        "type": ["ESTIMATED"]
+      },
+      "studyFirstSubmitDate": ["2018-04-16"],
+      "studyFirstSubmitQcDate": ["2018-05-10"],
+      "studyFirstPostDateStruct": {
+        "date": ["2018-05-14"],
+        "type": ["ACTUAL"]
+      },
+      "lastUpdateSubmitDate": ["2024-08-09"],
+      "lastUpdatePostDateStruct": {
+        "date": ["2024-08-12"],
+        "type": ["ACTUAL"]
+      }
+    },
+    "sponsorCollaboratorsModule": {
+      "responsibleParty": {
+        "type": ["SPONSOR"]
+      },
+      "leadSponsor": {
+        "name": ["Hoffmann-La Roche"],
+        "class": ["INDUSTRY"]
+      }
+    },
+    "oversightModule": {
+      "isFdaRegulatedDrug": [true],
+      "isFdaRegulatedDevice": [false]
+    },
+    "descriptionModule": {
+      "briefSummary": ["This study is a prospective, multicenter, open-label, single-arm effectiveness and safety study in participants with progressive multiple sclerosis (PMS)."]
+    },
+    "conditionsModule": {
+      "conditions": ["Progressive Multiple Sclerosis (PMS)"]
+    },
+    "designModule": {
+      "studyType": ["INTERVENTIONAL"],
+      "phases": ["PHASE3"],
+      "designInfo": {
+        "allocation": ["NA"],
+        "interventionModel": ["SINGLE_GROUP"],
+        "primaryPurpose": ["TREATMENT"],
+        "maskingInfo": {
+          "masking": ["NONE"]
+        }
+      },
+      "enrollmentInfo": {
+        "count": [927],
+        "type": ["ACTUAL"]
+      }
+    },
+    "armsInterventionsModule": {
+      "armGroups": [
+        {
+          "label": "Ocrelizumab",
+          "type": "EXPERIMENTAL",
+          "description": "Ocrelizumab will be administered via intravenous (IV) infusion.",
+          "interventionNames": ["Drug: Ocrelizumab"]
+        }
+      ],
+      "interventions": [
+        {
+          "type": "DRUG",
+          "name": "Ocrelizumab",
+          "description": "Ocrelizumab will be administered via intravenous (IV) infusion at an initial dose of two 300-mg infusions separated by 14 days (on Days 1 and 15), and then 600 mg at every subsequent dose every 24 weeks for the remainder of the study treatment period (approximately 192 weeks)",
+          "armGroupLabels": ["Ocrelizumab"]
+        }
+      ]
+    },
+    "outcomesModule": {
+      "primaryOutcomes": [
+        {
+          "measure": "Proportion of Participants with No Evidence of Progression (NEP)",
+          "description": "NEP is defined as no progression sustained for at least 24 weeks on all of the following three components (confirmed disability progression \\[CDP\\]; ≥20% increase in timed 25-foot walk test \\[T25FWT\\]; ≥20% increase in nine-hole peg test \\[9HPT\\])",
+          "timeFrame": "From Baseline to Week 96, Week 96 to Week 192 and Baseline to Week 192"
+        },
+        {
+          "measure": "Proportion of Participants with no evidence of progression and no active disease (NEPAD)",
+          "description": "NEPAD is defined as no progression sustained for at least 24 weeks on all of the three components of NEP (CDP, T25FWT, 9HPT), no protocol-defined relapse, no enlarging or new T2 lesion, and no T1 gadolinium (Gd+)-enhancing lesion",
+          "timeFrame": "From Baseline to Week 96, Week 96 to Week 192 and Baseline to Week 192"
+        }
+      ],
+      "secondaryOutcomes": [
+        {
+          "measure": "Change from Baseline in Cognitive Function, as Measured by the Symbol Digit Modalities Test (SDMT)",
+          "timeFrame": "Baseline to end of study (Week 192)"
+        },
+        {
+          "measure": "Change from Baseline in Cognitive Function, as Measured by Brief Visuospatial Memory Test - Revised (BVMT-R)",
+          "timeFrame": "Baseline to end of study (Week 192)"
+        },
+        {
+          "measure": "Mean Change from Baseline in the Expanded Disability Status Scale (EDSS) score over the course of the study",
+          "timeFrame": "Baseline to end of study (Week 192)"
+        },
+        {
+          "measure": "Time to Onset of First Confirmed Disability Progression (CDP) Sustained for at least 24 and 48 Weeks",
+          "timeFrame": "Baseline to onset of first CDP (as measured by EDSS) sustained for at least 24 and 48 weeks"
+        },
+        {
+          "measure": "Time to Onset of First >=20% Increase in Timed 25-foot Walk Test (T25FWT) Sustained for at least 24 Weeks",
+          "timeFrame": "Baseline to onset of first >=20% increase in T25FWT sustained for at least 24 weeks"
+        },
+        {
+          "measure": "Time to Onset of First >=20% Increase in 9 Hole Peg Test (9HPT) Sustained For At Least 24 Weeks",
+          "timeFrame": "Baseline to onset of first >=20% increase in 9HPT sustained for at least 24 weeks"
+        },
+        {
+          "measure": "Proportion of Participants with NEP",
+          "timeFrame": "Week 24 to Week 96, Week 24 to Week 192, and Week 48 to Week 192"
+        },
+        {
+          "measure": "Proportion of Participants with NEPAD",
+          "timeFrame": "Week 24 to Week 96, Week 24 to Week 192, Week 48 to Week 192"
+        },
+        {
+          "measure": "Change from Baseline in Patient-Reported Outcomes (PROs)",
+          "timeFrame": "Baseline to end of study (Week 192)",
+          "description": "PROs collected in this study will be the Multiple Sclerosis Impact Scale (MSIS-29), the Multiple Sclerosis Walking scale (MSWS-12), the ABILHAND-56 Questionnaire, Fatigue Scale for Motor and Cognitive function (FSMC), SymptoMScreen, 88-item Multiple Sclerosis Spasticity Scale (MSSS-88), Numerical Pain Rating Scale (NPRS), and the Patient Global Impression of Severity (PGIS) for upper limb, lower limb and cognitive function"
+        },
+        {
+          "measure": "Change from Baseline in the number of falls and near-falls",
+          "timeFrame": "Baseline to end of study (Week 192)"
+        },
+        {
+          "measure": "Change in Whole Brain Volume (Whole, Cerebral White Matter, Cortical Grey Matter, Deep grey matter)",
+          "timeFrame": "Baseline to end of study (Week 192)"
+        },
+        {
+          "measure": "Change in thalamic volumes",
+          "timeFrame": "Baseline to end of study (Week 192)"
+        },
+        {
+          "measure": "Change in whole and regional cerebellar volume (cervical cord grey and white matter area)",
+          "timeFrame": "Baseline to end of study (Week 192)"
+        },
+        {
+          "measure": "Change in cervical cord cross-sectional area (total, white matter and grey matter)",
+          "timeFrame": "Baseline to end of study (Week 192)"
+        },
+        {
+          "measure": "Change in number of new/enlarging T2 lesions and total T2 Lesion Volume",
+          "timeFrame": "Baseline to end of study (Week 192)"
+        },
+        {
+          "measure": "Change in number of T1 Gadolinium (Gd)+ Lesions and total volume",
+          "timeFrame": "'Baseline to end of study (Week 192)"
+        },
+        {
+          "measure": "Change in number of T1 lesions",
+          "timeFrame": "Baseline to end of study (Week 192)"
+        },
+        {
+          "measure": "Number in total volume of T1 lesions",
+          "timeFrame": "Baseline to end of study (Week 192)"
+        },
+        {
+          "measure": "Change in Slowly Evolving Lesions (SEL)",
+          "timeFrame": "Baseline to end of study (Week 192)"
+        },
+        {
+          "measure": "Change in normalised T1 intensity/T1 Gd+ enhancement in New Focal T2 Lesions, SELs, Persistent Areas of Non-SEL T2 Lesions, and Normal-Appearing Brain Tissue",
+          "timeFrame": "Baseline to end of study (Week 192)"
+        },
+        {
+          "measure": "Change in Gd-enhancing late-Fluid-Attenuated Inversion-Recovery (FLAIR) Meningeal Lesions",
+          "timeFrame": "Baseline to end of study (Week 192)"
+        },
+        {
+          "measure": "Change in the number/ spatial distribution of lesions in the cervical spinal cord",
+          "timeFrame": "Baseline to end of study (Week 192)"
+        },
+        {
+          "measure": "Spectroscopic MR: Measure of the Relative Signal Amplitude of N-Acetyl Aspartate (NAA), and Choline to Creatine",
+          "timeFrame": "Baseline to end of study (Week 192)",
+          "description": "Only in centers with 1.5-Tesla MRI capable to perform it"
+        },
+        {
+          "measure": "Measure of phase rim lesions using a Susceptibility-Weighted Imaging [SWI]/T2 sequence",
+          "timeFrame": "Baseline to end of study (Week 192)",
+          "description": "Only in centers with 3-Tesla MRI capable to perform it, where this sequence would replace the spectroscopic MR in the acquisition flow"
+        },
+        {
+          "measure": "Percentage of Participants with Adverse Events (AEs)",
+          "timeFrame": "Baseline to end of study (Week 192)"
+        },
+        {
+          "measure": "Rates of study treatment discontinuation due to adverse events",
+          "timeFrame": "Baseline to Week 192"
+        }
+      ]
+    },
+    "eligibilityModule": {
+      "eligibilityCriteria": ["Inclusion Criteria:\n\n* Have a definite diagnosis of PMS (as per the revised McDonald 2010 criteria for PPMS or Lublin et al. 2014 criteria for PMS)\n* EDSS (Expanded Disability Status Scale) \\<\/ =6.5 at screening\n* Have a documented evidence of disability progression independent of relapse at any point over the 2 years prior to the screening visit. In case relapse(s) have occurred in the last 2 years, disability progression will have to be considered as independent of relapse activity as per treating physician's judgment\n* Fulfill at least one of the 21 criteria assessing the evidence of disability progression independent of relapse activity in the last 2 years using the pre-baseline disability progression rating system checklist\n* Have experience of having used a smartphone and connecting a smartphone to Wi-Fi network providers\n* For women of childbearing potential: agreement to remain abstinent or use acceptable contraceptive methods during the treatment period and for at least 6 months, or longer if the local label is more stringent after the last dose of study drug\n\nExclusion Criteria:\n\n* Relapsing-remitting multiple sclerosis (RRMS) at screening\n* Inability to complete an MRI\n* Gadolinium (Gd) intolerance\n* Known presence of other neurological disorders\n\nExclusions Related to General Health:\n\n* Pregnancy confirmed by positive serum β human chorionic gonadotropin (hCG) measured at screening\n* Lactation\n* Any concomitant disease that may require chronic treatment of systemic corticosteroids or immunosuppressants during the course of the study\n* History or currently active primary or secondary immunodeficiency\n* Lack of peripheral venous access\n* Significant or uncontrolled somatic disease or any other significant disease that may preclude participant from participating in the study.\n* Active infections must be treated and resolved prior to the first infusion of ocrelizumab\n* Participants in a severely immunocompromised state until the condition resolves\n* Participants with known active malignancies or being actively monitored for recurrence of malignancy\n* Participants who have or have had confirmed progressive multifocal leukoencephalopathy (PML)\n\nExclusions Related to Laboratory Findings:\n\n* Positive screening tests for hepatitis B\n* CD4 count \\<250/μL\n* ANC \\<1.0 × 103/μL\n* AST/SGOT or ALT/SGPT ≥3.0 × ULN in combination with either an elevated total bilirubin (\\>2 X ULN) or clinical jaundice\n\nExclusions Related to Medications:\n\n* Hypersensitivity to ocrelizumab or to any of its excipients\n* Previous treatment with ocrelizumab\n* Previous treatment with B-cell targeted therapies (i.e., atacicept, tabalumab, belimumab, ofatumumab, or obinutuzumab). Note: previous treatment with rituximab is allowed as long as the last dose was administered more than 6 months before the ocrelizumab infusion AND if discontinuation was due to adverse events or immunogenicity AND if Bcell levels are above the lower limit of normal (LLN) prior to screening.\n* Any previous treatment with alemtuzumab (Campath/Mabcampath/Lemtrada), total body irradiation, or bone marrow transplantation\n* Previous treatment with natalizumab where PML has not been excluded according to specific algorithm\n* Contraindications to or intolerance of oral or intravenous (IV) corticosteroids, including methylprednisolone administered IV, according to the country label\n* Systemic corticosteroid therapy within 4 weeks prior to screening\n* All vaccines should be given at least 6 weeks before the first infusion of ocrelizumab, unless the local regulations allow for a shorter interval. Live/live attenuated vaccines should be avoided during treatment and safety follow-up period until B cells are peripherally repleted\n* Previous treatment with daclizumab, ozanimod or figolimod in the last 8 weeks\n* Previous treatment with siponimod in the last 2 weeks\n* Treatment with fampridine/dalfampridine (Fampyra)/Ampyra) or other symptomatic MS treatment unless on stable dose for ≥30 days prior to screening\n* Previous treatment with natalizumab in the last 12 weeks.\n* Previous treatment with teriflunomide in the last 12 weeks. This washout period can be shortened if an accelerated elimination procedure is implemented before screening visit. One of the following elimination procedures can be used:\n* Cholestyramine 8 g administered 3 times daily for a period of at least 7 days (cholestyramine 4 g three times a day can be used, if cholestyramine 8 g three times a day is not well tolerated)\n* Alternatively, 50 g of activated powdered charcoal is administered every 12 hours for a period of at least 7 days.\n* Previous treatment with azathioprine, cyclophosphamide, mycophenolate mofetil or methotrexate in the last 12 weeks\n* Treatment with any investigational agent within 24 weeks of screening (Visit 1) or five half-lives of the investigational drug (whichever is longer) or treatment with any experimental procedures for MS\n* Previous treatment with mitoxantrone, cyclosporine or cladribine in the last 96 weeks\n* Participants previously treated with teriflunomide within the last two years, unless measured plasma concentrations are less than 0.02 mg/l. If above or not known, an accelerated elimination procedure should be implemented before screening visit"],
+      "healthyVolunteers": [false],
+      "sex": ["ALL"],
+      "minimumAge": ["18 Years"],
+      "maximumAge": ["65 Years"],
+      "stdAges": ["ADULT", "OLDER_ADULT"]
+    },
+    "contactsLocationsModule": {
+      "overallOfficials": [
+        {
+          "name": "Clinical Trials",
+          "affiliation": "Hoffmann-La Roche",
+          "role": "STUDY_DIRECTOR"
+        }
+      ],
+      "locations": [
+        {
+          "facility": "MS Center of California",
+          "city": "Laguna Hills",
+          "state": "California",
+          "zip": "92653",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 33.6125,
+            "lon": -117.7128
+          }
+        },
+        {
+          "facility": "SC3 Research Group, Inc",
+          "city": "Pasadena",
+          "state": "California",
+          "zip": "91105",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 34.1478,
+            "lon": -118.1445
+          }
+        },
+        {
+          "facility": "University of California San Francisco",
+          "city": "San Francisco",
+          "state": "California",
+          "zip": "94117",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 37.7749,
+            "lon": -122.4194
+          }
+        },
+        {
+          "facility": "Yale University Multiple Sclerosis Center",
+          "city": "New Haven",
+          "state": "Connecticut",
+          "zip": "06473",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 41.3081,
+            "lon": -72.9282
+          }
+        },
+        {
+          "facility": "University of South Florida",
+          "city": "Tampa",
+          "state": "Florida",
+          "zip": "33612",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 27.9475,
+            "lon": -82.4584
+          }
+        },
+        {
+          "facility": "University of Chicago; Neurology/MC 2030",
+          "city": "Chicago",
+          "state": "Illinois",
+          "zip": "60637-1470",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 41.85,
+            "lon": -87.65
+          }
+        },
+        {
+          "facility": "Massachusetts General Hospital; Neurological Clinical Research Institute (NCRI)",
+          "city": "Boston",
+          "state": "Massachusetts",
+          "zip": "02114",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 42.3584,
+            "lon": -71.0598
+          }
+        },
+        {
+          "facility": "The Elliot Lewis Center",
+          "city": "Wellesley",
+          "state": "Massachusetts",
+          "zip": "02481",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 42.2965,
+            "lon": -71.2926
+          }
+        },
+        {
+          "facility": "Wayne State University School of Medicine",
+          "city": "Detroit",
+          "state": "Michigan",
+          "zip": "48210",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 42.3314,
+            "lon": -83.0457
+          }
+        },
+        {
+          "facility": "Washington University School of Medicine",
+          "city": "Saint Louis",
+          "state": "Missouri",
+          "zip": "63110",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 38.6273,
+            "lon": -90.1979
+          }
+        },
+        {
+          "facility": "The MS Center of Northeastern New York",
+          "city": "Latham",
+          "state": "New York",
+          "zip": "12110",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 42.747,
+            "lon": -73.759
+          }
+        },
+        {
+          "facility": "University of Cincinnati; Department of Neurology",
+          "city": "Cincinnati",
+          "state": "Ohio",
+          "zip": "45219",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 39.1271,
+            "lon": -84.5143
+          }
+        },
+        {
+          "facility": "Cleveland Clinic Mellen Center; U10",
+          "city": "Cleveland",
+          "state": "Ohio",
+          "zip": "44195",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 41.4995,
+            "lon": -81.6954
+          }
+        },
+        {
+          "facility": "University of Pennsylvania",
+          "city": "Philadelphia",
+          "state": "Pennsylvania",
+          "zip": "19104",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 39.9523,
+            "lon": -75.1638
+          }
+        },
+        {
+          "facility": "Neurology Clinic PC",
+          "city": "Cordova",
+          "state": "Tennessee",
+          "zip": "38018",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 35.1557,
+            "lon": -89.7762
+          }
+        },
+        {
+          "facility": "Central Texas Neurology Consultants",
+          "city": "Round Rock",
+          "state": "Texas",
+          "zip": "78681",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 30.5083,
+            "lon": -97.6789
+          }
+        },
+        {
+          "facility": "Lone Star Neurology of San Antonio",
+          "city": "San Antonio",
+          "state": "Texas",
+          "zip": "78258",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 29.4241,
+            "lon": -98.4936
+          }
+        },
+        {
+          "facility": "Swedish Multiple Sclerosis Center",
+          "city": "Seattle",
+          "state": "Washington",
+          "zip": "98122",
+          "country": "United States",
+          "geoPoint": {
+            "lat": 47.6062,
+            "lon": -122.3321
+          }
+        },
+        {
+          "facility": "University Clinical Center of the Republic of Srpska; Neurology Clinic",
+          "city": "Banja Luka",
+          "zip": "78000",
+          "country": "Bosnia and Herzegovina",
+          "geoPoint": {
+            "lat": 44.7784,
+            "lon": 17.1939
+          }
+        },
+        {
+          "facility": "University Hospital Mostar; Neurology Clinic",
+          "city": "Mostar",
+          "zip": "88000",
+          "country": "Bosnia and Herzegovina",
+          "geoPoint": {
+            "lat": 43.3433,
+            "lon": 17.8081
+          }
+        },
+        {
+          "facility": "Clinical Center University of Sarajevo; Neurology clinic",
+          "city": "Sarajevo",
+          "zip": "71000",
+          "country": "Bosnia and Herzegovina",
+          "geoPoint": {
+            "lat": 43.8486,
+            "lon": 18.3564
+          }
+        },
+        {
+          "facility": "University Clinical Center Tuzla; Neurology",
+          "city": "Tuzla",
+          "zip": "75000",
+          "country": "Bosnia and Herzegovina",
+          "geoPoint": {
+            "lat": 44.5384,
+            "lon": 18.6671
+          }
+        },
+        {
+          "facility": "Instituto de Neurologia de Curitiba",
+          "city": "Curitiba",
+          "state": "PR",
+          "zip": "81210-310",
+          "country": "Brazil",
+          "geoPoint": {
+            "lat": -25.4278,
+            "lon": -49.2731
+          }
+        },
+        {
+          "facility": "Hospital Sao Lucas - PUCRS",
+          "city": "Porto Alegre",
+          "state": "RS",
+          "zip": "90610-000",
+          "country": "Brazil",
+          "geoPoint": {
+            "lat": -30.0331,
+            "lon": -51.23
+          }
+        },
+        {
+          "facility": "Hospital das Clínicas Faculdades Médicas de Ribeirão Preto",
+          "city": "Ribeirao Preto",
+          "state": "SP",
+          "zip": "14051-140",
+          "country": "Brazil",
+          "geoPoint": {
+            "lat": -21.1775,
+            "lon": -47.8103
+          }
+        },
+        {
+          "facility": "Hospital das Clinicas - FMUSP_X; Neurologia",
+          "city": "Sao Paulo",
+          "state": "SP",
+          "zip": "05403-000",
+          "country": "Brazil",
+          "geoPoint": {
+            "lat": -23.5475,
+            "lon": -46.6361
+          }
+        },
+        {
+          "facility": "Fraser Health Authority - Fraser Health Multiple Sclerosis",
+          "city": "Burnaby",
+          "state": "British Columbia",
+          "zip": "V5G 2X6",
+          "country": "Canada",
+          "geoPoint": {
+            "lat": 49.2664,
+            "lon": -122.9526
+          }
+        },
+        {
+          "facility": "University of British Columbia Hospital; Division of Neurology",
+          "city": "Vancouver",
+          "state": "British Columbia",
+          "zip": "V6T 2B5",
+          "country": "Canada",
+          "geoPoint": {
+            "lat": 49.2497,
+            "lon": -123.1193
+          }
+        },
+        {
+          "facility": "London Health Sciences Centre Uni Campus",
+          "city": "London",
+          "state": "Ontario",
+          "zip": "N6A 5A5",
+          "country": "Canada",
+          "geoPoint": {
+            "lat": 42.9834,
+            "lon": -81.233
+          }
+        },
+        {
+          "facility": "St. Michael'S Hospital",
+          "city": "Toronto",
+          "state": "Ontario",
+          "zip": "M5B 1W8",
+          "country": "Canada",
+          "geoPoint": {
+            "lat": 43.7001,
+            "lon": -79.4163
+          }
+        },
+        {
+          "facility": "Recherche Sepmus Inc.",
+          "city": "Greenfield Park",
+          "state": "Quebec",
+          "zip": "J4V 2J2",
+          "country": "Canada",
+          "geoPoint": {
+            "lat": 45.4865,
+            "lon": -73.4622
+          }
+        },
+        {
+          "facility": "Hospital Notre-Dame du Centre Hospitalier de l'Universite de Montreal",
+          "city": "Montreal",
+          "state": "Quebec",
+          "zip": "H2L 4M1",
+          "country": "Canada",
+          "geoPoint": {
+            "lat": 45.5088,
+            "lon": -73.5878
+          }
+        },
+        {
+          "facility": "Saskatoon City Hospital; Neurology",
+          "city": "Saskatoon",
+          "state": "Saskatchewan",
+          "zip": "S7K 0M7",
+          "country": "Canada",
+          "geoPoint": {
+            "lat": 52.1324,
+            "lon": -106.6689
+          }
+        },
+        {
+          "facility": "Organizacion Sanitas Internacional",
+          "city": "Bogota, D.C.",
+          "zip": "111321",
+          "country": "Colombia",
+          "geoPoint": {}
+        },
+        {
+          "facility": "Fundacion Clinica Valle del Lili; Unidad de Investigaciones Clinicas",
+          "city": "Cali",
+          "country": "Colombia",
+          "geoPoint": {
+            "lat": 3.4372,
+            "lon": -76.5225
+          }
+        },
+        {
+          "facility": "Hospital Clínica Biblica",
+          "city": "San José",
+          "zip": "10101",
+          "country": "Costa Rica",
+          "geoPoint": {
+            "lat": 9.9333,
+            "lon": -84.0833
+          }
+        },
+        {
+          "facility": "Nemocnice Jihlava; NEU-Neurologicke oddeleni",
+          "city": "Jihlava",
+          "zip": "58633",
+          "country": "Czechia",
+          "geoPoint": {
+            "lat": 49.3961,
+            "lon": 15.5912
+          }
+        },
+        {
+          "facility": "Fakultní Nemocnice Olomouc; Neurologicka Klinika",
+          "city": "Olomouc",
+          "zip": "779 00",
+          "country": "Czechia",
+          "geoPoint": {
+            "lat": 49.5955,
+            "lon": 17.2518
+          }
+        },
+        {
+          "facility": "Fakultni nemocnice Ostrava; MS centrum",
+          "city": "Ostrava-Poruba",
+          "zip": "708 52",
+          "country": "Czechia",
+          "geoPoint": {
+            "lat": 49.8347,
+            "lon": 18.282
+          }
+        },
+        {
+          "facility": "Vseobecna fakultni nemocnice v Praze; MS Centrum, Neurologicka klinika",
+          "city": "Praha 2",
+          "zip": "128 08",
+          "country": "Czechia",
+          "geoPoint": {
+            "lat": 50.088,
+            "lon": 14.4208
+          }
+        },
+        {
+          "facility": "Hjerne- og nervesygdomme, Ambulatorium, Skleroseklinikken",
+          "city": "Aabenraa",
+          "zip": "6200",
+          "country": "Denmark",
+          "geoPoint": {
+            "lat": 55.0443,
+            "lon": 9.4174
+          }
+        },
+        {
+          "facility": "Aarhus Universitetshospital; Neurologisk Afd. F, Skleroseklinikken",
+          "city": "Aarhus N",
+          "zip": "8200",
+          "country": "Denmark",
+          "geoPoint": {
+            "lat": 56.1567,
+            "lon": 10.2108
+          }
+        },
+        {
+          "facility": "Rigshospitalet; Neurologisk Klinik Glostrup",
+          "city": "Glostrup",
+          "zip": "2600",
+          "country": "Denmark",
+          "geoPoint": {
+            "lat": 55.6666,
+            "lon": 12.4038
+          }
+        },
+        {
+          "facility": "Rigshospitalet; Skleroseklinikken - Glostrup",
+          "city": "Glostrup",
+          "zip": "2600",
+          "country": "Denmark",
+          "geoPoint": {
+            "lat": 55.6666,
+            "lon": 12.4038
+          }
+        },
+        {
+          "facility": "Clinical Research Center-Alex university; Neurology Department",
+          "city": "Alexandria",
+          "zip": "21561",
+          "country": "Egypt",
+          "geoPoint": {
+            "lat": 31.2156,
+            "lon": 29.9553
+          }
+        },
+        {
+          "facility": "Ain Shams University Hospital; Clinical Research Center (MASRI-CRC)",
+          "city": "Cairo",
+          "zip": "11566",
+          "country": "Egypt",
+          "geoPoint": {
+            "lat": 30.0626,
+            "lon": 31.2497
+          }
+        },
+        {
+          "facility": "CHU Amiens Hopital Sud; Neurologie",
+          "city": "Amiens Cedex1",
+          "zip": "80054",
+          "country": "France",
+          "geoPoint": {
+            "lat": 49.9,
+            "lon": 2.3
+          }
+        },
+        {
+          "facility": "CHIC Cote Basque Bayonne; Neurologie",
+          "city": "Bayonne Cedex",
+          "zip": "64109",
+          "country": "France",
+          "geoPoint": {
+            "lat": 43.4833,
+            "lon": -1.4833
+          }
+        },
+        {
+          "facility": "Groupe Hospitalier Pellegrin; Service de Neurologie - 3ème étage",
+          "city": "Bordeaux",
+          "zip": "33076",
+          "country": "France",
+          "geoPoint": {
+            "lat": 44.8404,
+            "lon": -0.5805
+          }
+        },
+        {
+          "facility": "Hopital neurologique Pierre Wertheimer - CHU Lyon; Neurologie",
+          "city": "Bron",
+          "zip": "69677",
+          "country": "France",
+          "geoPoint": {
+            "lat": 45.7333,
+            "lon": 4.9167
+          }
+        },
+        {
+          "facility": "CHU De Caen; Service De Neurologie Dejerine",
+          "city": "Caen",
+          "zip": "14033",
+          "country": "France",
+          "geoPoint": {
+            "lat": 49.1859,
+            "lon": -0.3591
+          }
+        },
+        {
+          "facility": "Hopital Gabriel Montpied CHU de Clermont-Ferrand; Service de Neurologie B",
+          "city": "Clermont-Ferrand",
+          "zip": "63003",
+          "country": "France",
+          "geoPoint": {
+            "lat": 45.7797,
+            "lon": 3.0863
+          }
+        },
+        {
+          "facility": "Hopital B Roger Salengro; Neurologie C",
+          "city": "Lille",
+          "zip": "59037",
+          "country": "France",
+          "geoPoint": {
+            "lat": 50.633,
+            "lon": 3.0586
+          }
+        },
+        {
+          "facility": "CHU de la Timone - Hopital d Adultes; Service de Neurologie",
+          "city": "Marseille",
+          "zip": "13005",
+          "country": "France",
+          "geoPoint": {
+            "lat": 43.2955,
+            "lon": 5.3896
+          }
+        },
+        {
+          "facility": "Hopital Gui de Chauliac; Neurologie",
+          "city": "Montpellier",
+          "zip": "34295",
+          "country": "France",
+          "geoPoint": {
+            "lat": 43.6109,
+            "lon": 3.8772
+          }
+        },
+        {
+          "facility": "CHRU Nancy; Service de neurologie",
+          "city": "Nancy",
+          "zip": "54035",
+          "country": "France",
+          "geoPoint": {
+            "lat": 48.6844,
+            "lon": 6.185
+          }
+        },
+        {
+          "facility": "Hopital Nord Laennec",
+          "city": "Nantes",
+          "zip": "44093",
+          "country": "France",
+          "geoPoint": {
+            "lat": 47.2172,
+            "lon": -1.5534
+          }
+        },
+        {
+          "facility": "Hôpital Pasteur; Service de Neurologie",
+          "city": "Nice",
+          "zip": "06002",
+          "country": "France",
+          "geoPoint": {
+            "lat": 43.7031,
+            "lon": 7.2661
+          }
+        },
+        {
+          "facility": "Groupe Hospitalo-Universitaire Caremeau; Service Neurologie",
+          "city": "Nimes",
+          "zip": "30029",
+          "country": "France",
+          "geoPoint": {
+            "lat": 43.8333,
+            "lon": 4.35
+          }
+        },
+        {
+          "facility": "Centre Hospitalier Universitaire de Rennes",
+          "city": "Rennes",
+          "zip": "35033",
+          "country": "France",
+          "geoPoint": {
+            "lat": 48.112,
+            "lon": -1.6743
+          }
+        },
+        {
+          "facility": "Hopitaux Universitaires de Strasbourg ; Service de Neurologie",
+          "city": "Strasbourg",
+          "zip": "67091",
+          "country": "France",
+          "geoPoint": {
+            "lat": 48.5839,
+            "lon": 7.7455
+          }
+        },
+        {
+          "facility": "Universitätsklinikum \"Carl Gustav Carus\", Zentrum für Klinische Neurowissenschaften",
+          "city": "Dresden",
+          "zip": "01307",
+          "country": "Germany",
+          "geoPoint": {
+            "lat": 51.0509,
+            "lon": 13.7383
+          }
+        },
+        {
+          "facility": "Universitätsmedizin Greifswald; Klinik und Poliklinik für Neurologie",
+          "city": "Greifswald",
+          "zip": "17475",
+          "country": "Germany",
+          "geoPoint": {
+            "lat": 54.0931,
+            "lon": 13.3879
+          }
+        },
+        {
+          "facility": "NeuroConcept AG C/O mind mvz GmbH",
+          "city": "Stuttgart",
+          "zip": "70182",
+          "country": "Germany",
+          "geoPoint": {
+            "lat": 48.7823,
+            "lon": 9.177
+          }
+        },
+        {
+          "facility": "NeuroPoint Gesellschaft fur vorbeugende Gesundheitspflege mbH",
+          "city": "Ulm",
+          "zip": "89073",
+          "country": "Germany",
+          "geoPoint": {
+            "lat": 48.3984,
+            "lon": 9.9916
+          }
+        },
+        {
+          "facility": "Studienzentrum Nordwest Dr med Joachim Springub Herr Wolfgang Schwarz",
+          "city": "Westerstede",
+          "zip": "26655",
+          "country": "Germany",
+          "geoPoint": {
+            "lat": 53.2568,
+            "lon": 7.9274
+          }
+        },
+        {
+          "facility": "Deutsche Klinik für Diagnostik; DKD Helios Klinik Wiesbaden, Abt. Neurologie",
+          "city": "Wiesbaden",
+          "zip": "65191",
+          "country": "Germany",
+          "geoPoint": {
+            "lat": 50.0826,
+            "lon": 8.2493
+          }
+        },
+        {
+          "facility": "Nucare",
+          "city": "Ciudad Guatemala",
+          "zip": "01015",
+          "country": "Guatemala",
+          "geoPoint": {
+            "lat": 14.6407,
+            "lon": -90.5133
+          }
+        },
+        {
+          "facility": "Semmelweis Egyetem AOK; Neurologiai Klinika",
+          "city": "Budapest",
+          "zip": "1083",
+          "country": "Hungary",
+          "geoPoint": {
+            "lat": 47.498,
+            "lon": 19.0399
+          }
+        },
+        {
+          "facility": "VALEOMED Diagnosztikai Központ",
+          "city": "Esztergom",
+          "zip": "2500",
+          "country": "Hungary",
+          "geoPoint": {
+            "lat": 47.7928,
+            "lon": 18.7415
+          }
+        },
+        {
+          "facility": "Jósa András Oktatókórház",
+          "city": "Nyíregyháza",
+          "zip": "4400",
+          "country": "Hungary",
+          "geoPoint": {
+            "lat": 47.9554,
+            "lon": 21.7167
+          }
+        },
+        {
+          "facility": "Pécsi Tudományegyetem, Klinikai Központ Neurológiai Klinika; Klinikai Központ Neurológiai Klinika",
+          "city": "Pécs",
+          "zip": "7623",
+          "country": "Hungary",
+          "geoPoint": {
+            "lat": 46.0833,
+            "lon": 18.2333
+          }
+        },
+        {
+          "facility": "Cork University Hospital",
+          "city": "Cork",
+          "country": "Ireland",
+          "geoPoint": {
+            "lat": 51.898,
+            "lon": -8.4706
+          }
+        },
+        {
+          "facility": "Beaumont Hospital; Clinical Research and Education Centre, Smurfit Building",
+          "city": "Dublin",
+          "zip": "9",
+          "country": "Ireland",
+          "geoPoint": {
+            "lat": 53.3331,
+            "lon": -6.2489
+          }
+        },
+        {
+          "facility": "St Vincents University Hospital; Carew House-Neurology Department",
+          "city": "Dublin",
+          "zip": "Dublin 4",
+          "country": "Ireland",
+          "geoPoint": {
+            "lat": 53.3331,
+            "lon": -6.2489
+          }
+        },
+        {
+          "facility": "A. O. U. Federico II; Dip Neuroscienze, Scienze Riproduttive ed Odontostomatologiche",
+          "city": "Napoli",
+          "state": "Campania",
+          "zip": "80131",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 40.8522,
+            "lon": 14.2681
+          }
+        },
+        {
+          "facility": "Università degli Studi della Campania Luigi Vanvitelli; Dip. Ass. Integrato Med Int-II Clinica Neur",
+          "city": "Napoli",
+          "state": "Campania",
+          "zip": "80131",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 40.8522,
+            "lon": 14.2681
+          }
+        },
+        {
+          "facility": "Università degli studi della Campania Luigi Vanvitelli; Dip.Ass Int Med Int-I Clinica Neurologica",
+          "city": "Napoli",
+          "state": "Campania",
+          "zip": "80138",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 40.8522,
+            "lon": 14.2681
+          }
+        },
+        {
+          "facility": "Ospedale Cattinara; Amb Studio Sclerosi Multipla, Clinica Neurlogica",
+          "city": "Trieste",
+          "state": "Friuli-Venezia Giulia",
+          "zip": "34149",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 45.6495,
+            "lon": 13.7768
+          }
+        },
+        {
+          "facility": "Policlinico Tor Vergata Dip. Neuroscienze-Clinica Neurologica-UOSD Sclerosi Multipla",
+          "city": "Roma",
+          "state": "Lazio",
+          "zip": "00133",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 41.8919,
+            "lon": 12.5113
+          }
+        },
+        {
+          "facility": "Policlinico Universitario A. Gemelli; UOC Neurologia - Centro Sclerosi Multipla",
+          "city": "Roma",
+          "state": "Lazio",
+          "zip": "00168",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 41.8919,
+            "lon": 12.5113
+          }
+        },
+        {
+          "facility": "A.O. Sant'Andrea; UOC Neurologia, Dip. di Neuroscienze, Salute Mentale e Organi di Senso (NESMOS)",
+          "city": "Roma",
+          "state": "Lazio",
+          "zip": "00189",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 41.8919,
+            "lon": 12.5113
+          }
+        },
+        {
+          "facility": "Azienda Ospedaliera Sant'Andrea; UOC Neurologia",
+          "city": "Roma",
+          "state": "Lazio",
+          "zip": "00189",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 41.8919,
+            "lon": 12.5113
+          }
+        },
+        {
+          "facility": "Irccs A.O.U.San Martino Ist; Dinogmi",
+          "city": "Genova",
+          "state": "Liguria",
+          "zip": "16132",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 44.4048,
+            "lon": 8.9444
+          }
+        },
+        {
+          "facility": "IRCCS Ospedale San Raffaele; Neurologia Neurofisiologia Neuroriabilitazione-Centro Sclerosi Multipla",
+          "city": "Milano",
+          "state": "Lombardia",
+          "zip": "20132",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 45.4643,
+            "lon": 9.1895
+          }
+        },
+        {
+          "facility": "Fond. Istituto Neurologico C.Besta; UO Neurologia IV - Neuroimmunologia Malattie Neuromuscolari",
+          "city": "Milano",
+          "state": "Lombardia",
+          "zip": "20133",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 45.4643,
+            "lon": 9.1895
+          }
+        },
+        {
+          "facility": "IRCCS Istituto Neurologico C. Mondino?Dip. Neurologia Neuroriabilitazione S.S. Sclerosi Multipla",
+          "city": "Pavia",
+          "state": "Lombardia",
+          "zip": "27100",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 45.1921,
+            "lon": 9.1592
+          }
+        },
+        {
+          "facility": "IRCCS Istituto Neurologico Neuromed; Centro per lo Studio e la Cura della Sclerosi Multipla",
+          "city": "Pozzilli",
+          "state": "Molise",
+          "zip": "86077",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 41.5114,
+            "lon": 14.0625
+          }
+        },
+        {
+          "facility": "Azienda Sanitaria Ospedaliera S. Luigi Gonzaga; Centro Regionale Sclerosi Multipla - Neurologia II",
+          "city": "Orbassano",
+          "state": "Piemonte",
+          "zip": "10043",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 45.0055,
+            "lon": 7.5381
+          }
+        },
+        {
+          "facility": "AOU Città della Salute e della Scienza; Neurologia 1",
+          "city": "Torino",
+          "state": "Piemonte",
+          "zip": "10126",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 45.0705,
+            "lon": 7.6868
+          }
+        },
+        {
+          "facility": "Azienda Ospedaliero Universitaria Consorziale Policlinico di; Scienze Neurologiche",
+          "city": "Bari",
+          "state": "Puglia",
+          "zip": "70124",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 41.1115,
+            "lon": 16.8554
+          }
+        },
+        {
+          "facility": "Ospedale Binaghi; Centro Sclerosi Multipla",
+          "city": "Cagliari",
+          "state": "Sardegna",
+          "zip": "09126",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 39.2305,
+            "lon": 9.1192
+          }
+        },
+        {
+          "facility": "AOU Policlinico V. Emanuele - P.O G. Rodolico; Clinica Neurologica, Centro Sclerosi Multipla",
+          "city": "Catania",
+          "state": "Sicilia",
+          "zip": "95123",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 37.4922,
+            "lon": 15.0704
+          }
+        },
+        {
+          "facility": "AOUC Azienda Ospedaliero-Universitaria Careggi; Neurologia 2",
+          "city": "Firenze",
+          "state": "Toscana",
+          "zip": "50134",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 43.7792,
+            "lon": 11.2463
+          }
+        },
+        {
+          "facility": "Policlinico G.B. Rossi; Dip. Scienze Neurologiche Biomediche - Neurologia B ? Amb. Sclerosi Multipla",
+          "city": "Verona",
+          "state": "Veneto",
+          "zip": "37134",
+          "country": "Italy",
+          "geoPoint": {
+            "lat": 45.4299,
+            "lon": 10.9844
+          }
+        },
+        {
+          "facility": "American University of Beirut - Medical Center",
+          "city": "Beirut",
+          "zip": "1107 2020",
+          "country": "Lebanon",
+          "geoPoint": {
+            "lat": 33.8889,
+            "lon": 35.4944
+          }
+        },
+        {
+          "facility": "Lebanese American University Medical Center- Rizk Hospial",
+          "city": "Beirut",
+          "zip": "1132 8811",
+          "country": "Lebanon",
+          "geoPoint": {
+            "lat": 33.8889,
+            "lon": 35.4944
+          }
+        },
+        {
+          "facility": "Grupo Medico de Investigacion Clinica Multidisciplinaria",
+          "city": "Mexico City",
+          "state": "Mexico CITY (federal District)",
+          "zip": "03100",
+          "country": "Mexico",
+          "geoPoint": {
+            "lat": 19.4285,
+            "lon": -99.1277
+          }
+        },
+        {
+          "facility": "Clinstile S.A de C.V.",
+          "city": "Mexico City",
+          "state": "Mexico CITY (federal District)",
+          "zip": "06700",
+          "country": "Mexico",
+          "geoPoint": {
+            "lat": 19.4285,
+            "lon": -99.1277
+          }
+        },
+        {
+          "facility": "Hospital General de Mexico",
+          "city": "Mexico",
+          "state": "Tlaxcala",
+          "zip": "06726",
+          "country": "Mexico",
+          "geoPoint": {
+            "lat": 19.4285,
+            "lon": -99.1277
+          }
+        },
+        {
+          "facility": "Unidad de investigacion en salud (UIS); Neurociencias",
+          "city": "Ciudad de México",
+          "zip": "14050",
+          "country": "Mexico",
+          "geoPoint": {
+            "lat": 19.4285,
+            "lon": -99.1277
+          }
+        },
+        {
+          "facility": "Centre Hospitalier Universitaire Hassan II",
+          "city": "FES",
+          "zip": "30000",
+          "country": "Morocco",
+          "geoPoint": {
+            "lat": 34.0331,
+            "lon": -5.0003
+          }
+        },
+        {
+          "facility": "Hopital Cheikh Zaid",
+          "city": "Rabat",
+          "zip": "10000",
+          "country": "Morocco",
+          "geoPoint": {
+            "lat": 34.0132,
+            "lon": -6.8326
+          }
+        },
+        {
+          "facility": "Hopital Militaire d'Instruction Mohamed V",
+          "city": "Rabat",
+          "zip": "10100",
+          "country": "Morocco",
+          "geoPoint": {
+            "lat": 34.0132,
+            "lon": -6.8326
+          }
+        },
+        {
+          "facility": "Amphia Ziekenhuis",
+          "city": "Breda",
+          "zip": "4818 CK",
+          "country": "Netherlands",
+          "geoPoint": {
+            "lat": 51.5866,
+            "lon": 4.776
+          }
+        },
+        {
+          "facility": "Catharina ziekenhuis",
+          "city": "Eindhoven",
+          "zip": "5623 EJ",
+          "country": "Netherlands",
+          "geoPoint": {
+            "lat": 51.4408,
+            "lon": 5.4778
+          }
+        },
+        {
+          "facility": "Maasstadziekenhuis",
+          "city": "Rotterdam",
+          "zip": "3079 DZ",
+          "country": "Netherlands",
+          "geoPoint": {
+            "lat": 51.9225,
+            "lon": 4.4792
+          }
+        },
+        {
+          "facility": "Zuyderland Medisch Centrum - Sittard Geleen",
+          "city": "Sittard-Geleen",
+          "zip": "6162 BG",
+          "country": "Netherlands",
+          "geoPoint": {}
+        },
+        {
+          "facility": "Consultorios Médicos PaItilla",
+          "city": "Panama City",
+          "zip": "0816 03075",
+          "country": "Panama",
+          "geoPoint": {
+            "lat": 8.9936,
+            "lon": -79.5197
+          }
+        },
+        {
+          "facility": "Uniwersytecki Szpital Kliniczny w Bialymstoku",
+          "city": "Bia?ystok",
+          "zip": "15-276",
+          "country": "Poland",
+          "geoPoint": {}
+        },
+        {
+          "facility": "Szpital Uniwersytecki w Krakowie; Oddzia? kliniczny Neurologii",
+          "city": "Kraków",
+          "zip": "31-503",
+          "country": "Poland",
+          "geoPoint": {
+            "lat": 50.0614,
+            "lon": 19.9366
+          }
+        },
+        {
+          "facility": "Centrum Neurologii Krzysztof Selmaj",
+          "city": "Lodz",
+          "zip": "90-324",
+          "country": "Poland",
+          "geoPoint": {
+            "lat": 51.75,
+            "lon": 19.4667
+          }
+        },
+        {
+          "facility": "SP Swiecickiego UM Marcinkowskiego; Od. Klin. Neurologii z podod. Udarowym",
+          "city": "Pozna?",
+          "zip": "60-355",
+          "country": "Poland",
+          "geoPoint": {
+            "lat": 51.8444,
+            "lon": 14.6187
+          }
+        },
+        {
+          "facility": "Centrum Medyczne \"MEDYK\"",
+          "city": "Rzeszow",
+          "zip": "35-055",
+          "country": "Poland",
+          "geoPoint": {
+            "lat": 50.0413,
+            "lon": 21.999
+          }
+        },
+        {
+          "facility": "Wojskowy Instytut Medyczny - Pa?Stwowy Instytut Badawczy",
+          "city": "Warszawa",
+          "zip": "04-141",
+          "country": "Poland",
+          "geoPoint": {
+            "lat": 52.2298,
+            "lon": 21.0118
+          }
+        },
+        {
+          "facility": "SPSK nr 1; Klinika Neurologii",
+          "city": "Zabrze",
+          "zip": "41-800",
+          "country": "Poland",
+          "geoPoint": {
+            "lat": 50.3249,
+            "lon": 18.7858
+          }
+        },
+        {
+          "facility": "National Center of Social Significant Disease",
+          "city": "Sankt-peterburg",
+          "state": "Leningrad",
+          "zip": "197110",
+          "country": "Russian Federation",
+          "geoPoint": {
+            "lat": 59.9386,
+            "lon": 30.3141
+          }
+        },
+        {
+          "facility": "Jusupovskaya Hospital",
+          "city": "Moscow",
+          "state": "Moskovskaja Oblast",
+          "zip": "117186",
+          "country": "Russian Federation",
+          "geoPoint": {
+            "lat": 55.7522,
+            "lon": 37.6156
+          }
+        },
+        {
+          "facility": "Scientific Neurology Center; Neurological department #6?",
+          "city": "Moscow",
+          "state": "Moskovskaja Oblast",
+          "zip": "125367",
+          "country": "Russian Federation",
+          "geoPoint": {
+            "lat": 55.7522,
+            "lon": 37.6156
+          }
+        },
+        {
+          "facility": "Vladimirskiy Regional Scientific Research Inst.",
+          "city": "Moscow",
+          "state": "Moskovskaja Oblast",
+          "zip": "129110",
+          "country": "Russian Federation",
+          "geoPoint": {
+            "lat": 55.7522,
+            "lon": 37.6156
+          }
+        },
+        {
+          "facility": "City Clinical Hospital #24; Multipal Sclerosis department",
+          "city": "Moskva",
+          "state": "Moskovskaja Oblast",
+          "zip": "127015",
+          "country": "Russian Federation",
+          "geoPoint": {}
+        },
+        {
+          "facility": "Hospital Universitario Virgen de Arrixaca; Servicio de Neurología",
+          "city": "EL Palmar (EL Palmar)",
+          "state": "Murcia",
+          "zip": "30120",
+          "country": "Spain",
+          "geoPoint": {}
+        },
+        {
+          "facility": "Hospital Vall d'Hebron; Servicio de Neurología",
+          "city": "Barcelona",
+          "zip": "08035",
+          "country": "Spain",
+          "geoPoint": {
+            "lat": 41.3888,
+            "lon": 2.159
+          }
+        },
+        {
+          "facility": "Hospital Universitario la Fe; Servicio de Neurologia",
+          "city": "Valencia",
+          "zip": "46026",
+          "country": "Spain",
+          "geoPoint": {
+            "lat": 39.4697,
+            "lon": -0.3774
+          }
+        },
+        {
+          "facility": "Cleveland Clinic Abu Dhabi",
+          "city": "Abu Dhabi",
+          "zip": "112412",
+          "country": "United Arab Emirates",
+          "geoPoint": {
+            "lat": 24.4667,
+            "lon": 54.3667
+          }
+        },
+        {
+          "facility": "Rashid hospital",
+          "city": "Dubai",
+          "zip": "4545",
+          "country": "United Arab Emirates",
+          "geoPoint": {
+            "lat": 25.0657,
+            "lon": 55.1713
+          }
+        }
+      ]
+    },
+    "ipdSharingStatementModule": {
+      "ipdSharing": ["YES"],
+      "description": ["Qualified researchers may request access to individual patient level data through the clinical study data request platform (www.clinicalstudydatarequest.com). Further details on Roche's criteria for eligible studies are available here (https://clinicalstudydatarequest.com/Study-Sponsors/Study-Sponsors-Roche.aspx). For further details on Roche's Global Policy on the Sharing of Clinical Information and how to request access to related clinical study documents, see here (https://www.roche.com/research_and_development/who_we_are_how_we_work/clinical_trials/our_commitment_to_data_sharing.htm)."]
+    }
+  },
+  "derivedSection": {
+    "miscInfoModule": {
+      "versionHolder": ["2024-08-30"],
+      "removedCountries": ["Algeria", "Saudi Arabia"]
+    },
+    "conditionBrowseModule": {
+      "meshes": [
+        {
+          "id": "D000009103",
+          "term": "Multiple Sclerosis"
+        },
+        {
+          "id": "D000020528",
+          "term": "Multiple Sclerosis, Chronic Progressive"
+        },
+        {
+          "id": "D000012598",
+          "term": "Sclerosis"
+        }
+      ],
+      "ancestors": [
+        {
+          "id": "D000010335",
+          "term": "Pathologic Processes"
+        },
+        {
+          "id": "D000020278",
+          "term": "Demyelinating Autoimmune Diseases, CNS"
+        },
+        {
+          "id": "D000020274",
+          "term": "Autoimmune Diseases of the Nervous System"
+        },
+        {
+          "id": "D000009422",
+          "term": "Nervous System Diseases"
+        },
+        {
+          "id": "D000003711",
+          "term": "Demyelinating Diseases"
+        },
+        {
+          "id": "D000001327",
+          "term": "Autoimmune Diseases"
+        },
+        {
+          "id": "D000007154",
+          "term": "Immune System Diseases"
+        },
+        {
+          "id": "D000002908",
+          "term": "Chronic Disease"
+        },
+        {
+          "id": "D000020969",
+          "term": "Disease Attributes"
+        }
+      ],
+      "browseLeaves": [
+        {
+          "id": "M15415",
+          "name": "Sclerosis",
+          "asFound": "Sclerosis",
+          "relevance": "HIGH"
+        },
+        {
+          "id": "M12060",
+          "name": "Multiple Sclerosis",
+          "asFound": "Multiple Sclerosis",
+          "relevance": "HIGH"
+        },
+        {
+          "id": "M22313",
+          "name": "Multiple Sclerosis, Chronic Progressive",
+          "asFound": "Progressive Multiple Sclerosis",
+          "relevance": "HIGH"
+        },
+        {
+          "id": "M4629",
+          "name": "Autoimmune Diseases",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M22098",
+          "name": "Demyelinating Autoimmune Diseases, CNS",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M22094",
+          "name": "Autoimmune Diseases of the Nervous System",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M6909",
+          "name": "Demyelinating Diseases",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M10200",
+          "name": "Immune System Diseases",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M6147",
+          "name": "Chronic Disease",
+          "relevance": "LOW"
+        },
+        {
+          "id": "M22700",
+          "name": "Disease Attributes",
+          "relevance": "LOW"
+        },
+        {
+          "id": "T1303",
+          "name": "Chronic Graft Versus Host Disease",
+          "relevance": "LOW"
+        }
+      ],
+      "browseBranches": [
+        {
+          "abbrev": "BC23",
+          "name": "Symptoms and General Pathology"
+        },
+        {
+          "abbrev": "All",
+          "name": "All Conditions"
+        },
+        {
+          "abbrev": "BC10",
+          "name": "Nervous System Diseases"
+        },
+        {
+          "abbrev": "BC20",
+          "name": "Immune System Diseases"
+        },
+        {
+          "abbrev": "Rare",
+          "name": "Rare Diseases"
+        }
+      ]
+    },
+    "interventionBrowseModule": {
+      "meshes": [
+        {
+          "id": "C000533411",
+          "term": "Ocrelizumab"
+        }
+      ],
+      "ancestors": [
+        {
+          "id": "D000007155",
+          "term": "Immunologic Factors"
+        },
+        {
+          "id": "D000045505",
+          "term": "Physiological Effects of Drugs"
+        }
+      ],
+      "browseLeaves": [
+        {
+          "id": "M288908",
+          "name": "Ocrelizumab",
+          "asFound": "Flow rate",
+          "relevance": "HIGH"
+        },
+        {
+          "id": "M10201",
+          "name": "Immunologic Factors",
+          "relevance": "LOW"
+        }
+      ],
+      "browseBranches": [
+        {
+          "abbrev": "All",
+          "name": "All Drugs and Chemicals"
+        }
+      ]
+    }
+  },
+  "hasResults": [false]
+}

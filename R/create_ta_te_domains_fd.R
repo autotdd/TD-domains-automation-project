@@ -102,9 +102,9 @@ create_ta_te_domains_fd <- function(study_id, trial_design, arms_data, treatment
   # Check for mismatched epochs and treatments
   for (i in seq_along(arms_data)) {
     epochs <- unlist(strsplit(arms_data[[i]]$epochs, ","))
-    treatment_epochs <- sum(grepl("Treatment", epochs, ignore.case = TRUE))
-    if (treatment_epochs != 1) {  # Changed this condition
-      stop(paste("Each arm should have exactly one Treatment epoch for arm", i))
+    treatment_epochs <- sum(grepl("TREATMENT", epochs, ignore.case = TRUE))
+    if (treatment_epochs != length(treatments[[i]])) {
+      stop(paste("Mismatch between number of treatments and treatment epochs for arm", i))
     }
   }
 
@@ -156,7 +156,7 @@ create_ta_te_domains_fd <- function(study_id, trial_design, arms_data, treatment
           ELEMENT = element_descriptions[j],
           TABRANCH = NA,
           TATRANS = NA,
-          EPOCH = epochs[j]
+          EPOCH = ifelse(grepl("TREATMENT", epochs[j], ignore.case = TRUE), "TREATMENT", epochs[j])
         )
     } 
   }
@@ -204,14 +204,16 @@ create_ta_te_domains_fd <- function(study_id, trial_design, arms_data, treatment
 #' @return A character vector of element descriptions.
 #' @keywords internal
 generate_elements_fd <- function(epochs, treatments) {
-  elements <- sapply(seq_along(epochs), function(i) {
+  elements <- character(length(epochs))
+  treatment_index <- 1
+  for (i in seq_along(epochs)) {
     if (grepl("TREATMENT", epochs[i], ignore.case = TRUE)) {
-      element <- paste("TREATMENT", paste(toupper(treatments), collapse = " "))
-      return(element)
+      elements[i] <- paste("TREATMENT", treatments[treatment_index])
+      treatment_index <- treatment_index + 1
     } else {
-      return(epochs[i])
+      elements[i] <- epochs[i]
     }
-  })
+  }
   return(elements)
 }
 

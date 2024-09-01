@@ -4,7 +4,7 @@
 \alias{create_ts_domain}
 \title{Create TS Domain}
 \usage{
-create_ts_domain(nct_ids, study_id, output_dir = getwd(), debug = FALSE)
+create_ts_domain(nct_ids, study_id, output_dir = getwd(), debug = TRUE)
 }
 \arguments{
 \item{nct_ids}{A vector of NCT IDs}

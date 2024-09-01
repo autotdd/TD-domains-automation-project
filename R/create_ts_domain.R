@@ -68,169 +68,104 @@ fetch_study_info_v2 <- function(nct_ids, debug = FALSE) {
 #'
 #' @return A data frame containing the TS domain data
 #' @export
-create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FALSE) {
-  # Ensure debug is logical
-  debug <- as.logical(debug)
+create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = TRUE) {
+  tryCatch({
+    if(debug) cat("Starting create_ts_domain function\n")
 
-  if(debug) cat("Starting create_ts_domain function\n")
+    ts_file_path <- system.file("extdata", "Trial_Summary.xlsx", package = "autoTDD")
+    if(debug) cat("Looking for Trial_Summary.xlsx at:", ts_file_path, "\n")
 
-  # Get the path to the Trial_Summary.xlsx file
-  ts_file_path <- system.file("extdata", "Trial_Summary.xlsx", package = "autoTDD")
+    if (ts_file_path == "") {
+      stop("Trial_Summary.xlsx not found in package.")
+    }
 
-  if(debug) cat("Looking for Trial_Summary.xlsx at:", ts_file_path, "\n")
+    ts_summary <- openxlsx::read.xlsx(ts_file_path, sheet = "TS")
+    if(debug) cat("Successfully read Trial_Summary.xlsx\n")
 
-  if (ts_file_path == "") {
-    stop("Trial_Summary.xlsx not found in package. Please ensure the file is present in inst/extdata directory.")
-  } else {
-    tryCatch({
-      ts_summary <- openxlsx::read.xlsx(ts_file_path, sheet = "TS")
-      if(debug) cat("Successfully read Trial_Summary.xlsx\n")
-    }, error = function(e) {
-      stop(paste("Error reading Trial_Summary.xlsx:", e$message))
-    })
-  }
+    local_fetch_study_info <- fetch_study_info_v2
 
-  if(debug) cat("TS summary structure created\n")
-
-  # Use the local fetch_study_info function
-  local_fetch_study_info <- fetch_study_info_v2
-
-  # Fetch and process trial data for each NCT ID
-  trial_data <- lapply(nct_ids, function(nct_id) {
-    if(debug) cat("Processing NCT ID:", nct_id, "\n")
-    tryCatch({
+    trial_data <- lapply(nct_ids, function(nct_id) {
+      if(debug) cat("Processing NCT ID:", nct_id, "\n")
       study_info <- local_fetch_study_info(nct_ids = nct_id, debug = debug)
       if(debug) cat("Study info fetched for NCT ID:", nct_id, "\n")
       processed_info <- process_study_info(study_info, debug = debug)
-      if(debug) {
-        cat("Processed study info for NCT ID:", nct_id, "\n")
-        print(processed_info)
-      }
+      if(debug) cat("Processed study info for NCT ID:", nct_id, "\n")
       return(processed_info)
-    }, error = function(e) {
-      warning(paste("Error processing NCT ID:", nct_id, "-", e$message))
-      if(debug) {
-        cat("Error details:\n")
-        print(e)
-      }
-      return(NULL)
     })
-  })
 
-  # Remove any NULL entries (failed fetches)
-  trial_data <- trial_data[!sapply(trial_data, is.null)]
+    trial_data <- trial_data[!sapply(trial_data, is.null)]
+    if (length(trial_data) == 0) stop("No valid data could be retrieved for the provided NCT IDs.")
 
-  if (length(trial_data) == 0) {
-    stop("No valid data could be retrieved for the provided NCT IDs.")
-  }
+    if(debug) cat("Trial data processed\n")
 
-  if(debug) cat("Trial data processed\n")
+    ts_mapping <- define_ts_mapping()
+    if(debug) cat("TS mapping defined\n")
 
-  # Combine all fetched trial data into a single dataframe
-  trial_df <- do.call(rbind, trial_data)
+    ts_rows <- list()
+    current_param <- ""
+    seq_counter <- 1
 
-  if(debug) {
-    cat("Combined trial data structure:\n")
-    print(str(trial_df))
-  }
-
-  # Define the mapping for TS domain
-  ts_mapping <- define_ts_mapping()
-
-  # Initialize an empty list to store TS rows
-  ts_rows <- list()
-
-  # Just before applying the mapping:
-  cat("Debug: Structure of trial_data:\n")
-  print(str(trial_data, max.level = 3))
-  cat("Debug: Class of trial_data:", class(trial_data), "\n")
-  cat("Debug: Length of trial_data:", length(trial_data), "\n")
-  if(is.list(trial_data) && length(trial_data) > 0) {
-    cat("Debug: Class of first element of trial_data:", class(trial_data[[1]]), "\n")
-  }
-
-  # Loop through each row in ts_summary and apply mapping
-  for (i in 1:nrow(ts_summary)) {
-    param <- ts_summary$TSPARMCD[i]
-    if (param %in% names(ts_mapping)) {
-      cat("Debug: Mapping", param, "\n")
-      cat("Debug: Class of trial_data passed to mapping function:", class(trial_data), "\n")
-      mapped_value <- tryCatch({
-        result <- ts_mapping[[param]](trial_data)
-        cat("Debug: Mapped value for", param, ":", toString(result), "\n")
-        result
-      }, error = function(e) {
-        warning(paste("Error mapping", param, ":", e$message))
-        cat("Error details for", param, ":\n")
-        print(e)
-        return(NA_character_)
-      })
-      
-      if (param %in% c("OBJPRIM", "OBJSEC", "OUTMSPRI", "OUTMSSEC", "FCNTRY")) {
-        # Handle multiple values
-        if (length(mapped_value) > 1) {
-          for (value in mapped_value) {
+    for (i in 1:nrow(ts_summary)) {
+      param <- ts_summary$TSPARMCD[i]
+      if (param %in% names(ts_mapping)) {
+        if(debug) cat("Mapping", param, "\n")
+        mapped_values <- ts_mapping[[param]](trial_data)
+        if(debug) cat("Mapped values for", param, ":", toString(mapped_values), "\n")
+        
+        if (param != current_param) {
+          current_param <- param
+          seq_counter <- 1
+        }
+        
+        if (length(mapped_values) > 0 && !all(is.na(mapped_values))) {
+          for (value in mapped_values) {
             new_row <- ts_summary[i, ]
+            new_row$TSSEQ <- seq_counter
             new_row$TSVAL <- value
             ts_rows[[length(ts_rows) + 1]] <- new_row
+            seq_counter <- seq_counter + 1
           }
         } else {
           new_row <- ts_summary[i, ]
-          new_row$TSVAL <- if (length(mapped_value) == 1) mapped_value else NA_character_
+          new_row$TSSEQ <- seq_counter
+          new_row$TSVAL <- NA_character_
           ts_rows[[length(ts_rows) + 1]] <- new_row
+          seq_counter <- seq_counter + 1
         }
-      } else {
-        # Handle other parameters
-        new_row <- ts_summary[i, ]
-        new_row$TSVAL <- if (length(mapped_value) == 1) mapped_value else NA_character_
-        ts_rows[[length(ts_rows) + 1]] <- new_row
       }
-    } else {
-      new_row <- ts_summary[i, ]
-      new_row$TSVAL <- NA_character_
-      ts_rows[[length(ts_rows) + 1]] <- new_row
     }
-  }
 
-  # Before combining the rows, we need to properly assign TSSEQ
-  ts_rows <- lapply(split(ts_rows, sapply(ts_rows, function(x) x$TSPARMCD)), function(param_group) {
-    if (length(param_group) > 1) {
-      # If there are multiple records for this TSPARMCD, assign incremental TSSEQ
-      for (i in seq_along(param_group)) {
-        param_group[[i]]$TSSEQ <- i
-      }
-    } else {
-      # If there's only one record for this TSPARMCD, TSSEQ is 1
-      param_group[[1]]$TSSEQ <- 1
+    ts_summary_final <- do.call(rbind, ts_rows)
+    ts_summary_final$STUDYID <- study_id
+    ts_summary_final$DOMAIN <- "TS"
+
+    ts_summary <- ts_summary[, !names(ts_summary) %in% "FDA.Desired"]
+    if(debug) cat("FDA.Desired column removed from ts_summary\n")
+
+    if(debug) {
+      cat("Final TS summary:\n")
+      print(ts_summary_final)
     }
-    return(param_group)
+
+    output_file <- file.path(output_dir, paste0(study_id, "_TS.xlsx"))
+    wb <- openxlsx::createWorkbook()
+    openxlsx::addWorksheet(wb, "TS")
+    openxlsx::writeData(wb, "TS", ts_summary_final)
+    openxlsx::setColWidths(wb, "TS", cols = 1:ncol(ts_summary_final), widths = "auto")
+
+    # Apply text wrapping to all cells
+    style <- openxlsx::createStyle(wrapText = TRUE)
+    openxlsx::addStyle(wb, "TS", style = style, rows = 1:(nrow(ts_summary_final) + 1), cols = 1:ncol(ts_summary_final), gridExpand = TRUE)
+
+    openxlsx::saveWorkbook(wb, output_file, overwrite = TRUE)
+    if(debug) cat("Output written to:", output_file, "\n")
+
+    return(ts_summary_final[, c("STUDYID", "DOMAIN", "TSPARMCD", "TSVAL", "TSVALCD", "TSVCDREF", "TSVCDVER")])
+  }, error = function(e) {
+    cat("Error in create_ts_domain:", conditionMessage(e), "\n")
+    print(e)
+    return(NULL)
   })
-
-  # Flatten the list of lists back to a single list
-  ts_rows <- unlist(ts_rows, recursive = FALSE)
-
-  # Combine all rows into a single dataframe
-  ts_summary_final <- do.call(rbind, ts_rows)
-
-  # Fill in the STUDYID and DOMAIN columns
-  ts_summary_final$STUDYID <- study_id
-  ts_summary_final$DOMAIN <- "TS"
-
-  # Clean TSVAL values
-  ts_summary_final$TSVAL <- sapply(ts_summary_final$TSVAL, clean_tsval)
-
-  if(debug) {
-    cat("Final TS summary:\n")
-    print(ts_summary_final)
-  }
-
-  # Write the output to an Excel file
-  output_file <- file.path(output_dir, paste0(study_id, "_TS.xlsx"))
-  openxlsx::write.xlsx(ts_summary_final, output_file)
-
-  if(debug) cat("Output written to:", output_file, "\n")
-
-  return(ts_summary_final)
 }
 
 
@@ -643,16 +578,16 @@ define_ts_mapping <- function() {
         cat("Debug: Structure of primary_outcomes:\n")
         print(str(primary_outcomes))
         
-        if (is.data.frame(primary_outcomes) && nrow(primary_outcomes) > 0 && "measure" %in% names(primary_outcomes)) {
-          result <- na.omit(primary_outcomes$measure)
-          cat("Debug: OUTMSPRI result:", paste(result, collapse = "; "), "\n")
-          return(if(length(result) > 0) result else "NA")
+        if (is.data.frame(primary_outcomes) && nrow(primary_outcomes) > 0) {
+          measures <- primary_outcomes$measure
+          cat("Debug: OUTMSPRI result:\n", paste(measures, collapse = "\n"), "\n")
+          return(na.omit(measures))
         }
       }, error = function(e) {
         cat("Error in OUTMSPRI:", conditionMessage(e), "\n")
       })
       cat("Debug: OUTMSPRI returning NA\n")
-      return("NA")
+      return(NA_character_)
     },
 
     OUTMSSEC = function(df) {
@@ -662,58 +597,35 @@ define_ts_mapping <- function() {
         cat("Debug: Structure of secondary_outcomes:\n")
         print(str(secondary_outcomes))
         
-        if (is.data.frame(secondary_outcomes) && nrow(secondary_outcomes) > 0 && "measure" %in% names(secondary_outcomes)) {
-          result <- na.omit(secondary_outcomes$measure)
-          cat("Debug: OUTMSSEC result:", paste(result, collapse = "; "), "\n")
-          return(if(length(result) > 0) result else "NA")
+        if (is.data.frame(secondary_outcomes) && nrow(secondary_outcomes) > 0) {
+          measures <- secondary_outcomes$measure
+          cat("Debug: OUTMSSEC result:\n", paste(measures, collapse = "\n"), "\n")
+          return(na.omit(measures))
         }
       }, error = function(e) {
         cat("Error in OUTMSSEC:", conditionMessage(e), "\n")
       })
       cat("Debug: OUTMSSEC returning NA\n")
-      return("NA")
+      return(NA_character_)
     },
 
     OUTMSEXP = function(df) {
       cat("Debug: Entering OUTMSEXP function\n")
       tryCatch({
-        outcomes_module <- df[[1]]$protocolSection$outcomesModule
-        cat("Debug: Structure of outcomes_module:\n")
-        print(str(outcomes_module))
+        exploratory_outcomes <- df[[1]]$protocolSection$outcomesModule$otherOutcomes
+        cat("Debug: Structure of exploratory_outcomes:\n")
+        print(str(exploratory_outcomes))
         
-        # Check for otherOutcomes or exploratoryOutcomes
-        if (!is.null(outcomes_module$otherOutcomes)) {
-          exploratory_outcomes <- outcomes_module$otherOutcomes
-        } else if (!is.null(outcomes_module$exploratoryOutcomes)) {
-          exploratory_outcomes <- outcomes_module$exploratoryOutcomes
-        } else {
-          exploratory_outcomes <- NULL
-        }
-        
-        if (!is.null(exploratory_outcomes)) {
-          cat("Debug: Structure of exploratory_outcomes:\n")
-          print(str(exploratory_outcomes))
-          
-          if (is.data.frame(exploratory_outcomes)) {
-            # If it's a data frame, extract measures
-            measures <- exploratory_outcomes$measure
-          } else if (is.list(exploratory_outcomes)) {
-            # If it's a list, extract measures from each element
-            measures <- sapply(exploratory_outcomes, function(x) x$measure)
-          } else {
-            measures <- exploratory_outcomes
-          }
-          
-          # Remove any NA values and collapse into a single string
-          result <- paste(na.omit(measures), collapse = "; ")
-          cat("Debug: OUTMSEXP result:", result, "\n")
-          return(result)
+        if (is.data.frame(exploratory_outcomes) && nrow(exploratory_outcomes) > 0) {
+          measures <- exploratory_outcomes$measure
+          cat("Debug: OUTMSEXP result:\n", paste(measures, collapse = "\n"), "\n")
+          return(na.omit(measures))
         }
       }, error = function(e) {
         cat("Error in OUTMSEXP:", conditionMessage(e), "\n")
       })
       cat("Debug: OUTMSEXP returning NA\n")
-      return("NA")
+      return(NA_character_)
     },
     SEXPOP = function(df) {
       cat("Debug: Entering SEXPOP function\n")
@@ -790,10 +702,8 @@ define_ts_mapping <- function() {
     SPREFID = function(df) {
       tryCatch({
         if(!is.list(df) || length(df) == 0) return(NA_character_)
-        nct_id <- df[[1]]$protocolSection$identificationModule$nctId
-        if (is.null(nct_id) || length(nct_id) == 0) return(NA_character_)
         
-        result <- nct_id[1]  # In case there are multiple, take the first one
+        result <- df[[1]]$protocolSection$identificationModule$nctId[1]  # In case there are multiple, take the first one
         return(result)
       }, error = function(e) {
         warning("Error in SPREFID mapping: ", e$message)
@@ -802,42 +712,22 @@ define_ts_mapping <- function() {
     },
     TRT = function(df) {
       cat("Debug: Entering TRT function\n")
-      cat("Debug: Class of df in TRT:", class(df), "\n")
-      cat("Debug: Length of df in TRT:", length(df), "\n")
-      cat("Debug: Names of df:", paste(names(df), collapse = ", "), "\n")
-      
       tryCatch({
-        if(is.list(df) && length(df) > 0) {
-          if("protocolSection" %in% names(df[[1]])) {
-            cat("Debug: Found protocolSection\n")
-            protocol_section <- df[[1]]$protocolSection
-            cat("Debug: Names in protocolSection:", paste(names(protocol_section), collapse = ", "), "\n")
-            
-            if("armsInterventionsModule" %in% names(protocol_section)) {
-              cat("Debug: Found armsInterventionsModule\n")
-              arms_interventions <- protocol_section$armsInterventionsModule
-              cat("Debug: Names in armsInterventionsModule:", paste(names(arms_interventions), collapse = ", "), "\n")
-              
-              if("interventions" %in% names(arms_interventions)) {
-                interventions <- arms_interventions$interventions
-                cat("Debug: Found interventions. Length:", length(interventions), "\n")
-                
-                if(length(interventions) > 0) {
-                  treatments <- sapply(interventions, function(x) x$description)
-                  result <- paste(treatments, collapse = "; ")
-                  cat("Debug: TRT result:", result, "\n")
-                  return(result)
-                }
-              }
-            }
-          }
+        interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
+        cat("Debug: Structure of interventions:\n")
+        print(str(interventions))
+        
+        if (is.data.frame(interventions) && nrow(interventions) > 0) {
+          treatments <- interventions$name
+          result <- paste(unique(treatments), collapse = ", ")
+          cat("Debug: TRT result:", result, "\n")
+          return(result)
         }
-        cat("Debug: Returning NA for TRT\n")
-        return(NA_character_)
       }, error = function(e) {
-        cat("Error in TRT mapping:", e$message, "\n")
-        return(NA_character_)
+        cat("Error in TRT:", conditionMessage(e), "\n")
       })
+      cat("Debug: TRT returning NA\n")
+      return("NA")
     }
   )
   

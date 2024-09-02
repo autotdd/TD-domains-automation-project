@@ -18,55 +18,29 @@ create_ti_domain(
 )
 }
 \arguments{
-\item{study_id}{A character string representing the Study ID.}
+\item{study_id}{A character string specifying the study ID.}
 
-\item{method}{A character string, either "pdf" or "api", specifying the method to use for extraction.}
+\item{method}{A character string specifying the method to use ("pdf" or "api").}
 
-\item{pdf_path}{A character string representing the path to the protocol PDF. Required if method is "pdf".}
+\item{pdf_path}{Path to the PDF file (required if method is "pdf").}
 
-\item{nct_id}{A character string representing the NCT ID. Required if method is "api".}
+\item{nct_id}{NCT ID for the study (required if method is "api").}
 
-\item{incl_range}{A numeric vector representing the page range for inclusion criteria. Required if method is "pdf".}
+\item{incl_range}{Page range for inclusion criteria (required if method is "pdf").}
 
-\item{excl_range}{A numeric vector representing the page range for exclusion criteria. Required if method is "pdf".}
+\item{excl_range}{Page range for exclusion criteria (required if method is "pdf").}
 
-\item{incl_section}{A character string representing the section identifier for inclusion criteria. Required if method is "pdf".}
+\item{incl_section}{Section identifier for inclusion criteria (required if method is "pdf").}
 
-\item{excl_section}{A character string representing the section identifier for exclusion criteria. Required if method is "pdf".}
+\item{excl_section}{Section identifier for exclusion criteria (required if method is "pdf").}
 
-\item{end_section}{A character string representing the section identifier for the end of criteria. Required if method is "pdf".}
+\item{end_section}{Section identifier for the end of criteria (required if method is "pdf").}
 
-\item{output_dir}{A character string representing the output directory. Defaults to the current working directory.}
+\item{output_dir}{Directory to save the output Excel file.}
 }
 \value{
-A data frame representing the TI domain.
+A data frame containing the TI domain information.
 }
 \description{
-This function creates the TI (Trial Inclusion/Exclusion Criteria) domain
-by extracting inclusion and exclusion criteria either from a PDF protocol or from ClinicalTrials.gov API.
-}
-\examples{
-\dontrun{
-# Get the path to the example PDF file
-pdf_path <- system.file("extdata", "Temp_Protocol_v1.pdf", package = "autoTDD")
-
-# Example using PDF method
-ti_domain_pdf <- create_ti_domain(
-  study_id = "STUDY001",
-  method = "pdf",
-  pdf_path = pdf_path,
-  incl_range = 6:9,
-  excl_range = 9:13,
-  incl_section = "4.1.1",
-  excl_section = "4.1.2",
-  end_section = "4.2"
-)
-
-# Example using API method
-ti_domain_api <- create_ti_domain(
-  study_id = "STUDY001",
-  method = "api",
-  nct_id = "NCT00000419"
-)
-}
+This function creates the TI (Trial Inclusion/Exclusion Criteria) domain using either PDF or API method.
 }

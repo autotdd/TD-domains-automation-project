@@ -6,6 +6,7 @@
 #'
 #' @param study_id A character string representing the Study ID.
 #' @param ALS excel file to generate the trail visit domain.
+#' @param output_dir A character string representing the output directory. Defaults to the current working directory.
 #' @return A data frame representing the TV data set.
 #' @export
 #' @importFrom dplyr mutate select filter
@@ -19,7 +20,8 @@
 #' print(head(tv_domain))
 #' }
 
-create_tv_domain <- function(study_id ) {
+create_tv_domain <- function(study_id ,
+                             output_dir = getwd()) {
 
   #  Get the path for the Als_file.xlsx excel file
 
@@ -48,7 +50,7 @@ create_tv_domain <- function(study_id ) {
 
   # if correct ALS file is present then check for "Folders" sheet in the excel file
 
-  if(!"Folders" %in% excel_sheets(file_path) ){
+  if(!"Folders" %in% readxl::excel_sheets(file_path) ){
     stop( "Excel file does not have sheet with the name Folders: , Please update correct ALS file: ",file_path )
   }
 
@@ -89,7 +91,7 @@ create_tv_domain <- function(study_id ) {
     due_day = data1$OverDueDays,
     stringsAsFactors = FALSE
   )
- 
+
 
   data3 <- data2 %>% mutate (TVENRL =if_else(toupper(VISIT) == "SCREENING" , "One day before start of study drug" , "On the same day of visit")) %>%
     #  mutate (TVSTRL =if_else(toupper(VISIT) == "SCREENING" , "28 days prior to treatment" , "")) %>%
@@ -101,14 +103,30 @@ create_tv_domain <- function(study_id ) {
 
   data3$TVSTRL[(grepl("Treatment Discontinuation", data3$VISIT, ignore.case = FALSE)) ] <- '30 Days from final dose'
 
-  data3 <- data3 %>% select(-due_day)
+  tv_domain <- data3 %>% select(-due_day)
 
 
   # Write the output to an Excel file
-  output_file <- file.path("/cloud/project/inst/extdata", paste0(study_id, "_TV.xlsx"))
-  openxlsx::write.xlsx(data3, output_file)
 
-  return(data3)
+  debug_info <- ""
+
+  if (nrow(tv_domain) > 0) {
+    excel_file <- file.path(output_dir, paste0(study_id, "_TV.xlsx"))
+    openxlsx::write.xlsx(tv_domain, excel_file)
+
+    debug_info <- paste0(debug_info, "Excel file saved: ", excel_file)
+   }
+
+   else {
+    debug_info <- paste0(debug_info, "No data to save to Excel")
+  }
+
+  print(debug_info)
+  print(tv_domain)
+  return(tv_domain)
+
 
 }
+
+
 

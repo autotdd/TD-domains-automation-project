@@ -8,3 +8,6 @@ autoTDD*.tar.gz
 autoTDD*.tgz
 inst/json/.DS_Store
 
+json/study_info_NCT01022346.json
+json/study_info_NCT01110954.json
+json/study_info_NCT01163487.json

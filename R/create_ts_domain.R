@@ -68,7 +68,7 @@ fetch_study_info_v2 <- function(nct_ids, debug = FALSE) {
 #'
 #' @return A data frame containing the TS domain data
 #' @export
-create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = TRUE) {
+create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FALSE) {
   tryCatch({
     if(debug) cat("Starting create_ts_domain function\n")
 
@@ -107,40 +107,53 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = TR
 
     for (i in 1:nrow(ts_summary)) {
       param <- ts_summary$TSPARMCD[i]
+      new_rows <- list()
+      
       if (param %in% names(ts_mapping)) {
         if(debug) cat("Mapping", param, "\n")
         mapped_values <- ts_mapping[[param]](trial_data)
         if(debug) cat("Mapped values for", param, ":", toString(mapped_values), "\n")
         
-        if (param != current_param) {
-          current_param <- param
-          seq_counter <- 1
-        }
-        
         if (length(mapped_values) > 0 && !all(is.na(mapped_values))) {
-          for (value in mapped_values) {
+          if (param == "FCNTRY") {
+            for (value in mapped_values) {
+              new_row <- ts_summary[i, ]
+              new_row$TSVAL <- value
+              new_row$TSSEQ <- seq_counter
+              new_rows[[length(new_rows) + 1]] <- new_row
+              seq_counter <- seq_counter + 1
+            }
+          } else {
             new_row <- ts_summary[i, ]
+            new_row$TSVAL <- mapped_values[1]  # Take the first value if multiple exist
             new_row$TSSEQ <- seq_counter
-            new_row$TSVAL <- value
-            ts_rows[[length(ts_rows) + 1]] <- new_row
+            new_rows[[length(new_rows) + 1]] <- new_row
             seq_counter <- seq_counter + 1
           }
         } else {
           new_row <- ts_summary[i, ]
-          new_row$TSSEQ <- seq_counter
           new_row$TSVAL <- NA_character_
-          ts_rows[[length(ts_rows) + 1]] <- new_row
+          new_row$TSSEQ <- seq_counter
+          new_rows[[length(new_rows) + 1]] <- new_row
           seq_counter <- seq_counter + 1
         }
+      } else {
+        new_row <- ts_summary[i, ]
+        new_row$TSVAL <- NA_character_
+        new_row$TSSEQ <- seq_counter
+        new_rows[[length(new_rows) + 1]] <- new_row
+        seq_counter <- seq_counter + 1
       }
+      
+      ts_rows <- c(ts_rows, new_rows)
     }
 
     ts_summary_final <- do.call(rbind, ts_rows)
     ts_summary_final$STUDYID <- study_id
     ts_summary_final$DOMAIN <- "TS"
 
-    ts_summary <- ts_summary[, !names(ts_summary) %in% "FDA.Desired"]
-    if(debug) cat("FDA.Desired column removed from ts_summary\n")
+    ts_summary_final <- ts_summary_final[, !names(ts_summary_final) %in% "FDA.Desired"]
+    if(debug) cat("FDA.Desired column removed from ts_summary_final\n")
 
     if(debug) {
       cat("Final TS summary:\n")
@@ -160,7 +173,7 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = TR
     openxlsx::saveWorkbook(wb, output_file, overwrite = TRUE)
     if(debug) cat("Output written to:", output_file, "\n")
 
-    return(ts_summary_final[, c("STUDYID", "DOMAIN", "TSPARMCD", "TSVAL", "TSVALCD", "TSVCDREF", "TSVCDVER")])
+    return(ts_summary_final)
   }, error = function(e) {
     cat("Error in create_ts_domain:", conditionMessage(e), "\n")
     print(e)
@@ -206,12 +219,21 @@ process_study_info <- function(study_info, debug = FALSE) {
 
 
 format_date_iso8601 <- function(date) {
-  if (is.na(date) || is.null(date)) return(NA)
+  if (is.na(date) || is.null(date)) return(NA_character_)
   tryCatch({
-    formatted_date <- as.Date(date)
-    return(format(formatted_date, "%Y-%m-%d"))
+    if (grepl("^\\d{4}-\\d{2}-\\d{2}$", date)) {
+      return(date)  # Already in YYYY-MM-DD format
+    } else if (grepl("^\\d{4}-\\d{2}$", date)) {
+      return(paste0(date, "-01"))  # Convert YYYY-MM to YYYY-MM-01
+    } else if (grepl("^\\d{4}$", date)) {
+      return(paste0(date, "-01-01"))  # Convert YYYY to YYYY-01-01
+    } else {
+      formatted_date <- as.Date(date)
+      return(format(formatted_date, "%Y-%m-%d"))
+    }
   }, error = function(e) {
-    return(date)  # Return original if conversion fails
+    warning("Error formatting date: ", e$message)
+    return(NA_character_)
   })
 }
 
@@ -233,24 +255,38 @@ define_ts_mapping <- function() {
     TSVALCD = function(df) NA,
     TSVCDREF = function(df) NA,
     TSVCDVER = function(df) NA,
-    TITLE = function(df) df[[1]]$protocolSection$identificationModule$briefTitle,
+    TITLE = function(df) df[[1]]$protocolSection$identificationModule$officialTitle,
     TPHASE = function(df) {
-      phase <- df[[1]]$protocolSection$identificationModule$phase
-      if (is.null(phase) || is.na(phase) || length(phase) == 0) {
-        return(NA)
-      }
-      phase <- toupper(phase)
-      roman_phases <- c(
-        "PHASE 1" = "I", "PHASE 2" = "II", "PHASE 3" = "III", "PHASE 4" = "IV",
-        "PHASE 1/PHASE 2" = "I/II", "PHASE 2/PHASE 3" = "II/III",
-        "EARLY PHASE 1" = "Early I", "NOT APPLICABLE" = "N/A"
-      )
+      tryCatch({
+        phase <- df[[1]]$protocolSection$designModule$phases
+        if (is.null(phase) || length(phase) == 0) {
+          return(NA_character_)
+        }
+        phase <- toupper(phase[[1]])  # Take the first phase if multiple are present
+        
+        roman_phases <- c(
+          "PHASE 1" = "PHASE I", "PHASE 2" = "PHASE II", "PHASE 3" = "PHASE III", "PHASE 4" = "PHASE IV",
+          "PHASE1" = "PHASE I", "PHASE2" = "PHASE II", "PHASE3" = "PHASE III", "PHASE4" = "PHASE IV",
+          "PHASE 1/PHASE 2" = "PHASE I/II", "PHASE 2/PHASE 3" = "PHASE II/III",
+          "PHASE1/PHASE2" = "PHASE I/II", "PHASE2/PHASE3" = "PHASE II/III",
+          "EARLY PHASE 1" = "PHASE Early I", "NOT APPLICABLE" = "N/A"
+        )
 
-      if (phase %in% names(roman_phases)) {
-        return(roman_phases[phase])
-      } else {
-        return(phase)  # Return original if no match found
-      }
+        if (phase %in% names(roman_phases)) {
+          return(roman_phases[phase])
+        } else {
+          # If no exact match, try to extract numeric part and convert
+          numeric_part <- gsub("[^0-9]", "", phase)
+          if (numeric_part != "") {
+            return(paste0("PHASE ", as.roman(as.integer(numeric_part))))
+          } else {
+            return(paste0("PHASE ", phase))  # Return original with PHASE prefix if no numeric part found
+          }
+        }
+      }, error = function(e) {
+        warning("Error in TPHASE mapping: ", e$message)
+        return(NA_character_)
+      })
     },
     INDIC = function(df) df[[1]]$protocolSection$conditionsModule$conditions[[1]],
     TDIGRP = function(df) df[[1]]$protocolSection$conditionsModule$conditions[[1]],
@@ -377,22 +413,15 @@ define_ts_mapping <- function() {
       })
     },
     ACTSUB = function(df) {
-      cat("Debug: Entering ACTSUB function\n")
       tryCatch({
-        enrollment_info <- df[[1]]$protocolSection$statusModule$enrollmentInfo
-        cat("Debug: Structure of enrollment_info:\n")
-        print(str(enrollment_info))
-        
+        enrollment_info <- df[[1]]$protocolSection$designModule$enrollmentInfo
         if (!is.null(enrollment_info) && !is.null(enrollment_info$count)) {
-          result <- as.character(enrollment_info$count)
-          cat("Debug: ACTSUB result:", result, "\n")
-          return(result)
+          return(as.character(enrollment_info$count))
         }
       }, error = function(e) {
-        cat("Error in ACTSUB:", conditionMessage(e), "\n")
+        warning("Error in ACTSUB mapping: ", e$message)
       })
-      cat("Debug: ACTSUB returning NA\n")
-      return("NA")
+      return(NA_character_)
     },
     PLANSUB = function(df) {
       cat("Debug: Entering PLANSUB function\n")
@@ -412,8 +441,43 @@ define_ts_mapping <- function() {
       cat("Debug: PLANSUB returning NA\n")
       return("NA")
     },
-    SENDTC = function(df) format_date_iso8601(df[[1]]$protocolSection$statusModule$completionDateStruct$date),
-    SSTDTC = function(df) format_date_iso8601(df[[1]]$protocolSection$statusModule$startDateStruct$date),
+    SENDTC = function(df) {
+      tryCatch({
+        completion_date <- df[[1]]$protocolSection$statusModule$completionDateStruct$date
+        if (!is.null(completion_date) && completion_date != "") {
+          return(format_date_iso8601(completion_date))
+        }
+      }, error = function(e) {
+        warning("Error in SENDTC mapping: ", e$message)
+      })
+      return(NA_character_)
+    },
+    SSTDTC = function(df) {
+      tryCatch({
+        start_date <- df[[1]]$protocolSection$statusModule$startDateStruct$date
+        if (!is.null(start_date) && start_date != "") {
+          return(format_date_iso8601(start_date))
+        }
+      }, error = function(e) {
+        warning("Error in SSTDTC mapping: ", e$message)
+      })
+      return(NA_character_)
+    },
+    LENGTH = function(df) {
+      tryCatch({
+        start_date <- df[[1]]$protocolSection$statusModule$startDateStruct$date
+        completion_date <- df[[1]]$protocolSection$statusModule$completionDateStruct$date
+        if (!is.null(start_date) && start_date != "" && !is.null(completion_date) && completion_date != "") {
+          start <- as.Date(format_date_iso8601(start_date))
+          end <- as.Date(format_date_iso8601(completion_date))
+          duration <- as.numeric(end - start)
+          return(paste0("P", duration, "D"))  # ISO8601 duration format
+        }
+      }, error = function(e) {
+        warning("Error in LENGTH mapping: ", e$message)
+      })
+      return(NA_character_)
+    },
     ADAPT = function(df) derive_adaptive_design(df),
     ADDON = function(df) derive_addon_treatment(df),
     AGEMIN = function(df) {
@@ -664,26 +728,22 @@ define_ts_mapping <- function() {
       return("NA")
     },
     FCNTRY = function(df) {
-      cat("Debug: Entering FCNTRY function\n")
       tryCatch({
-        locations_module <- df[[1]]$protocolSection$contactsLocationsModule
-        cat("Debug: Structure of locations_module:\n")
-        print(str(locations_module))
-        
-        if (!is.null(locations_module$locations)) {
-          locations <- locations_module$locations
+        if (is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$contactsLocationsModule$locations)) {
+          locations <- df[[1]]$protocolSection$contactsLocationsModule$locations
           if (is.data.frame(locations) && "country" %in% names(locations)) {
-            countries <- unique(na.omit(locations$country))
-            cat("Debug: FCNTRY results:\n")
-            print(countries)
-            return(countries)
+            unique_countries <- unique(locations$country)
+            unique_countries <- unique_countries[!is.na(unique_countries) & unique_countries != ""]
+            if (length(unique_countries) > 0) {
+              return(unique_countries)
+            }
           }
         }
+        return(NA_character_)
       }, error = function(e) {
-        cat("Error in FCNTRY:", conditionMessage(e), "\n")
+        warning("Error in FCNTRY mapping: ", conditionMessage(e))
+        return(NA_character_)
       })
-      cat("Debug: FCNTRY returning NA\n")
-      return("NA")
     },
     HLTSUBJI = function(df) derive_healthy_subjects(df),
     EXTTIND = function(df) derive_extension_trial(df),
@@ -727,6 +787,58 @@ define_ts_mapping <- function() {
         cat("Error in TRT:", conditionMessage(e), "\n")
       })
       cat("Debug: TRT returning NA\n")
+      return("NA")
+    },
+    TBLIND = function(df) {
+      cat("Debug: Entering TBLIND function\n")
+      tryCatch({
+        design_info <- df[[1]]$protocolSection$designModule$designInfo
+        cat("Debug: Structure of design_info:\n")
+        print(str(design_info))
+        
+        if (!is.null(design_info) && !is.null(design_info$maskingInfo)) {
+          masking <- design_info$maskingInfo$masking
+          if (!is.null(masking) && length(masking) > 0) {
+            result <- paste(masking, collapse = "; ")
+            cat("Debug: TBLIND result:", result, "\n")
+            return(result)
+          }
+        }
+        # If no masking info is found, return "OPEN LABEL"
+        cat("Debug: TBLIND returning OPEN LABEL\n")
+        return("OPEN LABEL")
+      }, error = function(e) {
+        cat("Error in TBLIND:", conditionMessage(e), "\n")
+        return("OPEN LABEL")
+      })
+    },
+    TCNTRL = function(df) {
+      cat("Debug: Entering TCNTRL function\n")
+      tryCatch({
+        arms <- df[[1]]$protocolSection$armsInterventionsModule$armGroups
+        cat("Debug: Structure of arms:\n")
+        print(str(arms))
+        
+        if (is.data.frame(arms) && nrow(arms) > 0) {
+          # Check for placebo control
+          if (any(grepl("placebo", tolower(arms$type)))) {
+            return("PLACEBO")
+          }
+          # Check for active control
+          if (any(grepl("active comparator", tolower(arms$type)))) {
+            return("ACTIVE")
+          }
+          # Check for dose comparison
+          if (length(unique(arms$type)) == 1 && unique(arms$type) == "EXPERIMENTAL") {
+            return("DOSE COMPARISON")
+          }
+          # If none of the above, assume it's uncontrolled
+          return("NONE")
+        }
+      }, error = function(e) {
+        cat("Error in TCNTRL:", conditionMessage(e), "\n")
+      })
+      cat("Debug: TCNTRL returning NA\n")
       return("NA")
     }
   )
@@ -924,11 +1036,22 @@ convert_to_roman <- function(phase) {
 #' @return A character string representing the date in ISO 8601 format.
 #' @keywords internal
 format_date_iso8601 <- function(date) {
-  if (!is.na(date) && !is.null(date)) {
-    return(as.character(as.Date(date, format="%Y-%m-%d")))
-  } else {
-    return(NA)
-  }
+  if (is.na(date) || is.null(date)) return(NA_character_)
+  tryCatch({
+    if (grepl("^\\d{4}-\\d{2}-\\d{2}$", date)) {
+      return(date)  # Already in YYYY-MM-DD format
+    } else if (grepl("^\\d{4}-\\d{2}$", date)) {
+      return(paste0(date, "-01"))  # Convert YYYY-MM to YYYY-MM-01
+    } else if (grepl("^\\d{4}$", date)) {
+      return(paste0(date, "-01-01"))  # Convert YYYY to YYYY-01-01
+    } else {
+      formatted_date <- as.Date(date)
+      return(format(formatted_date, "%Y-%m-%d"))
+    }
+  }, error = function(e) {
+    warning("Error formatting date: ", e$message)
+    return(NA_character_)
+  })
 }
 
 #' Clean TSVAL

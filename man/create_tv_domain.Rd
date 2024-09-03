@@ -4,10 +4,12 @@
 \alias{create_tv_domain}
 \title{Create TV Domain}
 \usage{
-create_tv_domain(study_id)
+create_tv_domain(study_id, output_dir = getwd())
 }
 \arguments{
 \item{study_id}{A character string representing the Study ID.}
+
+\item{output_dir}{A character string representing the output directory. Defaults to the current working directory.}
 
 \item{ALS}{excel file to generate the trail visit domain.}
 }

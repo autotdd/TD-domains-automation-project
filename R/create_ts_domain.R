@@ -101,79 +101,60 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     ts_mapping <- define_ts_mapping()
     if(debug) cat("TS mapping defined\n")
 
-    ts_rows <- list()
-    current_param <- ""
-    seq_counter <- 1
+    # Initialize an empty list to store new rows
+    new_rows <- list()
 
     for (i in 1:nrow(ts_summary)) {
       param <- ts_summary$TSPARMCD[i]
-      new_rows <- list()
-      
       if (param %in% names(ts_mapping)) {
-        if(debug) cat("Mapping", param, "\n")
-        mapped_values <- ts_mapping[[param]](trial_data)
-        if(debug) cat("Mapped values for", param, ":", toString(mapped_values), "\n")
+        if(debug) cat("Processing parameter:", param, "\n")
         
-        if (length(mapped_values) > 0 && !all(is.na(mapped_values))) {
-          if (param == "FCNTRY") {
-            for (value in mapped_values) {
-              new_row <- ts_summary[i, ]
-              new_row$TSVAL <- value
-              new_row$TSSEQ <- seq_counter
-              new_rows[[length(new_rows) + 1]] <- new_row
-              seq_counter <- seq_counter + 1
-            }
-          } else {
-            new_row <- ts_summary[i, ]
-            new_row$TSVAL <- mapped_values[1]  # Take the first value if multiple exist
-            new_row$TSSEQ <- seq_counter
-            new_rows[[length(new_rows) + 1]] <- new_row
-            seq_counter <- seq_counter + 1
-          }
+        if (param == "TTYPE" || param == "THERAREA") {
+          mapped_values <- NA_character_
         } else {
-          new_row <- ts_summary[i, ]
-          new_row$TSVAL <- NA_character_
-          new_row$TSSEQ <- seq_counter
-          new_rows[[length(new_rows) + 1]] <- new_row
-          seq_counter <- seq_counter + 1
+          mapped_values <- ts_mapping[[param]](trial_data)
         }
-      } else {
-        new_row <- ts_summary[i, ]
-        new_row$TSVAL <- NA_character_
-        new_row$TSSEQ <- seq_counter
-        new_rows[[length(new_rows) + 1]] <- new_row
-        seq_counter <- seq_counter + 1
+        
+        if (length(mapped_values) > 0) {
+          for (j in 1:length(mapped_values)) {
+            new_row <- ts_summary[i, ]
+            new_row$STUDYID <- study_id
+            new_row$DOMAIN <- "TS"
+            new_row$TSVAL <- as.character(mapped_values[j])
+            new_rows <- c(new_rows, list(new_row))
+          }
+        }
       }
-      
-      ts_rows <- c(ts_rows, new_rows)
     }
 
-    ts_summary_final <- do.call(rbind, ts_rows)
-    ts_summary_final$STUDYID <- study_id
-    ts_summary_final$DOMAIN <- "TS"
+    # Combine all new rows into a single data frame
+    ts_summary <- do.call(rbind, new_rows)
 
-    ts_summary_final <- ts_summary_final[, !names(ts_summary_final) %in% "FDA.Desired"]
-    if(debug) cat("FDA.Desired column removed from ts_summary_final\n")
+    # Update TSSEQ
+    ts_summary$TSSEQ <- sequence(rle(as.character(ts_summary$TSPARMCD))$lengths)
+
+    ts_summary <- ts_summary[, !names(ts_summary) %in% "FDA.Desired"]
+    if(debug) cat("FDA.Desired column removed from ts_summary\n")
 
     if(debug) {
       cat("Final TS summary:\n")
-      print(ts_summary_final)
+      print(ts_summary)
     }
 
     output_file <- file.path(output_dir, paste0(study_id, "_TS.xlsx"))
     wb <- openxlsx::createWorkbook()
     openxlsx::addWorksheet(wb, "TS")
-    openxlsx::writeData(wb, "TS", ts_summary_final)
-    openxlsx::setColWidths(wb, "TS", cols = 1:ncol(ts_summary_final), widths = "auto")
+    openxlsx::writeData(wb, "TS", ts_summary)
+    openxlsx::setColWidths(wb, "TS", cols = 1:ncol(ts_summary), widths = "auto")
 
     # Apply text wrapping to all cells
     style <- openxlsx::createStyle(wrapText = TRUE)
-    openxlsx::addStyle(wb, "TS", style = style, rows = 1:(nrow(ts_summary_final) + 1), cols = 1:ncol(ts_summary_final), gridExpand = TRUE)
+    openxlsx::addStyle(wb, "TS", style = style, rows = 1:(nrow(ts_summary) + 1), cols = 1:ncol(ts_summary), gridExpand = TRUE)
 
     openxlsx::saveWorkbook(wb, output_file, overwrite = TRUE)
     if(debug) cat("Output written to:", output_file, "\n")
 
-    return(ts_summary_final)
+    return(ts_summary)
   }, error = function(e) {
     cat("Error in create_ts_domain:", conditionMessage(e), "\n")
     print(e)
@@ -245,270 +226,165 @@ format_date_iso8601 <- function(date) {
 #' @keywords internal
 define_ts_mapping <- function() {
   mapping <- list(
-    STUDYID = function(df) df[[1]]$protocolSection$identificationModule$nctId,
+    STUDYID = function(df) if(is.list(df) && length(df) > 0) df[[1]]$protocolSection$identificationModule$nctId else NA_character_,
     DOMAIN = function(df) "TS",
-    TSSEQ = function(df) seq_len(nrow(df)),
-    TSPARMCD = function(df) names(df),
-    TSPARM = function(df) names(df),
-    TSVAL = function(df) as.character(df[, 1]),
-    TSVALNF = function(df) NA,
-    TSVALCD = function(df) NA,
-    TSVCDREF = function(df) NA,
-    TSVCDVER = function(df) NA,
-    TITLE = function(df) df[[1]]$protocolSection$identificationModule$officialTitle,
+    TSSEQ = function(df) NA_integer_,  # We'll populate this later in create_ts_domain
+    TSPARMCD = function(df) NA_character_,  # This will be set in create_ts_domain
+    TSPARM = function(df) NA_character_,  # This will be set in create_ts_domain
+    TSVAL = function(df) NA_character_,  # This will be populated based on other mappings
+    TSVALNF = function(df) NA_character_,
+    TSVALCD = function(df) NA_character_,
+    TSVCDREF = function(df) NA_character_,
+    TSVCDVER = function(df) NA_character_,
+    TITLE = function(df) if(is.list(df) && length(df) > 0) df[[1]]$protocolSection$identificationModule$officialTitle else NA_character_,
     TPHASE = function(df) {
       tryCatch({
-        phase <- df[[1]]$protocolSection$designModule$phases
-        if (is.null(phase) || length(phase) == 0) {
-          return(NA_character_)
-        }
-        phase <- toupper(phase[[1]])  # Take the first phase if multiple are present
-        
-        roman_phases <- c(
-          "PHASE 1" = "PHASE I", "PHASE 2" = "PHASE II", "PHASE 3" = "PHASE III", "PHASE 4" = "PHASE IV",
-          "PHASE1" = "PHASE I", "PHASE2" = "PHASE II", "PHASE3" = "PHASE III", "PHASE4" = "PHASE IV",
-          "PHASE 1/PHASE 2" = "PHASE I/II", "PHASE 2/PHASE 3" = "PHASE II/III",
-          "PHASE1/PHASE2" = "PHASE I/II", "PHASE2/PHASE3" = "PHASE II/III",
-          "EARLY PHASE 1" = "PHASE Early I", "NOT APPLICABLE" = "N/A"
-        )
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$designModule$phases)) {
+          phase <- df[[1]]$protocolSection$designModule$phases[[1]]
+          phase <- toupper(phase)  # Take the first phase if multiple are present
+          
+          roman_phases <- c(
+            "PHASE 1" = "PHASE I", "PHASE 2" = "PHASE II", "PHASE 3" = "PHASE III", "PHASE 4" = "PHASE IV",
+            "PHASE1" = "PHASE I", "PHASE2" = "PHASE II", "PHASE3" = "PHASE III", "PHASE4" = "PHASE IV",
+            "PHASE 1/PHASE 2" = "PHASE I/II", "PHASE 2/PHASE 3" = "PHASE II/III",
+            "PHASE1/PHASE2" = "PHASE I/II", "PHASE2/PHASE3" = "PHASE II/III",
+            "EARLY PHASE 1" = "PHASE Early I", "NOT APPLICABLE" = "N/A"
+          )
 
-        if (phase %in% names(roman_phases)) {
-          return(roman_phases[phase])
-        } else {
-          # If no exact match, try to extract numeric part and convert
-          numeric_part <- gsub("[^0-9]", "", phase)
-          if (numeric_part != "") {
-            return(paste0("PHASE ", as.roman(as.integer(numeric_part))))
+          if (phase %in% names(roman_phases)) {
+            return(roman_phases[phase])
           } else {
-            return(paste0("PHASE ", phase))  # Return original with PHASE prefix if no numeric part found
+            # If no exact match, try to extract numeric part and convert
+            numeric_part <- gsub("[^0-9]", "", phase)
+            if (numeric_part != "") {
+              return(paste0("PHASE ", as.roman(as.integer(numeric_part))))
+            } else {
+              return(paste0("PHASE ", phase))  # Return original with PHASE prefix if no numeric part found
+            }
           }
+        } else {
+          return(NA_character_)
         }
       }, error = function(e) {
         warning("Error in TPHASE mapping: ", e$message)
         return(NA_character_)
       })
     },
-    INDIC = function(df) df[[1]]$protocolSection$conditionsModule$conditions[[1]],
-    TDIGRP = function(df) df[[1]]$protocolSection$conditionsModule$conditions[[1]],
-    THERAREA = function(df) {
-      cat("Debug: Entering THERAREA function\n")
-      cat("Debug: Class of df in THERAREA:", class(df), "\n")
-      cat("Debug: Length of df in THERAREA:", length(df), "\n")
+    INDIC = function(df) if(is.list(df) && length(df) > 0) df[[1]]$protocolSection$conditionsModule$conditions[[1]] else NA_character_,
+    TDIGRP = function(df) if(is.list(df) && length(df) > 0) df[[1]]$protocolSection$conditionsModule$conditions[[1]] else NA_character_,
+    THERAREA = function(df) NA_character_,
+    REGID = function(df) {
       tryCatch({
-        if(is.atomic(df)) {
-          cat("Debug: df is atomic in THERAREA\n")
-          return("Other")
-        } else if(is.list(df) && length(df) > 0) {
-          condition <- df[[1]]$protocolSection$conditionsModule$conditions[[1]]
-          cat("Debug: condition =", condition, "\n")
-          if (grepl("cancer|neoplasm|tumor|carcinoma", condition, ignore.case = TRUE)) {
-            return("Oncology")
-          } else if (grepl("heart|cardio|stroke", condition, ignore.case = TRUE)) {
-            return("Cardiovascular")
-          } else if (grepl("diabetes|endocrine", condition, ignore.case = TRUE)) {
-            return("Endocrinology")
-          } else if (grepl("neuro|brain|alzheimer|parkinson", condition, ignore.case = TRUE)) {
-            return("Neurology")
-          } else if (grepl("psych|depression|anxiety", condition, ignore.case = TRUE)) {
-            return("Psychiatry")
-          } else {
-            return("Other")
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$identificationModule$secondaryIdInfos)) {
+          secondary_ids <- df[[1]]$protocolSection$identificationModule$secondaryIdInfos
+          eudract_row <- secondary_ids[secondary_ids$type == "EUDRACT_NUMBER", ]
+          if (nrow(eudract_row) > 0) {
+            return(eudract_row$id)
           }
-        } else {
-          return(NA_character_)
         }
+        return("NA")
       }, error = function(e) {
-        cat("Error in THERAREA mapping:", e$message, "\n")
+        warning("Error in REGID mapping: ", e$message)
         return(NA_character_)
       })
     },
-    REGID = function(df) {
-      cat("Debug: Entering REGID function\n")
-      tryCatch({
-        secondary_ids <- df[[1]]$protocolSection$identificationModule$secondaryIdInfos
-        cat("Debug: Structure of secondary_ids:\n")
-        print(str(secondary_ids))
-        
-        if (is.data.frame(secondary_ids) && nrow(secondary_ids) > 0) {
-          eudract_row <- secondary_ids[secondary_ids$type == "EUDRACT_NUMBER", ]
-          if (nrow(eudract_row) > 0) {
-            result <- eudract_row$id
-            cat("Debug: REGID result:", result, "\n")
-            return(result)
-          }
-        }
-      }, error = function(e) {
-        cat("Error in REGID:", conditionMessage(e), "\n")
-      })
-      cat("Debug: REGID returning NA\n")
-      return("NA")
-    },
     INTTYPE = function(df) {
-      cat("Debug: Entering INTTYPE function\n")
       tryCatch({
-        design_info <- df[[1]]$protocolSection$designModule$designInfo
-        cat("Debug: Structure of design_info:\n")
-        print(str(design_info))
-        
-        if (!is.null(design_info) && !is.null(design_info$allocation)) {
-          result <- paste(design_info$allocation, collapse = "; ")
-          cat("Debug: INTTYPE result:", result, "\n")
-          return(result)
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$designModule$designInfo$allocation)) {
+          return(paste(df[[1]]$protocolSection$designModule$designInfo$allocation, collapse = "; "))
         }
+        return("NA")
       }, error = function(e) {
-        cat("Error in INTTYPE:", conditionMessage(e), "\n")
-      })
-      cat("Debug: INTTYPE returning NA\n")
-      return("NA")
-    },
-    STYPE = function(df) df[[1]]$protocolSection$designModule$studyType,
-    TTYPE = function(df) {
-      cat("Debug: Entering TTYPE function\n")
-      cat("Debug: Class of df in TTYPE:", class(df), "\n")
-      cat("Debug: Length of df in TTYPE:", length(df), "\n")
-      tryCatch({
-        if(is.list(df) && length(df) > 0) {
-          if("protocolSection" %in% names(df[[1]])) {
-            cat("Debug: Found protocolSection\n")
-            protocol_section <- df[[1]]$protocolSection
-            cat("Debug: Names in protocolSection:", paste(names(protocol_section), collapse = ", "), "\n")
-            
-            if("outcomesModule" %in% names(protocol_section)) {
-              cat("Debug: Found outcomesModule\n")
-              outcomes_module <- protocol_section$outcomesModule
-              cat("Debug: Names in outcomesModule:", paste(names(outcomes_module), collapse = ", "), "\n")
-              
-              if("primaryOutcomes" %in% names(outcomes_module)) {
-                primary_outcomes <- outcomes_module$primaryOutcomes
-                cat("Debug: Found primaryOutcomes. Length:", length(primary_outcomes), "\n")
-                
-                if(length(primary_outcomes) > 0) {
-                  descriptions <- sapply(primary_outcomes, function(x) x$description)
-                  types <- character(0)
-                  if (any(grepl("safety", tolower(descriptions), fixed = TRUE))) {
-                    types <- c(types, "SAFETY")
-                  }
-                  if (any(grepl("efficacy", tolower(descriptions), fixed = TRUE))) {
-                    types <- c(types, "EFFICACY")
-                  }
-                  if (any(grepl("pharmacokinetics|bioavailability|bioequivalence", tolower(descriptions), fixed = TRUE))) {
-                    types <- c(types, "PK")
-                  }
-                  if (length(types) == 0) {
-                    types <- "OTHER"
-                  }
-                  result <- paste(types, collapse = "; ")
-                  cat("Debug: TTYPE result:", result, "\n")
-                  return(result)
-                }
-              }
-            }
-          }
-        }
-        cat("Debug: Returning OTHER for TTYPE\n")
-        return("OTHER")
-      }, error = function(e) {
-        cat("Error in TTYPE mapping:", e$message, "\n")
-        return(NA_character_) 
+        warning("Error in INTTYPE mapping: ", e$message)
+        return(NA_character_)
       })
     },
+    STYPE = function(df) if(is.list(df) && length(df) > 0) df[[1]]$protocolSection$designModule$studyType else NA_character_,
+    TTYPE = function(df) NA_character_,
     ACTSUB = function(df) {
       tryCatch({
-        enrollment_info <- df[[1]]$protocolSection$designModule$enrollmentInfo
-        if (!is.null(enrollment_info) && !is.null(enrollment_info$count)) {
-          return(as.character(enrollment_info$count))
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$statusModule$enrollmentInfo$count)) {
+          return(as.character(df[[1]]$protocolSection$statusModule$enrollmentInfo$count))
         }
+        return("NA")
       }, error = function(e) {
         warning("Error in ACTSUB mapping: ", e$message)
+        return(NA_character_)
       })
-      return(NA_character_)
     },
     PLANSUB = function(df) {
-      cat("Debug: Entering PLANSUB function\n")
       tryCatch({
-        design_info <- df[[1]]$protocolSection$designModule
-        cat("Debug: Structure of design_info:\n")
-        print(str(design_info))
-        
-        if (!is.null(design_info) && !is.null(design_info$enrollmentInfo) && !is.null(design_info$enrollmentInfo$count)) {
-          result <- as.character(design_info$enrollmentInfo$count)
-          cat("Debug: PLANSUB result:", result, "\n")
-          return(result)
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$designModule$enrollmentInfo$count)) {
+          return(as.character(df[[1]]$protocolSection$designModule$enrollmentInfo$count))
         }
+        return("NA")
       }, error = function(e) {
-        cat("Error in PLANSUB:", conditionMessage(e), "\n")
+        warning("Error in PLANSUB mapping: ", e$message)
+        return(NA_character_)
       })
-      cat("Debug: PLANSUB returning NA\n")
-      return("NA")
     },
     SENDTC = function(df) {
       tryCatch({
-        completion_date <- df[[1]]$protocolSection$statusModule$completionDateStruct$date
-        if (!is.null(completion_date) && completion_date != "") {
-          return(format_date_iso8601(completion_date))
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$statusModule$completionDateStruct$date)) {
+          return(format_date_iso8601(df[[1]]$protocolSection$statusModule$completionDateStruct$date))
         }
+        return(NA_character_)
       }, error = function(e) {
         warning("Error in SENDTC mapping: ", e$message)
+        return(NA_character_)
       })
-      return(NA_character_)
     },
     SSTDTC = function(df) {
       tryCatch({
-        start_date <- df[[1]]$protocolSection$statusModule$startDateStruct$date
-        if (!is.null(start_date) && start_date != "") {
-          return(format_date_iso8601(start_date))
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$statusModule$startDateStruct$date)) {
+          return(format_date_iso8601(df[[1]]$protocolSection$statusModule$startDateStruct$date))
         }
+        return(NA_character_)
       }, error = function(e) {
         warning("Error in SSTDTC mapping: ", e$message)
+        return(NA_character_)
       })
-      return(NA_character_)
     },
     LENGTH = function(df) {
       tryCatch({
-        start_date <- df[[1]]$protocolSection$statusModule$startDateStruct$date
-        completion_date <- df[[1]]$protocolSection$statusModule$completionDateStruct$date
-        if (!is.null(start_date) && start_date != "" && !is.null(completion_date) && completion_date != "") {
-          start <- as.Date(format_date_iso8601(start_date))
-          end <- as.Date(format_date_iso8601(completion_date))
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$statusModule$startDateStruct$date) && !is.null(df[[1]]$protocolSection$statusModule$completionDateStruct$date)) {
+          start <- as.Date(format_date_iso8601(df[[1]]$protocolSection$statusModule$startDateStruct$date))
+          end <- as.Date(format_date_iso8601(df[[1]]$protocolSection$statusModule$completionDateStruct$date))
           duration <- as.numeric(end - start)
           return(paste0("P", duration, "D"))  # ISO8601 duration format
         }
+        return(NA_character_)
       }, error = function(e) {
         warning("Error in LENGTH mapping: ", e$message)
+        return(NA_character_)
       })
-      return(NA_character_)
     },
     ADAPT = function(df) derive_adaptive_design(df),
     ADDON = function(df) derive_addon_treatment(df),
     AGEMIN = function(df) {
       tryCatch({
-        if(is.atomic(df)) {
-          age_min <- df
-        } else if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$eligibilityModule)) {
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$eligibilityModule$minimumAge)) {
           age_min <- df[[1]]$protocolSection$eligibilityModule$minimumAge
-        } else {
-          return(NA_character_)
+          
+          age_parts <- strsplit(trimws(age_min), " ")[[1]]
+          if(length(age_parts) != 2) return(NA_character_)
+          
+          age_value <- as.numeric(age_parts[1])
+          age_unit <- tolower(age_parts[2])
+          
+          if(grepl("year", age_unit)) {
+            return(sprintf("P%dY", age_value))
+          } else if(grepl("month", age_unit)) {
+            return(sprintf("P%dM", age_value))
+          } else if(grepl("week", age_unit)) {
+            return(sprintf("P%dW", age_value))
+          } else if(grepl("day", age_unit)) {
+            return(sprintf("P%dD", age_value))
+          } else {
+            return(NA_character_)
+          }
         }
-        
-        if(is.null(age_min) || is.na(age_min) || age_min == "") return(NA_character_)
-        
-        age_parts <- strsplit(trimws(age_min), " ")[[1]]
-        if(length(age_parts) != 2) return(NA_character_)
-        
-        age_value <- as.numeric(age_parts[1])
-        age_unit <- tolower(age_parts[2])
-        
-        if(grepl("year", age_unit)) {
-          return(sprintf("P%dY", age_value))
-        } else if(grepl("month", age_unit)) {
-          return(sprintf("P%dM", age_value))
-        } else if(grepl("week", age_unit)) {
-          return(sprintf("P%dW", age_value))
-        } else if(grepl("day", age_unit)) {
-          return(sprintf("P%dD", age_value))
-        } else {
-          return(NA_character_)
-        }
+        return(NA_character_)
       }, error = function(e) {
         warning("Error in AGEMIN mapping: ", e$message)
         return(NA_character_)
@@ -516,240 +392,171 @@ define_ts_mapping <- function() {
     },
     AGEMAX = function(df) {
       tryCatch({
-        if(is.atomic(df)) {
-          age_max <- df
-        } else if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$eligibilityModule)) {
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$eligibilityModule$maximumAge)) {
           age_max <- df[[1]]$protocolSection$eligibilityModule$maximumAge
-        } else {
-          return(NA_character_)
+          
+          age_parts <- strsplit(trimws(age_max), " ")[[1]]
+          if(length(age_parts) != 2) return(NA_character_)
+          
+          age_value <- as.numeric(age_parts[1])
+          age_unit <- tolower(age_parts[2])
+          
+          if(grepl("year", age_unit)) {
+            return(sprintf("P%dY", age_value))
+          } else if(grepl("month", age_unit)) {
+            return(sprintf("P%dM", age_value))
+          } else if(grepl("week", age_unit)) {
+            return(sprintf("P%dW", age_value))
+          } else if(grepl("day", age_unit)) {
+            return(sprintf("P%dD", age_value))
+          } else {
+            return(NA_character_)
+          }
         }
-        
-        if(is.null(age_max) || is.na(age_max) || age_max == "") return(NA_character_)
-        
-        age_parts <- strsplit(trimws(age_max), " ")[[1]]
-        if(length(age_parts) != 2) return(NA_character_)
-        
-        age_value <- as.numeric(age_parts[1])
-        age_unit <- tolower(age_parts[2])
-        
-        if(grepl("year", age_unit)) {
-          return(sprintf("P%dY", age_value))
-        } else if(grepl("month", age_unit)) {
-          return(sprintf("P%dM", age_value))
-        } else if(grepl("week", age_unit)) {
-          return(sprintf("P%dW", age_value))
-        } else if(grepl("day", age_unit)) {
-          return(sprintf("P%dD", age_value))
-        } else {
-          return(NA_character_)
-        }
+        return(NA_character_)
       }, error = function(e) {
         warning("Error in AGEMAX mapping: ", e$message)
         return(NA_character_)
       })
     },
     COMPTRT = function(df) {
-      cat("Debug: Entering COMPTRT function\n")
       tryCatch({
-        interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
-        cat("Debug: Structure of interventions:\n")
-        print(str(interventions))
-        
-        if (is.data.frame(interventions) && nrow(interventions) > 0) {
-          # Filter for comparative treatments (usually standard of care drugs)
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$armsInterventionsModule$interventions)) {
+          interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
           comp_treatments <- interventions[grepl("carboplatin|cisplatin|pemetrexed", interventions$name, ignore.case = TRUE), ]
           if (nrow(comp_treatments) > 0) {
-            result <- paste(comp_treatments$name, collapse = "; ")
-            cat("Debug: COMPTRT result:", result, "\n")
-            return(result)
+            return(paste(comp_treatments$name, collapse = "; "))
           }
         }
+        return("NA")
       }, error = function(e) {
-        cat("Error in COMPTRT:", conditionMessage(e), "\n")
+        warning("Error in COMPTRT mapping: ", e$message)
+        return(NA_character_)
       })
-      cat("Debug: COMPTRT returning NA\n")
-      return("NA")
     },
     CURTRT = function(df) {
-      cat("Debug: Entering CURTRT function\n")
       tryCatch({
-        interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
-        cat("Debug: Structure of interventions:\n")
-        print(str(interventions))
-        
-        if (is.data.frame(interventions) && nrow(interventions) > 0) {
-          # Filter for current treatments (usually experimental drugs)
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$armsInterventionsModule$interventions)) {
+          interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
           cur_treatments <- interventions[grepl("divarasib|pembrolizumab", interventions$name, ignore.case = TRUE), ]
           if (nrow(cur_treatments) > 0) {
-            result <- paste(cur_treatments$name, collapse = "; ")
-            cat("Debug: CURTRT result:", result, "\n")
-            return(result)
+            return(paste(cur_treatments$name, collapse = "; "))
           }
         }
+        return("NA")
       }, error = function(e) {
-        cat("Error in CURTRT:", conditionMessage(e), "\n")
+        warning("Error in CURTRT mapping: ", e$message)
+        return(NA_character_)
       })
-      cat("Debug: CURTRT returning NA\n")
-      return("NA")
     },
     NCOHORT = function(df) {
-      cat("Debug: Entering NCOHORT function\n")
       tryCatch({
-        interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
-        cat("Debug: Structure of interventions:\n")
-        print(str(interventions))
-        
-        if (is.data.frame(interventions) && nrow(interventions) > 0 && "armGroupLabels" %in% names(interventions)) {
-          all_labels <- unlist(interventions$armGroupLabels)
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$armsInterventionsModule$interventions) && "armGroupLabels" %in% names(df[[1]]$protocolSection$armsInterventionsModule$interventions)) {
+          all_labels <- unlist(df[[1]]$protocolSection$armsInterventionsModule$interventions$armGroupLabels)
           unique_cohorts <- unique(all_labels)
-          result <- length(unique_cohorts)
-          cat("Debug: NCOHORT result:", result, "\n")
-          return(as.character(result))
+          return(as.character(length(unique_cohorts)))
         }
+        return("NA")
       }, error = function(e) {
-        cat("Error in NCOHORT:", conditionMessage(e), "\n")
+        warning("Error in NCOHORT mapping: ", e$message)
+        return(NA_character_)
       })
-      cat("Debug: NCOHORT returning NA\n")
-      return("NA")
     },
     DCUTDESC = function(df) derive_data_cutoff_description(df),
-    DCUTDTC = function(df) format_date_iso8601(df[[1]]$protocolSection$statusModule$primaryCompletionDateStruct$date),
-    EGBLIND = function(df) df[[1]]$protocolSection$designModule$masking,
+    DCUTDTC = function(df) if(is.list(df) && length(df) > 0) format_date_iso8601(df[[1]]$protocolSection$statusModule$primaryCompletionDateStruct$date) else NA_character_,
+    EGBLIND = function(df) if(is.list(df) && length(df) > 0) df[[1]]$protocolSection$designModule$masking else NA_character_,
     INTMODEL = function(df) {
-      cat("Debug: Entering INTMODEL function\n")
       tryCatch({
-        design_info <- df[[1]]$protocolSection$designModule$designInfo
-        cat("Debug: Structure of design_info:\n")
-        print(str(design_info))
-        
-        if (!is.null(design_info) && !is.null(design_info$interventionModel)) {
-          result <- paste(design_info$interventionModel, collapse = "; ")
-          cat("Debug: INTMODEL result:", result, "\n")
-          return(result)
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$designModule$designInfo$interventionModel)) {
+          return(paste(df[[1]]$protocolSection$designModule$designInfo$interventionModel, collapse = "; "))
         }
+        return("NA")
       }, error = function(e) {
-        cat("Error in INTMODEL:", conditionMessage(e), "\n")
+        warning("Error in INTMODEL mapping: ", e$message)
+        return(NA_character_)
       })
-      cat("Debug: INTMODEL returning NA\n")
-      return("NA")
     },
-    NARMS = function(df) df[[1]]$protocolSection$designModule$numberOfArms,
-    ONGOSIND = function(df) ifelse(df[[1]]$protocolSection$statusModule$overallStatus %in% c("Recruiting", "Active, not recruiting"), "Y", "N"),
+    NARMS = function(df) if(is.list(df) && length(df) > 0) df[[1]]$protocolSection$designModule$numberOfArms else NA_integer_,
+    ONGOSIND = function(df) if(is.list(df) && length(df) > 0 && df[[1]]$protocolSection$statusModule$overallStatus %in% c("Recruiting", "Active, not recruiting")) "Y" else "N",
     OUTMSPRI = function(df) {
-      cat("Debug: Entering OUTMSPRI function\n")
       tryCatch({
-        primary_outcomes <- df[[1]]$protocolSection$outcomesModule$primaryOutcomes
-        cat("Debug: Structure of primary_outcomes:\n")
-        print(str(primary_outcomes))
-        
-        if (is.data.frame(primary_outcomes) && nrow(primary_outcomes) > 0) {
-          measures <- primary_outcomes$measure
-          cat("Debug: OUTMSPRI result:\n", paste(measures, collapse = "\n"), "\n")
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$outcomesModule$primaryOutcomes)) {
+          measures <- df[[1]]$protocolSection$outcomesModule$primaryOutcomes$measure
           return(na.omit(measures))
         }
+        return(NA_character_)
       }, error = function(e) {
-        cat("Error in OUTMSPRI:", conditionMessage(e), "\n")
+        warning("Error in OUTMSPRI mapping: ", e$message)
+        return(NA_character_)
       })
-      cat("Debug: OUTMSPRI returning NA\n")
-      return(NA_character_)
     },
-
     OUTMSSEC = function(df) {
-      cat("Debug: Entering OUTMSSEC function\n")
       tryCatch({
-        secondary_outcomes <- df[[1]]$protocolSection$outcomesModule$secondaryOutcomes
-        cat("Debug: Structure of secondary_outcomes:\n")
-        print(str(secondary_outcomes))
-        
-        if (is.data.frame(secondary_outcomes) && nrow(secondary_outcomes) > 0) {
-          measures <- secondary_outcomes$measure
-          cat("Debug: OUTMSSEC result:\n", paste(measures, collapse = "\n"), "\n")
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$outcomesModule$secondaryOutcomes)) {
+          measures <- df[[1]]$protocolSection$outcomesModule$secondaryOutcomes$measure
           return(na.omit(measures))
         }
+        return(NA_character_)
       }, error = function(e) {
-        cat("Error in OUTMSSEC:", conditionMessage(e), "\n")
+        warning("Error in OUTMSSEC mapping: ", e$message)
+        return(NA_character_)
       })
-      cat("Debug: OUTMSSEC returning NA\n")
-      return(NA_character_)
     },
-
     OUTMSEXP = function(df) {
-      cat("Debug: Entering OUTMSEXP function\n")
       tryCatch({
-        exploratory_outcomes <- df[[1]]$protocolSection$outcomesModule$otherOutcomes
-        cat("Debug: Structure of exploratory_outcomes:\n")
-        print(str(exploratory_outcomes))
-        
-        if (is.data.frame(exploratory_outcomes) && nrow(exploratory_outcomes) > 0) {
-          measures <- exploratory_outcomes$measure
-          cat("Debug: OUTMSEXP result:\n", paste(measures, collapse = "\n"), "\n")
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$outcomesModule$otherOutcomes)) {
+          measures <- df[[1]]$protocolSection$outcomesModule$otherOutcomes$measure
           return(na.omit(measures))
         }
+        return(NA_character_)
       }, error = function(e) {
-        cat("Error in OUTMSEXP:", conditionMessage(e), "\n")
+        warning("Error in OUTMSEXP mapping: ", e$message)
+        return(NA_character_)
       })
-      cat("Debug: OUTMSEXP returning NA\n")
-      return(NA_character_)
     },
     SEXPOP = function(df) {
-      cat("Debug: Entering SEXPOP function\n")
       tryCatch({
-        eligibility <- df[[1]]$protocolSection$eligibilityModule
-        cat("Debug: Structure of eligibility:\n")
-        print(str(eligibility))
-        
-        if (!is.null(eligibility) && !is.null(eligibility$sex)) {
-          result <- eligibility$sex
-          cat("Debug: SEXPOP result:", result, "\n")
-          return(result)
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$eligibilityModule$sex)) {
+          return(df[[1]]$protocolSection$eligibilityModule$sex)
         }
+        return("NA")
       }, error = function(e) {
-        cat("Error in SEXPOP:", conditionMessage(e), "\n")
+        warning("Error in SEXPOP mapping: ", e$message)
+        return(NA_character_)
       })
-      cat("Debug: SEXPOP returning NA\n")
-      return("NA")
     },
     SPONSOR = function(df) {
-      cat("Debug: Entering SPONSOR function\n")
       tryCatch({
-        sponsor_info <- df[[1]]$protocolSection$identificationModule$organization
-        cat("Debug: Structure of sponsor_info:\n")
-        print(str(sponsor_info))
-        
-        if (!is.null(sponsor_info) && !is.null(sponsor_info$fullName)) {
-          result <- sponsor_info$fullName
-          cat("Debug: SPONSOR result:", result, "\n")
-          return(result)
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$identificationModule$organization$fullName)) {
+          return(df[[1]]$protocolSection$identificationModule$organization$fullName)
         }
+        return("NA")
       }, error = function(e) {
-        cat("Error in SPONSOR:", conditionMessage(e), "\n")
+        warning("Error in SPONSOR mapping: ", e$message)
+        return(NA_character_)
       })
-      cat("Debug: SPONSOR returning NA\n")
-      return("NA")
     },
     FCNTRY = function(df) {
       tryCatch({
-        if (is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$contactsLocationsModule$locations)) {
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$contactsLocationsModule$locations) && "country" %in% names(df[[1]]$protocolSection$contactsLocationsModule$locations)) {
           locations <- df[[1]]$protocolSection$contactsLocationsModule$locations
-          if (is.data.frame(locations) && "country" %in% names(locations)) {
-            unique_countries <- unique(locations$country)
-            unique_countries <- unique_countries[!is.na(unique_countries) & unique_countries != ""]
-            if (length(unique_countries) > 0) {
-              return(unique_countries)
-            }
+          unique_countries <- unique(locations$country)
+          unique_countries <- unique_countries[!is.na(unique_countries) & unique_countries != ""]
+          if (length(unique_countries) > 0) {
+            return(unique_countries)
           }
         }
         return(NA_character_)
       }, error = function(e) {
-        warning("Error in FCNTRY mapping: ", conditionMessage(e))
+        warning("Error in FCNTRY mapping: ", e$message)
         return(NA_character_)
       })
     },
     HLTSUBJI = function(df) derive_healthy_subjects(df),
     EXTTIND = function(df) derive_extension_trial(df),
     PDSTIND = function(df) {
-      min_age <- df[[1]]$protocolSection$eligibilityModule$minimumAge
-      if (!is.null(min_age)) {
+      if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$eligibilityModule$minimumAge)) {
+        min_age <- df[[1]]$protocolSection$eligibilityModule$minimumAge
         min_age <- as.numeric(gsub("[^0-9.]", "", min_age))
         if (!is.na(min_age) && min_age < 18) {
           return("Y")
@@ -757,89 +564,65 @@ define_ts_mapping <- function() {
           return("N")
         }
       }
-      return(NA)
+      return(NA_character_)
     },
     SPREFID = function(df) {
       tryCatch({
-        if(!is.list(df) || length(df) == 0) return(NA_character_)
-        
-        result <- df[[1]]$protocolSection$identificationModule$nctId[1]  # In case there are multiple, take the first one
-        return(result)
+        if(is.list(df) && length(df) > 0) {
+          return(df[[1]]$protocolSection$identificationModule$nctId[1])  # In case there are multiple, take the first one
+        }
+        return(NA_character_)
       }, error = function(e) {
         warning("Error in SPREFID mapping: ", e$message)
         return(NA_character_)
       })
     },
     TRT = function(df) {
-      cat("Debug: Entering TRT function\n")
       tryCatch({
-        interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
-        cat("Debug: Structure of interventions:\n")
-        print(str(interventions))
-        
-        if (is.data.frame(interventions) && nrow(interventions) > 0) {
-          treatments <- interventions$name
-          result <- paste(unique(treatments), collapse = ", ")
-          cat("Debug: TRT result:", result, "\n")
-          return(result)
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$armsInterventionsModule$interventions)) {
+          treatments <- df[[1]]$protocolSection$armsInterventionsModule$interventions$name
+          return(paste(unique(treatments), collapse = ", "))
         }
+        return("NA")
       }, error = function(e) {
-        cat("Error in TRT:", conditionMessage(e), "\n")
+        warning("Error in TRT mapping: ", e$message)
+        return(NA_character_)
       })
-      cat("Debug: TRT returning NA\n")
-      return("NA")
     },
     TBLIND = function(df) {
-      cat("Debug: Entering TBLIND function\n")
       tryCatch({
-        design_info <- df[[1]]$protocolSection$designModule$designInfo
-        cat("Debug: Structure of design_info:\n")
-        print(str(design_info))
-        
-        if (!is.null(design_info) && !is.null(design_info$maskingInfo)) {
-          masking <- design_info$maskingInfo$masking
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$designModule$designInfo$maskingInfo$masking)) {
+          masking <- df[[1]]$protocolSection$designModule$designInfo$maskingInfo$masking
           if (!is.null(masking) && length(masking) > 0) {
-            result <- paste(masking, collapse = "; ")
-            cat("Debug: TBLIND result:", result, "\n")
-            return(result)
+            return(paste(masking, collapse = "; "))
           }
         }
-        # If no masking info is found, return "OPEN LABEL"
-        cat("Debug: TBLIND returning OPEN LABEL\n")
         return("OPEN LABEL")
       }, error = function(e) {
-        cat("Error in TBLIND:", conditionMessage(e), "\n")
+        warning("Error in TBLIND mapping: ", e$message)
         return("OPEN LABEL")
       })
     },
     TCNTRL = function(df) {
-      cat("Debug: Entering TCNTRL function\n")
       tryCatch({
-        arms <- df[[1]]$protocolSection$armsInterventionsModule$armGroups
-        cat("Debug: Structure of arms:\n")
-        print(str(arms))
-        
-        if (is.data.frame(arms) && nrow(arms) > 0) {
-          # Check for placebo control
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$armsInterventionsModule$armGroups)) {
+          arms <- df[[1]]$protocolSection$armsInterventionsModule$armGroups
           if (any(grepl("placebo", tolower(arms$type)))) {
             return("PLACEBO")
           }
-          # Check for active control
           if (any(grepl("active comparator", tolower(arms$type)))) {
             return("ACTIVE")
           }
-          # Check for dose comparison
           if (length(unique(arms$type)) == 1 && unique(arms$type) == "EXPERIMENTAL") {
             return("DOSE COMPARISON")
           }
-          # If none of the above, assume it's uncontrolled
           return("NONE")
         }
+        return("NA")
       }, error = function(e) {
-        cat("Error in TCNTRL:", conditionMessage(e), "\n")
+        warning("Error in TCNTRL mapping: ", e$message)
+        return(NA_character_)
       })
-      cat("Debug: TCNTRL returning NA\n")
-      return("NA")
     }
   )
   
@@ -869,13 +652,9 @@ derive_comparative_treatment <- function(df) {
 #' @param interventions The interventions being used.
 #' @return A character string representing the therapeutic area.
 #' @keywords internal
-derive_therapeutic_area <- function(condition, interventions) {
+derive_therapeutic_area <- function(df) {
   tryCatch({
-    if(is.atomic(df)) {
-      # If df is an atomic vector, it might be the condition itself
-      condition <- df
-      interventions <- NULL
-    } else if(is.list(df) && length(df) > 0) {
+    if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$conditionsModule$conditions)) {
       condition <- df[[1]]$protocolSection$conditionsModule$conditions[[1]]
       interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
     } else {
@@ -910,7 +689,6 @@ derive_therapeutic_area <- function(condition, interventions) {
   })
 }
 
-
 #' Derive Trial Type
 #'
 #' @param df The trial data frame.
@@ -918,38 +696,36 @@ derive_therapeutic_area <- function(condition, interventions) {
 #' @keywords internal
 derive_trial_type <- function(df) {
   tryCatch({
-    if(is.atomic(df)) {
-      # If df is an atomic vector, we can't determine the type
-      return("OTHER")
-    } else if(!is.list(df) || length(df) == 0) {
-      return(NA_character_)
+    if (is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$outcomesModule$primaryOutcomes)) {
+      primary_outcomes <- df[[1]]$protocolSection$outcomesModule$primaryOutcomes
+      if (length(primary_outcomes) > 0) {
+        descriptions <- sapply(primary_outcomes, function(x) tolower(x$description))
+        
+        types <- character(0)
+        if (any(grepl("safety|adverse|toxicity", descriptions))) {
+          types <- c(types, "SAFETY")
+        }
+        if (any(grepl("efficacy|effectiveness|response|outcome", descriptions))) {
+          types <- c(types, "EFFICACY")
+        }
+        if (any(grepl("pharmacokinetics|pk|bioavailability|bioequivalence", descriptions))) {
+          types <- c(types, "PHARMACOKINETICS")
+        }
+        if (any(grepl("pharmacodynamics|pd", descriptions))) {
+          types <- c(types, "PHARMACODYNAMICS")
+        }
+        if (any(grepl("pharmacoeconomics|cost|economic", descriptions))) {
+          types <- c(types, "PHARMACOECONOMICS")
+        }
+        
+        if (length(types) == 0) {
+          return("OTHER")
+        } else {
+          return(paste(unique(types), collapse = " "))
+        }
+      }
     }
-    
-    types <- character(0)
-    primary_outcomes <- df[[1]]$protocolSection$outcomesModule$primaryOutcomes
-    if (!is.null(primary_outcomes) && length(primary_outcomes) > 0) {
-      descriptions <- if(is.list(primary_outcomes)) {
-        sapply(primary_outcomes, function(x) x$description)
-      } else if(is.character(primary_outcomes)) {
-        primary_outcomes
-      } else {
-        NA_character_
-      }
-      
-      if (any(grepl("safety", tolower(descriptions), fixed = TRUE))) {
-        types <- c(types, "SAFETY")
-      }
-      if (any(grepl("efficacy", tolower(descriptions), fixed = TRUE))) {
-        types <- c(types, "EFFICACY")
-      }
-      if (any(grepl("pharmacokinetics|bioavailability|bioequivalence", tolower(descriptions), fixed = TRUE))) {
-        types <- c(types, "PK")
-      }
-    }
-    if (length(types) == 0) {
-      types <- "OTHER"
-    }
-    return(paste(types, collapse = "; "))
+    return(NA_character_)
   }, error = function(e) {
     warning("Error in TTYPE mapping: ", e$message)
     return(NA_character_)
@@ -962,8 +738,9 @@ derive_trial_type <- function(df) {
 #' @return "Y" if adaptive design, "N" otherwise.
 #' @keywords internal
 derive_adaptive_design <- function(df) {
-  if ((!is.null(df[[1]]$protocolSection$identificationModule$briefTitle) && !is.na(df[[1]]$protocolSection$identificationModule$briefTitle) && grepl("adaptive", tolower(df[[1]]$protocolSection$identificationModule$briefTitle), fixed = TRUE)) ||
-      (!is.null(df[[1]]$protocolSection$identificationModule$officialTitle) && !is.na(df[[1]]$protocolSection$identificationModule$officialTitle) && grepl("adaptive", tolower(df[[1]]$protocolSection$identificationModule$officialTitle), fixed = TRUE))) {
+  if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$identificationModule$briefTitle) && !is.na(df[[1]]$protocolSection$identificationModule$briefTitle) && grepl("adaptive", tolower(df[[1]]$protocolSection$identificationModule$briefTitle), fixed = TRUE)) {
+    return("Y")
+  } else if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$identificationModule$officialTitle) && !is.na(df[[1]]$protocolSection$identificationModule$officialTitle) && grepl("adaptive", tolower(df[[1]]$protocolSection$identificationModule$officialTitle), fixed = TRUE)) {
     return("Y")
   } else {
     return("N")
@@ -976,8 +753,9 @@ derive_adaptive_design <- function(df) {
 #' @return "Y" if add-on treatment, "N" otherwise.
 #' @keywords internal
 derive_addon_treatment <- function(df) {
-  if ((!is.null(df[[1]]$protocolSection$identificationModule$briefTitle) && !is.na(df[[1]]$protocolSection$identificationModule$briefTitle) && grepl("add-on|addon|adjunct", tolower(df[[1]]$protocolSection$identificationModule$briefTitle), fixed = TRUE)) ||
-      (!is.null(df[[1]]$protocolSection$identificationModule$officialTitle) && !is.na(df[[1]]$protocolSection$identificationModule$officialTitle) && grepl("add-on|addon|adjunct", tolower(df[[1]]$protocolSection$identificationModule$officialTitle), fixed = TRUE))) {
+  if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$identificationModule$briefTitle) && !is.na(df[[1]]$protocolSection$identificationModule$briefTitle) && grepl("add-on|addon|adjunct", tolower(df[[1]]$protocolSection$identificationModule$briefTitle), fixed = TRUE)) {
+    return("Y")
+  } else if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$identificationModule$officialTitle) && !is.na(df[[1]]$protocolSection$identificationModule$officialTitle) && grepl("add-on|addon|adjunct", tolower(df[[1]]$protocolSection$identificationModule$officialTitle), fixed = TRUE)) {
     return("Y")
   } else {
     return("N")
@@ -990,7 +768,7 @@ derive_addon_treatment <- function(df) {
 #' @return A character string describing the data cutoff.
 #' @keywords internal
 derive_data_cutoff_description <- function(df) {
-  if (!is.null(df[[1]]$protocolSection$statusModule$overallStatus) && !is.na(df[[1]]$protocolSection$statusModule$overallStatus) && df[[1]]$protocolSection$statusModule$overallStatus %in% c("Completed", "Terminated")) {
+  if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$statusModule$overallStatus) && !is.na(df[[1]]$protocolSection$statusModule$overallStatus) && df[[1]]$protocolSection$statusModule$overallStatus %in% c("Completed", "Terminated")) {
     return("FINAL")
   } else {
     return("INTERIM")
@@ -1003,7 +781,7 @@ derive_data_cutoff_description <- function(df) {
 #' @return A date string for the data cutoff.
 #' @keywords internal
 derive_data_cutoff_date <- function(df) {
-  if (!is.null(df[[1]]$protocolSection$statusModule$overallStatus) && !is.na(df[[1]]$protocolSection$statusModule$overallStatus) && df[[1]]$protocolSection$statusModule$overallStatus %in% c("Completed", "Terminated")) {
+  if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$statusModule$overallStatus) && !is.na(df[[1]]$protocolSection$statusModule$overallStatus) && df[[1]]$protocolSection$statusModule$overallStatus %in% c("Completed", "Terminated")) {
     return(format_date_iso8601(df[[1]]$protocolSection$statusModule$completionDateStruct$date))
   } else {
     return(NA)
@@ -1093,8 +871,9 @@ calculate_trial_length <- function(start_date, end_date) {
 #' @return "Y" if extension trial, "N" otherwise.
 #' @keywords internal
 derive_extension_trial <- function(df) {
-  if (grepl("extension|follow-up|followup", tolower(df[[1]]$protocolSection$identificationModule$briefTitle), fixed = TRUE) ||
-      grepl("extension|follow-up|followup", tolower(df[[1]]$protocolSection$identificationModule$officialTitle), fixed = TRUE)) {
+  if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$identificationModule$briefTitle) && !is.na(df[[1]]$protocolSection$identificationModule$briefTitle) && grepl("extension|follow-up|followup", tolower(df[[1]]$protocolSection$identificationModule$briefTitle), fixed = TRUE)) {
+    return("Y")
+  } else if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$identificationModule$officialTitle) && !is.na(df[[1]]$protocolSection$identificationModule$officialTitle) && grepl("extension|follow-up|followup", tolower(df[[1]]$protocolSection$identificationModule$officialTitle), fixed = TRUE)) {
     return("Y")
   } else {
     return("N")
@@ -1107,7 +886,7 @@ derive_extension_trial <- function(df) {
 #' @return "Y" if healthy subjects, "N" otherwise.
 #' @keywords internal
 derive_healthy_subjects <- function(df) {
-  if (!is.null(df[[1]]$protocolSection$eligibilityModule$healthyVolunteers) && !is.na(df[[1]]$protocolSection$eligibilityModule$healthyVolunteers)) {
+  if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$eligibilityModule$healthyVolunteers) && !is.na(df[[1]]$protocolSection$eligibilityModule$healthyVolunteers)) {
     if (tolower(df[[1]]$protocolSection$eligibilityModule$healthyVolunteers) == "yes") {
       return("Y")
     } else if (tolower(df[[1]]$protocolSection$eligibilityModule$healthyVolunteers) == "no") {
@@ -1123,8 +902,8 @@ derive_healthy_subjects <- function(df) {
 #' @return "Y" if pediatric study, "N" otherwise.
 #' @keywords internal
 derive_pediatric_study <- function(df) {
-  min_age <- df[[1]]$protocolSection$eligibilityModule$minimumAge
-  if (!is.null(min_age)) {
+  if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$eligibilityModule$minimumAge)) {
+    min_age <- df[[1]]$protocolSection$eligibilityModule$minimumAge
     min_age <- as.numeric(gsub("[^0-9.]", "", min_age))
     if (!is.na(min_age) && min_age < 18) {
       return("Y")

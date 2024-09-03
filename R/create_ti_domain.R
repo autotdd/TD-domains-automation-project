@@ -353,4 +353,4 @@ create_ti_domain_api <- function(study_id, nct_id, output_dir) {
     print(content(response, "text", encoding = "UTF-8"))
     stop(e)
   })
-}\
+}

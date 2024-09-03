@@ -145,11 +145,11 @@ extract_criteria <- function(text_with_pages, section_header, end_section, footn
   current_page <- all_page_nums[start_index[1]]
   current_subcategory <- ""
   
-  # Pattern to match subsection headers (e.g., "4.1.1.1 Patients")
-  subsection_pattern <- "^\\d+(\\.\\d+)+\\s+(.+)$"
+  # Updated pattern to match subsection headers (e.g., "4.1.1.1 Patients")
+  subsection_pattern <- "^\\d+(\\.\\d+)*\\s+(.+)$"
   
-  # Pattern to match criteria start
-  criterion_start_pattern <- "^\\s*(•|\\*|\\d+\\.|-|[a-z]\\)|[A-Z]\\)|\\([a-z]\\)|\\([A-Z]\\))\\s+"
+  # Updated pattern to match criteria start
+  criterion_start_pattern <- "^\\s*(•|\\*|\\d+\\.|-|[a-z]\\)|[A-Z]\\)|\\([a-z]\\)|\\([A-Z]\\)|–|▪|○|·|■|□|◦|►|▻|▼|▽|◆|◇|✓|✔|⚫|⚪)\\s+"
   
   for (i in (start_index[1] + 1):end_index) {
     line <- trimws(all_lines[i])
@@ -232,8 +232,9 @@ create_ti_domain_pdf <- function(study_id, pdf_path, incl_range, excl_range, inc
                    paste0("EXCL", sprintf("%03d", seq_along(exclusion_result$criteria)))),
       IETEST = c(rep("Inclusion Criteria", length(inclusion_result$criteria)),
                  rep("Exclusion Criteria", length(exclusion_result$criteria))),
-      IECAT = c(inclusion_result$subcategories, exclusion_result$subcategories),
-      IESCAT = "",
+      IECAT = c(rep("Inclusion", length(inclusion_result$criteria)),
+                rep("Exclusion", length(exclusion_result$criteria))),
+      IESCAT = c(inclusion_result$subcategories, exclusion_result$subcategories),
       IEORRES = sapply(c(inclusion_result$criteria, exclusion_result$criteria), truncate_ieorres),
       stringsAsFactors = FALSE
     )
@@ -333,7 +334,8 @@ create_ti_domain_api <- function(study_id, nct_id, output_dir) {
                    paste0("EXCL", sprintf("%03d", seq_along(exclusion_criteria)))),
       IETEST = c(rep("Inclusion Criteria", length(inclusion_criteria)),
                  rep("Exclusion Criteria", length(exclusion_criteria))),
-      IECAT = "",
+      IECAT = c(rep("Inclusion", length(inclusion_criteria)),
+                rep("Exclusion", length(exclusion_criteria))),
       IESCAT = "",
       IEORRES = sapply(c(inclusion_criteria, exclusion_criteria), truncate_and_clean_ieorres),
       stringsAsFactors = FALSE
@@ -351,4 +353,4 @@ create_ti_domain_api <- function(study_id, nct_id, output_dir) {
     print(content(response, "text", encoding = "UTF-8"))
     stop(e)
   })
-}
+}\

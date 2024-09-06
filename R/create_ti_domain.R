@@ -49,6 +49,178 @@ create_ti_domain <- function(study_id, method, pdf_path = NULL, nct_id = NULL,
                              incl_range = NULL, excl_range = NULL,
                              incl_section = NULL, excl_section = NULL, end_section = NULL,
                              output_dir = getwd()) {
+
+  remove_introductory_text <- function(text) {
+  # Define dynamic patterns for both inclusion and exclusion criteria introductory text
+  intro_patterns <- c(
+    "(?i)Inclusion\\s*Criteria", 
+    "(?i)Exclusion\\s*Criteria", 
+    "(?i)Patients\\s*(must|should)\\s*(meet|satisfy|fulfill)\\s*the\\s*following\\s*(criteria|requirements)\\s*(for\\s*study\\s*entry|to\\s*participate):?",
+    "(?i)Eligibility\\s*(Criteria|Requirements)\\s*(for|to)\\s*(Study\\s*Entry|Participation):?",
+    "(?i)Patients\\s*(who\\s*meet\\s*any|that\\s*meet\\s*the\\s*following|eligible\\s*for|who\\s*meet\\s*the\\s*criteria)\\s*will\\s*be\\s*(excluded\\s*from|included\\s*in)\\s*the\\s*study\\s*(entry|participation):?",
+    "(?i)To\\s*be\\s*(eligible|included),\\s*patients\\s*must\\s*(meet|satisfy|fulfill)\\s*the\\s*(following\\s*)?(criteria|requirements):?",
+    "(?i)(Key|Main|Primary)\\s*(inclusion|exclusion)\\s*(criteria|requirements):?"
+  )
+  
+  # Dynamically identify and remove any introductory text matching the above patterns
+  for (pattern in intro_patterns) {
+    text <- gsub(pattern, "", text)
+  }
+  
+  # Preserve the newlines and original structure of the text
+  text <- gsub("\\s*\\n\\s*", "\n", text)  # Ensure newlines are preserved between criteria
+  
+  # Remove any redundant leading punctuation or spaces
+  text <- gsub("^[\\s,;:.\\-]+", "", text)  # Clean up leading punctuation
+  
+  # Remove any redundant spaces within the text (but not newlines)
+  text <- str_replace_all(text, "\\s{2,}", " ") # Replace multiple spaces with a single space
+  text <- str_trim(text) # Trim leading and trailing spaces
+
+  return(text)
+}
+remove_bullet_points <- function(text) {
+  # Remove common bullet points or similar characters like • or 
+  text <- gsub("^[•-]+\\s*", "", text)
+  
+  # You can add other special characters to remove if necessary
+  return(text)
+}
+
+
+  # Internal function: extract_ti_domain
+  extract_ti_domain <- function(study_id, pdf_path, incl_range, excl_range, incl_section, excl_section, end_section) {
+    # Check if the protocol PDF file exists
+    if (!file.exists(pdf_path)) {
+      warning("The protocol PDF file is missing. Please ensure the file is named correctly.")
+      return(NULL)
+    }
+
+    # Extract text from the specified page ranges of the PDF
+    pdf_text <- pdftools::pdf_text(pdf_path)
+    inclusion_text <- paste(pdf_text[incl_range], collapse = "\n")
+    exclusion_text <- paste(pdf_text[excl_range], collapse = "\n")
+
+    # Clean the inclusion and exclusion text
+    inclusion_text <- replace_special_chars_and_trim(inclusion_text)
+    exclusion_text <- replace_special_chars_and_trim(exclusion_text)
+
+    # Extract Inclusion and Exclusion Criteria
+    inclusion_start <- str_locate(inclusion_text, incl_section)[1, 2]
+    exclusion_start <- str_locate(inclusion_text, excl_section)[1, 1]
+    
+    if (is.na(inclusion_start) | is.na(exclusion_start)) {
+      stop("Section headers for inclusion or exclusion were not found in the text.")
+    }
+    
+    inclusion_text <- str_sub(inclusion_text, inclusion_start + 1, exclusion_start - 1)
+
+    exclusion_start <- str_locate(exclusion_text, excl_section)[1, 2]
+    end_section_pattern <- paste0("\\n", gsub("\\.", "\\\\.", end_section))
+    exclusion_end <- str_locate(exclusion_text, end_section_pattern)[1, 1]
+    exclusion_text <- if (!is.na(exclusion_end)) {
+      str_sub(exclusion_text, exclusion_start + 1, exclusion_end - 1)
+    } else {
+      str_sub(exclusion_text, exclusion_start + 1)
+    }
+
+    # Handle bullet points and split criteria
+    inclusion_text <- str_replace_all(inclusion_text, "", "\n")
+    exclusion_text <- str_replace_all(exclusion_text, "", "\n")
+
+    # After extracting the inclusion and exclusion text
+    inclusion_text <- remove_introductory_text(inclusion_text)
+    inclusion_text <- remove_bullet_points(inclusion_text)
+
+    exclusion_text <- remove_introductory_text(exclusion_text)
+    exclusion_text <- remove_bullet_points(exclusion_text)
+
+    inclusion_criteria <- str_trim(unlist(str_split(inclusion_text, "\n")))
+    exclusion_criteria <- str_trim(unlist(str_split(exclusion_text, "\n")))
+
+    # Remove empty strings
+    inclusion_criteria <- inclusion_criteria[inclusion_criteria != ""]
+    exclusion_criteria <- exclusion_criteria[exclusion_criteria != ""]
+    
+    # Handle text length exceeding 200 characters
+    inclusion_criteria <- sapply(inclusion_criteria, handle_text_length, max_length = 200)
+    exclusion_criteria <- sapply(exclusion_criteria, handle_text_length, max_length = 200)
+    
+    # Return the results
+    return(list(inclusion = inclusion_criteria, exclusion = exclusion_criteria))
+  }
+
+  # Internal helper function: replace_special_chars_and_trim
+replace_special_chars_and_trim <- function(text) {
+    # Replace common scientific symbols
+    text <- str_replace_all(text, "", ">=")    # Greater than or equal to
+    text <- str_replace_all(text, "", "<=")    # Less than or equal to
+    text <- str_replace_all(text, "", "<")     # Less than
+    text <- str_replace_all(text, "", ">")     # Greater than
+    text <- str_replace_all(text, "", "-")     # Dash
+    text <- str_replace_all(text, "×", "x")     # Multiplication sign
+    text <- str_replace_all(text, "−", "-")     # Minus sign
+    text <- str_replace_all(text, "°", " degrees")  # Degrees symbol
+    text <- str_replace_all(text, "µ", "u")     # Micro symbol (µ -> u)
+    text <- str_replace_all(text, "±", "+/-")
+    text <- str_replace_all(text, "≥", ">=")
+    text <- str_replace_all(text, "≤", "<=")
+    text <- str_replace_all(text, "≠", "!=")
+    text <- str_replace_all(text, "µ", "micro")
+    text <- str_replace_all(text, "Δ", "Delta")
+    text <- str_replace_all(text, "≈", "~")
+    text <- str_replace_all(text, "∞", "infinity")
+    text <- str_replace_all(text, "×", "*")
+    text <- str_replace_all(text, "√", "sqrt")
+    text <- str_replace_all(text, "∑", "sum")
+    text <- str_replace_all(text, "∫", "integral")
+    text <- str_replace_all(text, "ℓ", "L")  # For liter
+      # Replace superscripts (¹²³ etc.)
+    text <- str_replace_all(text, "¹", "^1")
+    text <- str_replace_all(text, "²", "^2")
+    text <- str_replace_all(text, "³", "^3")
+    
+    # Replace subscripts (₀₁₂ etc.)
+    text <- str_replace_all(text, "₀", "_0")
+    text <- str_replace_all(text, "₁", "_1")
+    text <- str_replace_all(text, "₂", "_2")
+    text <- str_replace_all(text, "₃", "_3")
+    text <- str_replace_all(text, "₄", "_4")
+    text <- str_replace_all(text, "₅", "_5")
+    text <- str_replace_all(text, "₆", "_6")
+    text <- str_replace_all(text, "₇", "_7")
+    text <- str_replace_all(text, "₈", "_8")
+    text <- str_replace_all(text, "₉", "_9")
+    
+    # Handle scientific notation (e.g., 1 × 10^6)
+    text <- str_replace_all(text, "×\\s*10\\^", "x10^")
+    
+    # Clean spaces
+    text <- str_replace_all(text, "\\s{2,}", " ") # Replace multiple spaces with a single space
+    text <- str_trim(text) # Trim leading and trailing spaces
+    
+    return(text)
+}
+
+
+  # Internal helper function: handle_text_length
+  handle_text_length <- function(text, max_length = 200) {
+    suffix <- "(As per the protocol)"
+    suffix_length <- nchar(suffix)
+    if (nchar(text) > (max_length - suffix_length)) {
+      truncated_text <- str_sub(text, 1, max_length - suffix_length - 1)
+      last_space <- str_locate_all(truncated_text, " ")[[1]]
+      if (!is.null(last_space) && nrow(last_space) > 0) {
+        last_space_position <- last(last_space[, 1])
+        text <- str_sub(truncated_text, 1, last_space_position - 1)
+      }
+      text <- paste0(text, " ", suffix)
+    }
+    return(text)
+  }
+
+  # Main logic of create_ti_domain continues here...
+  
   if (method == "pdf") {
     if (is.null(pdf_path) || is.null(incl_range) || is.null(excl_range) ||
         is.null(incl_section) || is.null(excl_section) || is.null(end_section)) {
@@ -57,26 +229,37 @@ create_ti_domain <- function(study_id, method, pdf_path = NULL, nct_id = NULL,
     if (!file.exists(pdf_path)) {
       stop("The specified PDF file does not exist: ", pdf_path)
     }
-    result <- create_ti_domain_pdf(study_id, pdf_path, incl_range, excl_range, incl_section, excl_section, end_section, output_dir)
     
-    # Print debugging information
-    cat(result$debug_info)
+    # Call internal extract_ti_domain when necessary
+    result <- extract_ti_domain(study_id, pdf_path, incl_range, excl_range, incl_section, excl_section, end_section)
     
-    if (length(result$ti_domain) == 0) {
+    if (is.null(result$inclusion) || is.null(result$exclusion)) {
       stop("No inclusion or exclusion criteria found.")
     }
+
+    # Process the result and generate the TI domain as before
+    ti_domain <- data.frame(
+      STUDYID = study_id,
+      DOMAIN = "TI",
+      IETESTCD = c(paste0("INCL", seq_along(result$inclusion)), paste0("EXCL", seq_along(result$exclusion))),
+      IETEST = c(rep("Inclusion Criteria", length(result$inclusion)), rep("Exclusion Criteria", length(result$exclusion))),
+      # IECAT = c(rep("Inclusion", length(result$inclusion)), rep("Exclusion", length(result$exclusion))),
+      IECAT = " ",
+      IESCAT = " ",
+      IEORRES = c(result$inclusion, result$exclusion),
+      stringsAsFactors = FALSE
+    )
     
-    return(result$ti_domain)
-  } else if (method == "api") {
-    if (is.null(nct_id)) {
-      stop("For API method, nct_id must be provided.")
-    }
-    ti_domain <- create_ti_domain_api(study_id, nct_id, output_dir)
+    # Save to Excel
+    excel_file <- file.path(output_dir, paste0(study_id, "_TI.xlsx"))
+    openxlsx::write.xlsx(ti_domain, excel_file)
+    
     return(ti_domain)
-  } else {
-    stop("Invalid method. Choose either 'pdf' or 'api'.")
   }
+  
+  # API method logic can go here if needed...
 }
+
 
 create_ti_domain_pdf <- function(study_id, pdf_path, incl_range, excl_range, incl_section, excl_section, end_section, output_dir) {
   debug_info <- ""
@@ -96,11 +279,38 @@ create_ti_domain_pdf <- function(study_id, pdf_path, incl_range, excl_range, inc
       debug_info <- paste0(debug_info, sprintf("%d. %s\n", i, footnotes[i]))
     }
     
-    inclusion_text <- cleaned_text[which(pages_to_process %in% incl_range)]
-    exclusion_text <- cleaned_text[which(pages_to_process %in% excl_range)]
-    
-    debug_info <- paste0(debug_info, "Inclusion text sample: ", substr(inclusion_text[[1]]$text, 1, 500), "...\n")
-    debug_info <- paste0(debug_info, "Exclusion text sample: ", substr(exclusion_text[[1]]$text, 1, 500), "...\n")
+# Detect bullet points or numbered lists for inclusion criteria
+    inclusion_result <- if (grepl("•|\\d+\\.|–", inclusion_text)) {
+      extract_ti_domain(
+        study_id = study_id, 
+        pdf_path = pdf_path, 
+        incl_range = incl_range, 
+        excl_range = excl_range, 
+        incl_section = incl_section, 
+        excl_section = excl_section, 
+        end_section = end_section
+      )
+    } else {
+      extract_criteria(inclusion_text, incl_section, excl_section, footnotes)
+    }
+
+    # Detect bullet points or numbered lists for exclusion criteria
+    exclusion_result <- if (grepl("•|\\d+\\.|–", exclusion_text)) {
+      extract_ti_domain(
+        study_id = study_id, 
+        pdf_path = pdf_path, 
+        incl_range = incl_range, 
+        excl_range = excl_range, 
+        incl_section = incl_section, 
+        excl_section = excl_section, 
+        end_section = end_section
+      )
+    } else {
+      extract_criteria(exclusion_text, excl_section, end_section, footnotes)
+    }
+
+    debug_info <- paste0(debug_info, "Inclusion criteria extraction debug info:\n", inclusion_result$debug_info)
+    debug_info <- paste0(debug_info, "Exclusion criteria extraction debug info:\n", exclusion_result$debug_info)
     
     inclusion_result <- extract_criteria(inclusion_text, incl_section, excl_section, footnotes)
     exclusion_result <- extract_criteria(exclusion_text, excl_section, end_section, footnotes)
@@ -113,19 +323,22 @@ create_ti_domain_pdf <- function(study_id, pdf_path, incl_range, excl_range, inc
       return(list(ti_domain = data.frame(), debug_info = debug_info))
     }
     
-    ti_domain <- data.frame(
-      STUDYID = study_id,
-      DOMAIN = "TI",
-      IETESTCD = c(paste0("INCL", sprintf("%03d", seq_along(inclusion_result$criteria))),
-                   paste0("EXCL", sprintf("%03d", seq_along(exclusion_result$criteria)))),
-      IETEST = c(rep("Inclusion Criteria", length(inclusion_result$criteria)),
-                 rep("Exclusion Criteria", length(exclusion_result$criteria))),
-      IECAT = c(rep("Inclusion", length(inclusion_result$criteria)),
-                rep("Exclusion", length(exclusion_result$criteria))),
-      IESCAT = ifelse(c(inclusion_result$subcategories, exclusion_result$subcategories) == "", NA, c(inclusion_result$subcategories, exclusion_result$subcategories)),
-      IEORRES = c(inclusion_result$criteria, exclusion_result$criteria),
-      stringsAsFactors = FALSE
-    )
+    # Process the result and generate the TI domain
+ti_domain <- data.frame(
+  STUDYID = study_id,
+  DOMAIN = "TI",
+  IETESTCD = c(paste0("INCL", seq_along(result$inclusion)), paste0("EXCL", seq_along(result$exclusion))),
+  IETEST = c(rep("Inclusion Criteria", length(inclusion_result$criteria)),
+             rep("Exclusion Criteria", length(exclusion_result$criteria))),
+  IECAT = ifelse(c(inclusion_result$subcategories, exclusion_result$subcategories) == "", "", 
+                 c(rep("Inclusion", length(inclusion_result$criteria)), 
+                   rep("Exclusion", length(exclusion_result$criteria)))),
+  IESCAT = ifelse(c(inclusion_result$subcategories, exclusion_result$subcategories) == "", NA, 
+                  c(inclusion_result$subcategories, exclusion_result$subcategories)),
+  IEORRES = c(inclusion_result$criteria, exclusion_result$criteria),
+  stringsAsFactors = FALSE
+)
+
     
     # Remove footnote patterns from IEORRES
     ti_domain$IEORRES <- remove_footnote_patterns(ti_domain$IEORRES, footnotes)

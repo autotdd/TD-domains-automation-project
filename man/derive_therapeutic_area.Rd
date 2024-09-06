@@ -4,7 +4,7 @@
 \alias{derive_therapeutic_area}
 \title{Derive Therapeutic Area}
 \usage{
-derive_therapeutic_area(condition, interventions)
+derive_therapeutic_area(df)
 }
 \arguments{
 \item{condition}{The condition being studied.}

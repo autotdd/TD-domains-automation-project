@@ -2,20 +2,19 @@
 % Please edit documentation in R/create_ti_domain.R
 \name{create_ti_domain_api}
 \alias{create_ti_domain_api}
-\title{Create TI Domain using API method}
+\title{Create TI Domain from API}
 \usage{
 create_ti_domain_api(study_id, nct_id, output_dir)
 }
 \arguments{
-\item{study_id}{A character string specifying the study ID.}
+\item{study_id}{A character string representing the Study ID.}
 
-\item{nct_id}{NCT ID for the study.}
-
-\item{output_dir}{Directory to save the output Excel file.}
+\item{nct_id}{A character string representing the NCT ID.}
 }
 \value{
-A data frame containing the TI domain information.
+A data frame representing the TI domain.
 }
 \description{
-Create TI Domain using API method
+This function creates the TI domain by extracting inclusion and exclusion criteria from ClinicalTrials.gov API.
 }
+\keyword{internal}

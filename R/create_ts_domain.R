@@ -140,7 +140,7 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     TSPARMCD = "TRT",
     TSPARM = "Planned Treatment",
     TSVAL = toupper(treatments),
-    TSVALCD = "TRT",
+    TSVALCD = "",
     stringsAsFactors = FALSE
   )
 
@@ -171,6 +171,16 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
       assign(df_name, df[, desired_columns])
     }
 
+   # Extract lastUpdatePostDateStruct from JSON
+    json_file <- file.path(output_dir, "json", paste0("study_info_", nct_ids[1], ".json"))
+    if (file.exists(json_file)) {
+      study_info <- jsonlite::fromJSON(json_file)
+      last_update_date <- study_info$protocolSection$statusModule$lastUpdatePostDateStruct$date[1]
+    } else {
+      last_update_date <- NA
+      if(debug) cat("JSON file not found:", json_file, "\n")
+    }
+
     # Combine all rows
     ts_summary <- rbind(ts_summary, treatment_rows, country_rows)
 
@@ -197,6 +207,7 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     ts_summary <- ts_summary %>%
       arrange(factor(TSPARMCD, levels = tsparmcd_order))
 
+
     # Remove the original horizontal TRT record
     ts_summary <- ts_summary[!(ts_summary$TSPARMCD == "TRT" & grepl(",", ts_summary$TSVAL)), ]
 
@@ -204,26 +215,80 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     ts_summary <- ts_summary %>%
       group_by(TSPARMCD) %>%
       mutate(TSSEQ = row_number()) %>%
-    ungroup()
+      ungroup()
 
+    # Populate TSVCDREF with "ClinicalTrials.gov" when TSVAL is not empty or NA
+    ts_summary <- ts_summary %>%
+      mutate(TSVCDREF = ifelse(!is.na(TSVAL) & TSVAL != "", "ClinicalTrials.gov", NA))
 
-    if(debug) {
-      cat("Final TS summary:\n")
-      print(ts_summary)
+    # Populate TSVCDREF with "ClinicalTrials.gov" when TSVAL is not empty or NA
+    # and populate TSVCDVER with the lastUpdatePostDateStruct date
+    ts_summary <- ts_summary %>%
+      mutate(TSVCDVER = ifelse(!is.na(TSVAL) & TSVAL != "" , last_update_date, NA))
+
+    # Set TSVALNF to 'PINF' when TSPARMCD is AGEMAX and TSVAL is missing
+    ts_summary <- ts_summary %>%
+      mutate(TSVALNF = ifelse(TSPARMCD == "AGEMAX" & (is.na(TSVAL) | TSVAL == ""), "PINF", TSVALNF))
+
+    # Function to truncate text and add suffix
+    truncate_text <- function(text, max_length = 200, suffix = " (As Per the Protocol)") {
+      if (is.na(text) || is.null(text) || text == "") {
+        return(text)  # Return the original value if it's NA, NULL, or an empty string
+      }
+      if (nchar(text) > max_length) {
+        truncated <- substr(text, 1, max_length - nchar(suffix))
+        return(paste0(truncated, suffix))
+      }
+      return(text)
     }
 
+    # Apply truncation to TSVAL
+    ts_summary <- ts_summary %>%
+      mutate(TSVAL = sapply(TSVAL, truncate_text))
+      
+    if(debug) {
+      cat("Final TS summary:\n")
+      print(head(ts_summary))
+      cat("Number of rows in ts_summary:", nrow(ts_summary), "\n")
+    }
+
+    # Write to Excel with minimal formatting
     output_file <- file.path(output_dir, paste0(study_id, "_TS.xlsx"))
-    wb <- openxlsx::createWorkbook()
-    openxlsx::addWorksheet(wb, "TS")
-    openxlsx::writeData(wb, "TS", ts_summary)
-    openxlsx::setColWidths(wb, "TS", cols = 1:ncol(ts_summary), widths = "auto")
+    
+    if(debug) cat("Attempting to write to:", output_file, "\n")
 
-    # Apply text wrapping to all cells
-    style <- openxlsx::createStyle(wrapText = TRUE)
-    openxlsx::addStyle(wb, "TS", style = style, rows = 1:(nrow(ts_summary) + 1), cols = 1:ncol(ts_summary), gridExpand = TRUE)
+    tryCatch({
+      wb <- openxlsx::createWorkbook()
+      openxlsx::addWorksheet(wb, "TS")
+      
+      if(debug) cat("Worksheet added\n")
 
-    openxlsx::saveWorkbook(wb, output_file, overwrite = TRUE)
-    if(debug) cat("Output written to:", output_file, "\n")
+      # Write data
+      openxlsx::writeData(wb, "TS", ts_summary)
+      
+      if(debug) cat("Data written to worksheet\n")
+
+      # Set column widths
+      openxlsx::setColWidths(wb, "TS", cols = 1:ncol(ts_summary), widths = "auto")
+      
+      if(debug) cat("Column widths set\n")
+
+      # Save workbook
+      openxlsx::saveWorkbook(wb, output_file, overwrite = TRUE)
+      
+      if(debug) cat("Workbook saved\n")
+    }, error = function(e) {
+      cat("Error in Excel writing process:", conditionMessage(e), "\n")
+    })
+
+    if(debug) {
+      if(file.exists(output_file)) {
+        cat("File successfully created at:", output_file, "\n")
+        cat("File size:", file.size(output_file), "bytes\n")
+      } else {
+        cat("File was not created at:", output_file, "\n")
+      }
+    }
 
     return(ts_summary)
   }, error = function(e) {
@@ -614,7 +679,7 @@ define_ts_mapping <- function() {
           unique_countries <- unique(locations$country)
           unique_countries <- unique_countries[!is.na(unique_countries) & unique_countries != ""]
           if (length(unique_countries) > 0) {
-            return(unique_countries)
+            return(toupper(unique_countries))
           }
         }
         return(NA_character_)

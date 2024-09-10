@@ -14,18 +14,18 @@
 #' @importFrom openxlsx read.xlsx
 #' @examples
 #' \dontrun{
-#'  #Get the path for the Als_file.xlsx excel file
+#'  #Get the path for the Als_file excel file
 #' file_path <- system.file("extdata", "Als_file.xlsx", package = "autoTDD")
 #'
 #' tv_domain <- create_tv_domain(
 #'   study_id ="AB12345",
-#'   als_path = file_path
+#'   file_path = file_path
 #'   )
 #'
 #' print(head(tv_domain))
 #' }
 
-create_tv_domain <- function(study_id , als_path = NULL , output_dir = getwd())
+create_tv_domain <- function(study_id , file_path = NULL , output_dir = getwd())
 {
 
   # to check the Study number's length
@@ -74,7 +74,7 @@ create_tv_domain <- function(study_id , als_path = NULL , output_dir = getwd())
 
 
   data1 <- data %>% select (c("FolderName" ,"Ordinal", "Targetdays", "OverDueDays"))  %>%
-    filter(!(is.na(Targetdays))  | (grepl("Treatment Discontinuation", FolderName, ignore.case = FALSE)) )  %>%
+    filter(!(is.na(Targetdays))  | (grepl("Treatment Discontinuation", FolderName, ignore.case = TRUE)) )  %>%
     mutate(t_day = as.numeric(Targetdays)  )  %>%
     mutate(seq_ord = as.numeric(Ordinal)  )  %>%
     arrange(seq_ord, t_day , FolderName)
@@ -114,6 +114,8 @@ create_tv_domain <- function(study_id , als_path = NULL , output_dir = getwd())
 
   data3$VISIT[(grepl("Treatment Discontinuation", data3$VISIT, ignore.case = TRUE)) ] <- 'Treatment Discontinuation'
 
+  data3$VISITDY[(grepl("Treatment Discontinuation", data3$VISIT, ignore.case = TRUE) ) ] <- NA
+
   data3$TVSTRL[(grepl("Treatment Discontinuation", data3$VISIT, ignore.case = TRUE)) ] <- '30 Days from final dose'
 
   tv_domain <- data3 %>% select(-due_day)
@@ -140,4 +142,11 @@ create_tv_domain <- function(study_id , als_path = NULL , output_dir = getwd())
 
 
 }
+
+ file_path <- system.file("extdata", "Als_file.xlsx", package = "autoTDD")
+
+tv_domain <- create_tv_domain(
+  study_id ="AB12345",
+file_path = file_path
+  )
 

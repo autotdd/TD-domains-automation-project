@@ -10,8 +10,6 @@ save_ti_domain_to_excel(ti_domain, study_id, output_dir)
 \item{ti_domain}{A data frame representing the TI domain.}
 
 \item{study_id}{A character string representing the Study ID.}
-
-\item{output_dir}{A character string representing the output directory.}
 }
 \description{
 This function saves the TI domain data frame to an Excel file with formatting.

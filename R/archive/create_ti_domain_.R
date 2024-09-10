@@ -50,7 +50,83 @@ create_ti_domain <- function(study_id, method, pdf_path = NULL, nct_id = NULL,
                              incl_section = NULL, excl_section = NULL, end_section = NULL,
                              output_dir = getwd()) {
 
-  remove_introductory_text <- function(text) {
+  # Function to detect if bullet points are present in text
+  detect_bullet_points <- function(text) {
+    bullet_patterns <- c("^•", "^", "^\\d+\\.|^\\d+\\)", "^\\([a-zA-Z]\\)", "^[a-zA-Z]\\.")
+    for (pattern in bullet_patterns) {
+      if (grepl(pattern, text)) {
+        return(TRUE)
+      }
+    }
+    return(FALSE)
+  }
+
+  # Internal function: process PDF with extract_ti_domain logic
+  process_ti_with_bullets <- function() {
+    # Call extract_ti_domain for PDF method with bullet points
+    result <- extract_ti_domain(study_id, pdf_path, incl_range, excl_range, incl_section, excl_section, end_section)
+    if (is.null(result$inclusion) || is.null(result$exclusion)) {
+      stop("No inclusion or exclusion criteria found with bullet points.")
+    }
+
+    ti_domain <- data.frame(
+      STUDYID = study_id,
+      DOMAIN = "TI",
+      IETESTCD = c(paste0("INCL", seq_along(result$inclusion)), paste0("EXCL", seq_along(result$exclusion))),
+      IETEST = c(rep("Inclusion Criteria", length(result$inclusion)), rep("Exclusion Criteria", length(result$exclusion))),
+      IECAT = " ",
+      IESCAT = " ",
+      IEORRES = c(result$inclusion, result$exclusion),
+      stringsAsFactors = FALSE
+    )
+    
+    # Save the TI domain as Excel
+    excel_file <- file.path(output_dir, paste0(study_id, "_TI.xlsx"))
+    openxlsx::write.xlsx(ti_domain, excel_file)
+    
+    return(ti_domain)
+  }
+
+  # Internal function: process PDF with create_ti_domain_pdf logic
+  process_ti_without_bullets <- function() {
+    result <- create_ti_domain_pdf(study_id, pdf_path, incl_range, excl_range, incl_section, excl_section, end_section, output_dir)
+    
+    if (length(result$ti_domain) == 0) {
+      stop("No inclusion or exclusion criteria found without bullet points.")
+    }
+    
+    return(result$ti_domain)
+  }
+
+  # Main logic starts here
+  if (method == "pdf") {
+    if (is.null(pdf_path) || is.null(incl_range) || is.null(excl_range) ||
+        is.null(incl_section) || is.null(excl_section) || is.null(end_section)) {
+      stop("For PDF method, pdf_path, incl_range, excl_range, incl_section, excl_section, and end_section must be provided.")
+    }
+    if (!file.exists(pdf_path)) {
+      stop("The specified PDF file does not exist: ", pdf_path)
+    }
+    
+    # Extract text from the PDF and detect if bullet points are used in the inclusion criteria
+    pdf_text <- pdftools::pdf_text(pdf_path)
+    inclusion_text <- paste(pdf_text[incl_range], collapse = "\n")
+    exclusion_text <- paste(pdf_text[excl_range], collapse = "\n")
+
+    # Check for bullet points in either inclusion or exclusion text
+    if (detect_bullet_points(inclusion_text) || detect_bullet_points(exclusion_text)) {
+      # Use extract_ti_domain for bullet points
+      return(process_ti_with_bullets())
+    } else {
+      # Use create_ti_domain_pdf for non-bullet point formatted text
+      return(process_ti_without_bullets())
+    }
+
+  } 
+}
+
+
+remove_introductory_text <- function(text) {
   # Define dynamic patterns for both inclusion and exclusion criteria introductory text
   intro_patterns <- c(
     "(?i)Inclusion\\s*Criteria", 
@@ -218,48 +294,6 @@ replace_special_chars_and_trim <- function(text) {
     }
     return(text)
   }
-
-  # Main logic of create_ti_domain continues here...
-  
-  if (method == "pdf") {
-    if (is.null(pdf_path) || is.null(incl_range) || is.null(excl_range) ||
-        is.null(incl_section) || is.null(excl_section) || is.null(end_section)) {
-      stop("For PDF method, pdf_path, incl_range, excl_range, incl_section, excl_section, and end_section must be provided.")
-    }
-    if (!file.exists(pdf_path)) {
-      stop("The specified PDF file does not exist: ", pdf_path)
-    }
-    
-    # Call internal extract_ti_domain when necessary
-    result <- extract_ti_domain(study_id, pdf_path, incl_range, excl_range, incl_section, excl_section, end_section)
-    
-    if (is.null(result$inclusion) || is.null(result$exclusion)) {
-      stop("No inclusion or exclusion criteria found.")
-    }
-
-    # Process the result and generate the TI domain as before
-    ti_domain <- data.frame(
-      STUDYID = study_id,
-      DOMAIN = "TI",
-      IETESTCD = c(paste0("INCL", seq_along(result$inclusion)), paste0("EXCL", seq_along(result$exclusion))),
-      IETEST = c(rep("Inclusion Criteria", length(result$inclusion)), rep("Exclusion Criteria", length(result$exclusion))),
-      # IECAT = c(rep("Inclusion", length(result$inclusion)), rep("Exclusion", length(result$exclusion))),
-      IECAT = " ",
-      IESCAT = " ",
-      IEORRES = c(result$inclusion, result$exclusion),
-      stringsAsFactors = FALSE
-    )
-    
-    # Save to Excel
-    excel_file <- file.path(output_dir, paste0(study_id, "_TI.xlsx"))
-    openxlsx::write.xlsx(ti_domain, excel_file)
-    
-    return(ti_domain)
-  }
-  
-  # API method logic can go here if needed...
-}
-
 
 create_ti_domain_pdf <- function(study_id, pdf_path, incl_range, excl_range, incl_section, excl_section, end_section, output_dir) {
   debug_info <- ""

@@ -140,13 +140,6 @@ create_tv_domain <- function(study_id , file_path = NULL , output_dir = getwd())
   print(tv_domain)
   return(tv_domain)
 
-
 }
 
- file_path <- system.file("extdata", "Als_file.xlsx", package = "autoTDD")
-
-tv_domain <- create_tv_domain(
-  study_id ="AB12345",
-file_path = file_path
-  )
 

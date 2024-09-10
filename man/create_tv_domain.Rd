@@ -4,7 +4,7 @@
 \alias{create_tv_domain}
 \title{Create TV Domain}
 \usage{
-create_tv_domain(study_id, als_path = NULL, output_dir = getwd())
+create_tv_domain(study_id, file_path = NULL, output_dir = getwd())
 }
 \arguments{
 \item{study_id}{A character string representing the Study ID.}
@@ -22,12 +22,12 @@ It will help to create VISIT related information in the TV data set.
 }
 \examples{
 \dontrun{
- #Get the path for the Als_file.xlsx excel file
+ #Get the path for the Als_file excel file
 file_path <- system.file("extdata", "Als_file.xlsx", package = "autoTDD")
 
 tv_domain <- create_tv_domain(
   study_id ="AB12345",
-  als_path = file_path
+  file_path = file_path
   )
 
 print(head(tv_domain))

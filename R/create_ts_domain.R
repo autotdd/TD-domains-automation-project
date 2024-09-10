@@ -68,6 +68,7 @@ fetch_study_info_v2 <- function(nct_ids, debug = FALSE) {
 #'
 #' @return A data frame containing the TS domain data
 #' @export
+
 create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FALSE) {
   tryCatch({
     if(debug) cat("Starting create_ts_domain function\n")
@@ -109,11 +110,7 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
       if (param %in% names(ts_mapping)) {
         if(debug) cat("Processing parameter:", param, "\n")
         
-        if (param == "TTYPE" || param == "THERAREA") {
-          mapped_values <- NA_character_
-        } else {
-          mapped_values <- ts_mapping[[param]](trial_data)
-        }
+        mapped_values <- ts_mapping[[param]](trial_data)
         
         if (length(mapped_values) > 0) {
           for (j in 1:length(mapped_values)) {
@@ -133,8 +130,82 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     # Update TSSEQ
     ts_summary$TSSEQ <- sequence(rle(as.character(ts_summary$TSPARMCD))$lengths)
 
-    ts_summary <- ts_summary[, !names(ts_summary) %in% "FDA.Desired"]
-    if(debug) cat("FDA.Desired column removed from ts_summary\n")
+  # Process treatments
+  all_treatments <- unique(unlist(strsplit(ts_summary$TSVAL[ts_summary$TSPARMCD == "TRT"], ", ")))
+  treatments <- all_treatments[all_treatments != ""]  # Remove any empty strings
+  treatment_rows <- data.frame(
+    STUDYID = study_id,
+    DOMAIN = "TS",
+    TSSEQ = seq_along(treatments),
+    TSPARMCD = "TRT",
+    TSPARM = "Planned Treatment",
+    TSVAL = toupper(treatments),
+    TSVALCD = "TRT",
+    stringsAsFactors = FALSE
+  )
+
+    # Process countries
+    countries <- unique(unlist(strsplit(ts_summary$TSVAL[ts_summary$TSPARMCD == "FCNTRY"], ", ")))
+    country_rows <- data.frame(
+      STUDYID = study_id,
+      DOMAIN = "TS",
+      TSSEQ = seq_along(countries),
+      TSPARMCD = "FCNTRY",
+      TSPARM = "Country",
+      TSVAL = toupper(countries),
+      TSVALCD = NA,
+      stringsAsFactors = FALSE
+    )
+
+    # Define the desired columns in the correct order
+    desired_columns <- c("STUDYID", "DOMAIN", "TSSEQ", "TSGRPID", "TSPARMCD", "TSPARM", "TSVAL", "TSVALNF", "TSVALCD", "TSVCDREF", "TSVCDVER")
+
+    # Ensure all data frames have the desired columns
+    for (df_name in c("ts_summary", "treatment_rows", "country_rows")) {
+      df <- get(df_name)
+      for (col in desired_columns) {
+        if (!(col %in% names(df))) {
+          df[[col]] <- NA
+        }
+      }
+      assign(df_name, df[, desired_columns])
+    }
+
+    # Combine all rows
+    ts_summary <- rbind(ts_summary, treatment_rows, country_rows)
+
+    # Convert TSVAL and TSVALCD to uppercase for comparison
+    ts_summary$TSVAL_upper <- toupper(ts_summary$TSVAL)
+    ts_summary$TSVALCD_upper <- toupper(ts_summary$TSVALCD)
+
+    # Remove duplicates based on uppercase TSVAL, TSVALCD, and TSPARMCD
+    ts_summary <- ts_summary %>%
+      distinct(TSVAL_upper, TSVALCD_upper, TSPARMCD, .keep_all = TRUE) %>%
+      select(-TSVAL_upper, -TSVALCD_upper)
+
+    # Make missing, NA, or <NA> values all missing
+    ts_summary$TSVAL[ts_summary$TSVAL %in% c("", "NA", "<NA>")] <- NA
+    ts_summary$TSVALCD[ts_summary$TSVALCD %in% c("", "NA", "<NA>")] <- NA
+    ts_summary$TSVALNF[ts_summary$TSVALNF %in% c("", "NA", "<NA>")] <- NA
+    ts_summary$TSVCDREF[ts_summary$TSVCDREF %in% c("", "NA", "<NA>")] <- NA
+    ts_summary$TSVCDVER[ts_summary$TSVCDVER %in% c("", "NA", "<NA>")] <- NA
+
+    # Reorder TSPARMCD based on the order in Trial_Summary.xlsx
+    ts_template <- openxlsx::read.xlsx(ts_file_path, sheet = "TS")
+    tsparmcd_order <- ts_template$TSPARMCD
+
+    ts_summary <- ts_summary %>%
+      arrange(factor(TSPARMCD, levels = tsparmcd_order))
+
+    # Remove the original horizontal TRT record
+    ts_summary <- ts_summary[!(ts_summary$TSPARMCD == "TRT" & grepl(",", ts_summary$TSVAL)), ]
+
+    # Reassign TSSEQ based on TSPARMCD
+    ts_summary <- ts_summary %>%
+      group_by(TSPARMCD) %>%
+      mutate(TSSEQ = row_number()) %>%
+    ungroup()
+
 
     if(debug) {
       cat("Final TS summary:\n")
@@ -558,7 +629,7 @@ define_ts_mapping <- function() {
       if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$eligibilityModule$minimumAge)) {
         min_age <- df[[1]]$protocolSection$eligibilityModule$minimumAge
         min_age <- as.numeric(gsub("[^0-9.]", "", min_age))
-        if (!is.na(min_age) && min_age < 18) {
+        if (!is.na(min_age) && min_age < 6) {
           return("Y")
         } else {
           return("N")

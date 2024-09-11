@@ -305,13 +305,12 @@ extract_section_text <- function(cleaned_pages, start_section, end_section, debu
 extract_criteria <- function(text, start_section, end_section, debug = FALSE) {
   if(debug) cat("Entering extract_criteria function\n")
   
-    # Ensure text is an atomic vector
+  # Ensure text is an atomic vector
   if (!is.atomic(text)) {
     if(debug) cat("Warning: text is not an atomic vector. Attempting to coerce.\n")
     text <- paste(unlist(text), collapse = "\n")
   }
   
-  # Use base R splitting function instead of stringr
   lines <- unlist(strsplit(text, "\n", fixed = TRUE))
   lines <- trimws(lines)
   
@@ -328,6 +327,7 @@ extract_criteria <- function(text, start_section, end_section, debug = FALSE) {
   criteria <- list()
   current_criterion <- NULL
   current_subsection <- NULL
+  main_marker_pattern <- NULL
   
   for (i in seq_along(lines)) {
     line <- lines[i]
@@ -352,13 +352,24 @@ extract_criteria <- function(text, start_section, end_section, debug = FALSE) {
         next
       }
       
-      # Check for new main criterion (bullet point or numbered list)
-      if (stringr::str_detect(line, "^\\s*(\uf0b7|\\d+\\.)")) {
+      # Detect main marker pattern if not already set
+      if (is.null(main_marker_pattern)) {
+        if (stringr::str_detect(line, "^\\s*[\uf0b7\u2022]")) {
+          main_marker_pattern <- "^\\s*[\uf0b7\u2022]"
+          if(debug) cat("Detected bullet point as main marker\n")
+        } else if (stringr::str_detect(line, "^\\s*\\d+\\.")) {
+          main_marker_pattern <- "^\\s*\\d+\\."
+          if(debug) cat("Detected numerical list as main marker\n")
+        }
+      }
+      
+      # Check for new main criterion
+      if (!is.null(main_marker_pattern) && stringr::str_detect(line, main_marker_pattern)) {
         if (!is.null(current_criterion)) {
           criteria <- c(criteria, list(current_criterion))
         }
         current_criterion <- list(
-          text = stringr::str_replace(line, "^\\s*(\uf0b7|\\d+\\.)\\s*", ""),
+          text = stringr::str_replace(line, main_marker_pattern, ""),
           subsection = current_subsection
         )
         state <- IN_CRITERION
@@ -397,6 +408,7 @@ extract_criteria <- function(text, start_section, end_section, debug = FALSE) {
   
   return(criteria)
 }
+
 #' Handle Text Length
 #'
 #' This function handles text exceeding a specified maximum length.
@@ -841,35 +853,32 @@ generate_ti_domain <- function(study_id, inclusion_criteria, exclusion_criteria,
 save_to_excel <- function(ti_domain, study_id, output_dir, debug = FALSE) {
   if(debug) cat("Entering save_to_excel function\n")
   
-  # Create the Excel workbook
+  # Create a new workbook
   wb <- openxlsx::createWorkbook()
   
   # Add a worksheet
-  openxlsx::addWorksheet(wb, "TI Domain")
+  openxlsx::addWorksheet(wb, "TI")
   
   # Write the data to the worksheet
-  openxlsx::writeData(wb, "TI Domain", ti_domain)
+  openxlsx::writeData(wb, "TI", ti_domain)
   
-  # Set column widths
-  col_widths <- c(15, 10, 15, 25, 15, 15, 100)  # Adjust these values as needed
-  openxlsx::setColWidths(wb, "TI Domain", cols = 1:7, widths = col_widths)
+  # Create a style for left alignment
+  left_style <- openxlsx::createStyle(halign = "left")
   
-  # Create and apply styles
-  header_style <- create_header_style(wb)
-  data_style <- create_data_style(wb)
+  # Apply the left-aligned style to all cells
+  openxlsx::addStyle(wb, "TI", style = left_style, rows = 1:(nrow(ti_domain) + 1), cols = 1:ncol(ti_domain), gridExpand = TRUE)
   
-  # Apply styles
-  openxlsx::addStyle(wb, "TI Domain", style = header_style, rows = 1, cols = 1:7)
-  openxlsx::addStyle(wb, "TI Domain", style = data_style, rows = 2:(nrow(ti_domain) + 1), cols = 1:7, gridExpand = TRUE)
+  # Set column widths (adjust as needed)
+  openxlsx::setColWidths(wb, "TI", cols = 1:ncol(ti_domain), widths = "auto")
   
-  # Create the output file path
+  # Create the file name
   file_name <- paste0(study_id, "_TI.xlsx")
   file_path <- file.path(output_dir, file_name)
   
   # Save the workbook
   openxlsx::saveWorkbook(wb, file_path, overwrite = TRUE)
   
-  if(debug) cat(sprintf("Excel file saved: %s\n", file_path))
+  if(debug) cat("Excel file saved:", file_path, "\n")
   if(debug) cat("Exiting save_to_excel function\n")
   
   return(file_path)

@@ -14,20 +14,19 @@
 #' @importFrom openxlsx read.xlsx
 #' @examples
 #' \dontrun{
+#'  #Get the path for the Als_file excel file
+#' file_path <- system.file("extdata", "Als_file.xlsx", package = "autoTDD")
+#'
 #' tv_domain <- create_tv_domain(
-#'   study_id ="AB12345")
+#'   study_id ="AB12345",
+#'   file_path = file_path
+#'   )
 #'
 #' print(head(tv_domain))
 #' }
 
-create_tv_domain <- function(study_id ,
-                             output_dir = getwd()) {
-
-  #  Get the path for the Als_file.xlsx excel file
-
-  file_path <- system.file("extdata", "Als_file.xlsx", package = "autoTDD")
-
-
+create_tv_domain <- function(study_id , file_path = NULL , output_dir = getwd())
+{
 
   # to check the Study number's length
   if (nchar(study_id) != 7 ) {
@@ -40,7 +39,7 @@ create_tv_domain <- function(study_id ,
   }
 
   # if file present then to check the file extension is xlsx or not
-  if (grepl("xlsx", file_path, ignore.case = FALSE)) {
+  if (grepl("xlsx", file_path, ignore.case = TRUE)) {
 
     cat("Xlsx file is present: ", file_path , "\n")
   } else {
@@ -60,11 +59,11 @@ create_tv_domain <- function(study_id ,
 
   # to check if the column names exists or not
 
-  if ( all(c("FolderName" , "Targetdays", "OverDueDays" ) %in% names(data)) ) {
-    print("Excel sheet contains required column names (FolderName , Targetdays, OverDueDays)")
+  if ( all(c("FolderName" ,"Ordinal", "Targetdays", "OverDueDays" ) %in% names(data)) ) {
+    print("Excel sheet contains required column names (FolderName , Ordinal, Targetdays, OverDueDays)")
   }
   else {
-    stop("Excel sheet does not have required column names (FolderName , Targetdays, OverDueDays)")
+    stop("Excel sheet does not have required column names (FolderName ,Ordinal, Targetdays, OverDueDays)")
   }
 
   # if Folders sheet present , all required columns present but there is no records
@@ -74,7 +73,11 @@ create_tv_domain <- function(study_id ,
   }
 
 
-  data1 <- data %>% select (c("FolderName" , "Targetdays", "OverDueDays"))  %>% filter(!(is.na(Targetdays))  | (grepl("Treatment Discontinuation", FolderName, ignore.case = FALSE)) )  %>% mutate(t_day = as.numeric(Targetdays))  %>% arrange(t_day , FolderName)
+  data1 <- data %>% select (c("FolderName" ,"Ordinal", "Targetdays", "OverDueDays"))  %>%
+    filter(!(is.na(Targetdays))  | (grepl("Treatment Discontinuation", FolderName, ignore.case = TRUE)) )  %>%
+    mutate(t_day = as.numeric(Targetdays)  )  %>%
+    mutate(seq_ord = as.numeric(Ordinal)  )  %>%
+    arrange(seq_ord, t_day , FolderName)
 
 
 
@@ -92,16 +95,28 @@ create_tv_domain <- function(study_id ,
     stringsAsFactors = FALSE
   )
 
+  data2 <- data2 %>%  arrange(VISITNUM)
 
-  data3 <- data2 %>% mutate (TVENRL =if_else(toupper(VISIT) == "SCREENING" , "One day before start of study drug" , "On the same day of visit")) %>%
+  #Assign the Visit day for Screening and Cycle 1 Day 1 if both have 0 target day in ALS file
+
+  data2$VISITDY[(grepl("SCREENING", data2$VISIT, ignore.case = TRUE) & data2$VISITDY == 0 ) ] <- -28
+
+  data2$VISITDY[(grepl("CYCLE 1 Day 1", data2$VISIT, ignore.case = TRUE) & data2$VISITDY == 0 ) ] <- 1
+
+
+  data3 <- data2 %>%  mutate (TVENRL =if_else(toupper(VISIT) == "SCREENING" , "One day before start of study drug" , "On the same day of visit")) %>%
     #  mutate (TVSTRL =if_else(toupper(VISIT) == "SCREENING" , "28 days prior to treatment" , "")) %>%
-    mutate( TVSTRL = if_else(VISITDY == 1 ,  paste("First dose of treatment phase +/-",data2$due_day,"days", sep =" "),  paste( data2$VISITDY,"Days +/-", data2$due_day, "days from Cycle 1 Day 1", sep =" ") ))
+    mutate( TVSTRL = if_else(VISITDY == 1 ,  paste("First dose of treatment phase +/-",data2$due_day,"days", sep =" "),  paste( data2$VISITDY,"Days +/-", data2$due_day, "days from Cycle 1 Day 1", sep =" ") ))  %>%
+    mutate( VISITDY = as.numeric(VISITDY) )
 
-  data3$TVSTRL[data3$VISITDY == -28 ] <- "28 days prior to treatment"
 
-  data3$VISIT[(grepl("Treatment Discontinuation", data3$VISIT, ignore.case = FALSE)) ] <- 'Treatment Discontinuation'
+  data3$TVSTRL[grepl("SCREENING", data2$VISIT, ignore.case = TRUE) & data3$VISITDY == -28 ] <- "Informed consent obtained"
 
-  data3$TVSTRL[(grepl("Treatment Discontinuation", data3$VISIT, ignore.case = FALSE)) ] <- '30 Days from final dose'
+  data3$VISIT[(grepl("Treatment Discontinuation", data3$VISIT, ignore.case = TRUE)) ] <- 'Treatment Discontinuation'
+
+  data3$VISITDY[(grepl("Treatment Discontinuation", data3$VISIT, ignore.case = TRUE) ) ] <- NA
+
+  data3$TVSTRL[(grepl("Treatment Discontinuation", data3$VISIT, ignore.case = TRUE)) ] <- '30 Days from final dose'
 
   tv_domain <- data3 %>% select(-due_day)
 
@@ -125,8 +140,6 @@ create_tv_domain <- function(study_id ,
   print(tv_domain)
   return(tv_domain)
 
-
 }
-
 
 

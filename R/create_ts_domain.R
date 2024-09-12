@@ -66,22 +66,34 @@ fetch_study_info_v2 <- function(nct_ids, debug = FALSE) {
 #' @param output_dir The output directory (default: current working directory)
 #' @param debug Boolean flag to enable debug mode (default: FALSE)
 #'
-#' @return A data frame containing the TS domain data
+#' @return A list containing the TS domain data frame and count information
 #' @export
 
 create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FALSE) {
   tryCatch({
-    if(debug) cat("Starting create_ts_domain function\n")
-
+    # Read the template file
     ts_file_path <- system.file("extdata", "Trial_Summary.xlsx", package = "autoTDD")
-    if(debug) cat("Looking for Trial_Summary.xlsx at:", ts_file_path, "\n")
+    ts_template <- openxlsx::read.xlsx(ts_file_path, sheet = "TS")
+    
+    # Count the number of rows in the template
+    template_row_count <- nrow(ts_template)
+    
+    # Create a base ts_summary with all TSPARAM/TSPARAMCD from the template
+    base_ts_summary <- ts_template %>%
+      select(TSPARMCD, TSPARM) %>%
+      mutate(
+        STUDYID = study_id,
+        DOMAIN = "TS",
+        TSSEQ = row_number(),
+        TSGRPID = NA_character_,
+        TSVAL = NA_character_,
+        TSVALNF = NA_character_,
+        TSVALCD = NA_character_,
+        TSVCDREF = NA_character_,
+        TSVCDVER = NA_character_
+      )
 
-    if (ts_file_path == "") {
-      stop("Trial_Summary.xlsx not found in package.")
-    }
-
-    ts_summary <- openxlsx::read.xlsx(ts_file_path, sheet = "TS")
-    if(debug) cat("Successfully read Trial_Summary.xlsx\n")
+    if(debug) cat("Starting create_ts_domain function\n")
 
     local_fetch_study_info <- fetch_study_info_v2
 
@@ -102,76 +114,106 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     ts_mapping <- define_ts_mapping()
     if(debug) cat("TS mapping defined\n")
 
-    # Initialize an empty list to store new rows
-    new_rows <- list()
-
-    for (i in 1:nrow(ts_summary)) {
-      param <- ts_summary$TSPARMCD[i]
-      if (param %in% names(ts_mapping)) {
-        if(debug) cat("Processing parameter:", param, "\n")
-        
-        mapped_values <- ts_mapping[[param]](trial_data)
-        
-        if (length(mapped_values) > 0) {
-          for (j in 1:length(mapped_values)) {
-            new_row <- ts_summary[i, ]
-            new_row$STUDYID <- study_id
-            new_row$DOMAIN <- "TS"
-            new_row$TSVAL <- as.character(mapped_values[j])
-            new_rows <- c(new_rows, list(new_row))
-          }
-        }
+    # Create a data frame with mapped values
+    mapped_data <- data.frame(TSPARMCD = character(), TSVAL = character(), stringsAsFactors = FALSE)
+    
+    for (param in names(ts_mapping)) {
+      mapped_values <- ts_mapping[[param]](trial_data)
+      if (length(mapped_values) > 0) {
+        mapped_data <- rbind(mapped_data, data.frame(TSPARMCD = rep(param, length(mapped_values)), 
+                                                     TSVAL = mapped_values, 
+                                                     stringsAsFactors = FALSE))
       }
     }
+    
+    # Merge mapped data with base_ts_summary
+    ts_summary <- merge(base_ts_summary, mapped_data, by = "TSPARMCD", all.x = TRUE)
+    
+    # Use TSVAL.y (mapped values) if available, otherwise keep TSVAL.x (NA)
+    ts_summary$TSVAL <- ifelse(is.na(ts_summary$TSVAL.y), ts_summary$TSVAL.x, ts_summary$TSVAL.y)
+    ts_summary$TSVAL.x <- ts_summary$TSVAL.y <- NULL
+    
+    # Ensure all TSPARAM and TSPARAMCD values from the template are included
+    missing_params <- setdiff(ts_template$TSPARMCD, ts_summary$TSPARMCD)
+    if (length(missing_params) > 0) {
+      missing_rows <- ts_template[ts_template$TSPARMCD %in% missing_params, ]
+      missing_rows$STUDYID <- study_id
+      missing_rows$DOMAIN <- "TS"
+      missing_rows$TSSEQ <- NA
+      missing_rows$TSGRPID <- NA_character_
+      missing_rows$TSVAL <- NA_character_
+      missing_rows$TSVALNF <- NA_character_
+      missing_rows$TSVALCD <- NA_character_
+      missing_rows$TSVCDREF <- NA_character_
+      missing_rows$TSVCDVER <- NA_character_
+      ts_summary <- rbind(ts_summary, missing_rows)
+    }
+    
+    # Sort according to the order in Trial_Summary.xlsx
+    tsparmcd_order <- unique(ts_template$TSPARMCD)  # Remove duplicates
+    
+    # Create a numeric index for sorting
+    ts_summary$sort_index <- match(ts_summary$TSPARMCD, tsparmcd_order)
+    
+    # Sort using the numeric index
+    ts_summary <- ts_summary %>%
+      arrange(sort_index) %>%
+      select(-sort_index)  # Remove the temporary sorting column
+    
+    # Reset TSSEQ based on TSPARAMCD
+    ts_summary <- ts_summary %>%
+      group_by(TSPARMCD) %>%
+      mutate(TSSEQ = row_number()) %>%
+      ungroup()
 
-    # Combine all new rows into a single data frame
-    ts_summary <- do.call(rbind, new_rows)
-
-    # Update TSSEQ
-    ts_summary$TSSEQ <- sequence(rle(as.character(ts_summary$TSPARMCD))$lengths)
-
-  # Process treatments
-  all_treatments <- unique(unlist(strsplit(ts_summary$TSVAL[ts_summary$TSPARMCD == "TRT"], ", ")))
-  treatments <- all_treatments[all_treatments != ""]  # Remove any empty strings
-  treatment_rows <- data.frame(
-    STUDYID = study_id,
-    DOMAIN = "TS",
-    TSSEQ = seq_along(treatments),
-    TSPARMCD = "TRT",
-    TSPARM = "Planned Treatment",
-    TSVAL = toupper(treatments),
-    TSVALCD = "",
-    stringsAsFactors = FALSE
-  )
+    # Process treatments
+    all_treatments <- unique(unlist(strsplit(ts_summary$TSVAL[ts_summary$TSPARMCD == "TRT"], ", ")))
+    treatments <- all_treatments[all_treatments != ""]  # Remove any empty strings
+    trt_tsparm <- ts_template$TSPARM[ts_template$TSPARMCD == "TRT"][1]  # Get TSPARM for TRT from template
+    treatment_rows <- data.frame(
+      STUDYID = study_id,
+      DOMAIN = "TS",
+      TSSEQ = seq_along(treatments),
+      TSGRPID = NA_character_,
+      TSPARMCD = "TRT",
+      TSPARM = trt_tsparm,
+      TSVAL = toupper(treatments),
+      TSVALNF = NA_character_,
+      TSVALCD = NA_character_,
+      TSVCDREF = NA_character_,
+      TSVCDVER = NA_character_,
+      stringsAsFactors = FALSE
+    )
 
     # Process countries
     countries <- unique(unlist(strsplit(ts_summary$TSVAL[ts_summary$TSPARMCD == "FCNTRY"], ", ")))
+    fcntry_tsparm <- ts_template$TSPARM[ts_template$TSPARMCD == "FCNTRY"][1]  # Get TSPARM for FCNTRY from template
     country_rows <- data.frame(
       STUDYID = study_id,
       DOMAIN = "TS",
       TSSEQ = seq_along(countries),
+      TSGRPID = NA_character_,
       TSPARMCD = "FCNTRY",
-      TSPARM = "Country",
+      TSPARM = fcntry_tsparm,
       TSVAL = toupper(countries),
-      TSVALCD = NA,
+      TSVALNF = NA_character_,
+      TSVALCD = NA_character_,
+      TSVCDREF = NA_character_,
+      TSVCDVER = NA_character_,
       stringsAsFactors = FALSE
     )
 
-    # Define the desired columns in the correct order
-    desired_columns <- c("STUDYID", "DOMAIN", "TSSEQ", "TSGRPID", "TSPARMCD", "TSPARM", "TSVAL", "TSVALNF", "TSVALCD", "TSVCDREF", "TSVCDVER")
+    # Combine all rows
+    ts_summary <- rbind(ts_summary, treatment_rows, country_rows)
 
-    # Ensure all data frames have the desired columns
-    for (df_name in c("ts_summary", "treatment_rows", "country_rows")) {
-      df <- get(df_name)
-      for (col in desired_columns) {
-        if (!(col %in% names(df))) {
-          df[[col]] <- NA
-        }
-      }
-      assign(df_name, df[, desired_columns])
-    }
+    # Final sort and TSSEQ reset
+    ts_summary <- ts_summary %>%
+      arrange(factor(TSPARMCD, levels = tsparmcd_order)) %>%
+      group_by(TSPARMCD) %>%
+      mutate(TSSEQ = row_number()) %>%
+      ungroup()
 
-   # Extract lastUpdatePostDateStruct from JSON
+    # Extract lastUpdatePostDateStruct from JSON
     json_file <- file.path(output_dir, "json", paste0("study_info_", nct_ids[1], ".json"))
     if (file.exists(json_file)) {
       study_info <- jsonlite::fromJSON(json_file)
@@ -180,9 +222,6 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
       last_update_date <- NA
       if(debug) cat("JSON file not found:", json_file, "\n")
     }
-
-    # Combine all rows
-    ts_summary <- rbind(ts_summary, treatment_rows, country_rows)
 
     # Convert TSVAL and TSVALCD to uppercase for comparison
     ts_summary$TSVAL_upper <- toupper(ts_summary$TSVAL)
@@ -200,29 +239,14 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     ts_summary$TSVCDREF[ts_summary$TSVCDREF %in% c("", "NA", "<NA>")] <- NA
     ts_summary$TSVCDVER[ts_summary$TSVCDVER %in% c("", "NA", "<NA>")] <- NA
 
-    # Reorder TSPARMCD based on the order in Trial_Summary.xlsx
-    ts_template <- openxlsx::read.xlsx(ts_file_path, sheet = "TS")
-    tsparmcd_order <- ts_template$TSPARMCD
-
-    ts_summary <- ts_summary %>%
-      arrange(factor(TSPARMCD, levels = tsparmcd_order))
-
-
     # Remove the original horizontal TRT record
     ts_summary <- ts_summary[!(ts_summary$TSPARMCD == "TRT" & grepl(",", ts_summary$TSVAL)), ]
-
-    # Reassign TSSEQ based on TSPARMCD
-    ts_summary <- ts_summary %>%
-      group_by(TSPARMCD) %>%
-      mutate(TSSEQ = row_number()) %>%
-      ungroup()
 
     # Populate TSVCDREF with "ClinicalTrials.gov" when TSVAL is not empty or NA
     ts_summary <- ts_summary %>%
       mutate(TSVCDREF = ifelse(!is.na(TSVAL) & TSVAL != "", "ClinicalTrials.gov", NA))
 
-    # Populate TSVCDREF with "ClinicalTrials.gov" when TSVAL is not empty or NA
-    # and populate TSVCDVER with the lastUpdatePostDateStruct date
+    # Populate TSVCDVER with the lastUpdatePostDateStruct date when TSVAL is not empty or NA
     ts_summary <- ts_summary %>%
       mutate(TSVCDVER = ifelse(!is.na(TSVAL) & TSVAL != "" , last_update_date, NA))
 
@@ -245,11 +269,45 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     # Apply truncation to TSVAL
     ts_summary <- ts_summary %>%
       mutate(TSVAL = sapply(TSVAL, truncate_text))
-      
-    if(debug) {
-      cat("Final TS summary:\n")
-      print(head(ts_summary))
-      cat("Number of rows in ts_summary:", nrow(ts_summary), "\n")
+
+    # Ensure only desired columns are present and in the correct order
+    desired_columns <- c("STUDYID", "DOMAIN", "TSSEQ", "TSGRPID", "TSPARMCD", "TSPARM", "TSVAL", "TSVALNF", "TSVALCD", "TSVCDREF", "TSVCDVER")
+    ts_summary <- ts_summary[, desired_columns]
+
+    # Count unique TSPARAMCD's
+    unique_tsparmcd_count <- length(unique(ts_summary$TSPARMCD))
+
+    # Count non-missing TSVAL's
+    non_missing_tsval_count <- sum(!is.na(ts_summary$TSVAL) & ts_summary$TSVAL != "")
+
+    # Print summary to console
+    cat("\nTS Domain Summary:\n")
+    cat("Total rows in Trial_Summary.xlsx:", template_row_count, "\n")
+    cat("Total rows in output:", nrow(ts_summary), "\n")
+    cat("Unique TSPARMCD count:", unique_tsparmcd_count, "\n")
+    cat("Non-missing TSVAL count:", non_missing_tsval_count, "\n")
+    cat("Columns in output:", paste(colnames(ts_summary), collapse = ", "), "\n")
+
+    # Compare TSPARAM/TSPARAMCD between template and output
+    template_params <- unique(ts_template$TSPARMCD)
+    output_params <- unique(ts_summary$TSPARMCD)
+    missing_params <- setdiff(template_params, output_params)
+    extra_params <- setdiff(output_params, template_params)
+
+    cat("\nComparison of TSPARAM/TSPARAMCD:\n")
+    cat("Total unique TSPARAM/TSPARAMCD in Trial_Summary.xlsx:", length(template_params), "\n")
+    cat("Total unique TSPARAM/TSPARAMCD in output:", length(output_params), "\n")
+    
+    if (length(missing_params) > 0) {
+      cat("Missing TSPARAM/TSPARAMCD in output:", paste(missing_params, collapse = ", "), "\n")
+    } else {
+      cat("No missing TSPARAM/TSPARAMCD in output.\n")
+    }
+    
+    if (length(extra_params) > 0) {
+      cat("Extra TSPARAM/TSPARAMCD in output:", paste(extra_params, collapse = ", "), "\n")
+    } else {
+      cat("No extra TSPARAM/TSPARAMCD in output.\n")
     }
 
     # Write to Excel with minimal formatting
@@ -290,14 +348,23 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
       }
     }
 
-    return(ts_summary)
+    cat("\nTS domain data written to:", output_file, "\n")
+
+    return(list(
+      ts_summary = ts_summary,
+      template_row_count = template_row_count,
+      output_row_count = nrow(ts_summary),
+      unique_tsparmcd_count = unique_tsparmcd_count,
+      non_missing_tsval_count = non_missing_tsval_count,
+      missing_params = missing_params,
+      extra_params = extra_params
+    ))
   }, error = function(e) {
     cat("Error in create_ts_domain:", conditionMessage(e), "\n")
     print(e)
     return(NULL)
   })
 }
-
 
 #' Process Study Information
 #'

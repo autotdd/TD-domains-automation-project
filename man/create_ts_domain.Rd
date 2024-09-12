@@ -16,7 +16,7 @@ create_ts_domain(nct_ids, study_id, output_dir = getwd(), debug = FALSE)
 \item{debug}{Boolean flag to enable debug mode (default: FALSE)}
 }
 \value{
-A data frame containing the TS domain data
+A list containing the TS domain data frame and count information
 }
 \description{
 This function creates the TS domain based on the provided NCT IDs and study ID.

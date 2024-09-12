@@ -72,13 +72,17 @@ create_tv_domain <- function(study_id , file_path = NULL , output_dir = getwd())
     stop("Folders sheet is empty in the ALS file")
   }
 
+  #To include non missing target days and Screening and treatment discontintion
 
-  data1 <- data %>% select (c("FolderName" ,"Ordinal", "Targetdays", "OverDueDays"))  %>%
-    filter(!(is.na(Targetdays))  | (grepl("Treatment Discontinuation", FolderName, ignore.case = TRUE)) )  %>%
+  data1_1 <- data %>% select (c("FolderName" ,"Ordinal", "Targetdays", "OverDueDays"))  %>%
+    filter(!(is.na(Targetdays))  | (grepl("Treatment Discontinuation|Screening", FolderName, ignore.case = TRUE)) )
+
+  #To exclude other Screening visits
+
+  data1 <- data1_1 %>%  filter(!(is.na(Targetdays))  | !(grepl("Sample Collection-Screening|-screening|Sample Collection Screening", FolderName, ignore.case = TRUE)) )  %>%
     mutate(t_day = as.numeric(Targetdays)  )  %>%
     mutate(seq_ord = as.numeric(Ordinal)  )  %>%
     arrange(seq_ord, t_day , FolderName)
-
 
 
   data2 <- data.frame(
@@ -95,6 +99,7 @@ create_tv_domain <- function(study_id , file_path = NULL , output_dir = getwd())
     stringsAsFactors = FALSE
   )
 
+
   data2 <- data2 %>%  arrange(VISITNUM)
 
   #Assign the Visit day for Screening and Cycle 1 Day 1 if both have 0 target day in ALS file
@@ -104,19 +109,39 @@ create_tv_domain <- function(study_id , file_path = NULL , output_dir = getwd())
   data2$VISITDY[(grepl("CYCLE 1 Day 1", data2$VISIT, ignore.case = TRUE) & data2$VISITDY == 0 ) ] <- 1
 
 
-  data3 <- data2 %>%  mutate (TVENRL =if_else(toupper(VISIT) == "SCREENING" , "One day before start of study drug" , "On the same day of visit")) %>%
+  data3  <- data2 %>%  mutate (TVENRL =if_else(toupper(VISIT) == "SCREENING" , "One day before start of study drug" , "On the same day of visit")) %>%
     #  mutate (TVSTRL =if_else(toupper(VISIT) == "SCREENING" , "28 days prior to treatment" , "")) %>%
-    mutate( TVSTRL = if_else(VISITDY == 1 ,  paste("First dose of treatment phase +/-",data2$due_day,"days", sep =" "),  paste( data2$VISITDY,"Days +/-", data2$due_day, "days from Cycle 1 Day 1", sep =" ") ))  %>%
+    mutate( TVSTRL = if_else(VISITDY == 1 ,  paste("First dose of treatment phase +/-",data2$due_day,"Days", sep =" "),  paste( data2$VISITDY,"Days +/-", data2$due_day, "Days from Cycle 1 Day 1", sep =" ") ))  %>%
     mutate( VISITDY = as.numeric(VISITDY) )
 
 
-  data3$TVSTRL[grepl("SCREENING", data2$VISIT, ignore.case = TRUE) & data3$VISITDY == -28 ] <- "Informed consent obtained"
+  data3$TVSTRL[grepl("SCREENING", data3$VISIT, ignore.case = TRUE) & data3$VISITDY == -28 ] <- "Informed consent obtained"
 
   data3$VISIT[(grepl("Treatment Discontinuation", data3$VISIT, ignore.case = TRUE)) ] <- 'Treatment Discontinuation'
 
-  data3$VISITDY[(grepl("Treatment Discontinuation", data3$VISIT, ignore.case = TRUE) ) ] <- NA
+
+  #Reassign the Visit start rule for TVSTRL for treatment/Study discontinuation and for followup visits
 
   data3$TVSTRL[(grepl("Treatment Discontinuation", data3$VISIT, ignore.case = TRUE)) ] <- '30 Days from final dose'
+
+  data3 <- data3 %>% mutate(TVSTRL = case_when(
+    grepl("Follow Up Month|Follow-Up Month|Follow - Up Month|FollowUp Month|Long Term Follow Up|Follow Up", VISIT, ignore.case = TRUE) ~
+      gsub("Cycle 1 Day 1", "final dose", TVSTRL), TRUE ~
+      TVSTRL ))
+
+
+  # Assign missing visit day  for treatment/Study discontinuation and for followup visits
+
+  data3$VISITDY[(grepl("Treatment Discontinuation|Study Discontinuation", data3$VISIT, ignore.case = TRUE) ) ] <- NA
+
+  data3$VISITDY[(grepl("Follow Up Month|Follow-Up Month|Follow - Up Month|FollowUp Month|Long Term Follow Up|Follow Up", data3$VISIT, ignore.case = TRUE) ) ] <- NA
+
+
+  #Assign start and end rule as missing if Screening target day (visitday) is missing
+
+  data3$TVSTRL[grepl("SCREENING", data3$VISIT, ignore.case = TRUE) & is.na(data3$VISITDY)] <- ""
+
+  data3$TVENRL[grepl("SCREENING", data3$VISIT, ignore.case = TRUE) & is.na(data3$VISITDY)] <- ""
 
   tv_domain <- data3 %>% select(-due_day)
 
@@ -141,5 +166,3 @@ create_tv_domain <- function(study_id , file_path = NULL , output_dir = getwd())
   return(tv_domain)
 
 }
-
-

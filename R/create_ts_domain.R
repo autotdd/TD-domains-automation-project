@@ -56,6 +56,31 @@ fetch_study_info_v2 <- function(nct_ids, debug = FALSE) {
   return(study_info)
 }
 
+# Function to split text across multiple columns
+split_text <- function(text, max_length = 200) {
+  if (is.na(text) || is.null(text) || nchar(text) <= max_length) {
+    return(list(TSVAL = text))
+  }
+  
+  result <- list()
+  remaining_text <- text
+  col_index <- 0
+  
+  while (nchar(remaining_text) > 0) {
+    col_name <- if (col_index == 0) "TSVAL" else paste0("TSVAL", col_index)
+    if (nchar(remaining_text) <= max_length) {
+      result[[col_name]] <- remaining_text
+      break
+    } else {
+      split_point <- max(1, regexpr("\\s+", substr(remaining_text, max_length, nchar(remaining_text)))[1] + max_length - 1)
+      result[[col_name]] <- substr(remaining_text, 1, split_point)
+      remaining_text <- substr(remaining_text, split_point + 1, nchar(remaining_text))
+    }
+    col_index <- col_index + 1
+  }
+  
+  return(result)
+}
 
 #' Create TS Domain
 #'
@@ -68,7 +93,6 @@ fetch_study_info_v2 <- function(nct_ids, debug = FALSE) {
 #'
 #' @return A list containing the TS domain data frame and count information
 #' @export
-
 create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FALSE) {
   tryCatch({
     # Read the template file
@@ -114,58 +138,146 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     ts_mapping <- define_ts_mapping()
     if(debug) cat("TS mapping defined\n")
 
+    if(debug) cat("Starting to create mapped_data\n")
+    
     # Create a data frame with mapped values
     mapped_data <- data.frame(TSPARMCD = character(), TSVAL = character(), stringsAsFactors = FALSE)
     
     for (param in names(ts_mapping)) {
+      if(debug) cat("Processing parameter:", param, "\n")
       mapped_values <- ts_mapping[[param]](trial_data)
-      if (length(mapped_values) > 0) {
-        mapped_data <- rbind(mapped_data, data.frame(TSPARMCD = rep(param, length(mapped_values)), 
-                                                     TSVAL = mapped_values, 
-                                                     stringsAsFactors = FALSE))
+      if (length(mapped_values) > 0 && !all(is.na(mapped_values))) {
+        if(debug) cat("  Found", length(mapped_values), "values for", param, "\n")
+        for (value in mapped_values) {
+          split_values <- split_text(value)
+          if(debug) cat("  Split into", length(split_values), "parts\n")
+          new_row <- data.frame(TSPARMCD = param, stringsAsFactors = FALSE)
+          for (col_name in names(split_values)) {
+            new_row[[col_name]] <- split_values[[col_name]]
+          }
+          
+          # Ensure all columns are present in mapped_data
+          for (col in names(new_row)) {
+            if (!(col %in% names(mapped_data))) {
+              mapped_data[[col]] <- character(nrow(mapped_data))
+            }
+          }
+          
+          # Ensure new_row has all columns present in mapped_data
+          for (col in names(mapped_data)) {
+            if (!(col %in% names(new_row))) {
+              new_row[[col]] <- NA_character_
+            }
+          }
+          
+          mapped_data <- rbind(mapped_data, new_row)
+          
+          if(debug) cat("  Added new row. mapped_data now has", nrow(mapped_data), "rows and", ncol(mapped_data), "columns\n")
+        }
+      }
+    }
+    
+    if(debug) cat("Finished creating mapped_data. Final dimensions:", nrow(mapped_data), "rows and", ncol(mapped_data), "columns\n")
+    
+    # Ensure all necessary columns are present in mapped_data
+    required_columns <- c("STUDYID", "DOMAIN", "TSSEQ", "TSGRPID", "TSPARMCD", "TSPARM", "TSVAL", "TSVALNF", "TSVALCD", "TSVCDREF", "TSVCDVER")
+    for (col in required_columns) {
+      if (!(col %in% colnames(mapped_data))) {
+        mapped_data[[col]] <- NA_character_
+      }
+    }
+    
+    # Add TSVAL1, TSVAL2, etc. to required_columns if they exist in mapped_data
+    extra_tsval_columns <- grep("^TSVAL\\d+$", colnames(mapped_data), value = TRUE)
+    required_columns <- c(required_columns, extra_tsval_columns)
+    
+    if(debug) cat("Added required columns. mapped_data now has", ncol(mapped_data), "columns\n")
+    
+    # Ensure base_ts_summary has all the columns from mapped_data
+    for (col in colnames(mapped_data)) {
+      if (!(col %in% colnames(base_ts_summary))) {
+        base_ts_summary[[col]] <- NA_character_
       }
     }
     
     # Merge mapped data with base_ts_summary
-    ts_summary <- merge(base_ts_summary, mapped_data, by = "TSPARMCD", all.x = TRUE)
+    ts_summary <- merge(base_ts_summary, mapped_data, by = "TSPARMCD", all.x = TRUE, suffixes = c(".base", ""))
     
-    # Use TSVAL.y (mapped values) if available, otherwise keep TSVAL.x (NA)
-    ts_summary$TSVAL <- ifelse(is.na(ts_summary$TSVAL.y), ts_summary$TSVAL.x, ts_summary$TSVAL.y)
-    ts_summary$TSVAL.x <- ts_summary$TSVAL.y <- NULL
+    if(debug) cat("Merged with base_ts_summary. ts_summary now has", nrow(ts_summary), "rows and", ncol(ts_summary), "columns\n")
     
-    # Ensure all TSPARAM and TSPARAMCD values from the template are included
-    missing_params <- setdiff(ts_template$TSPARMCD, ts_summary$TSPARMCD)
-    if (length(missing_params) > 0) {
-      missing_rows <- ts_template[ts_template$TSPARMCD %in% missing_params, ]
-      missing_rows$STUDYID <- study_id
-      missing_rows$DOMAIN <- "TS"
-      missing_rows$TSSEQ <- NA
-      missing_rows$TSGRPID <- NA_character_
-      missing_rows$TSVAL <- NA_character_
-      missing_rows$TSVALNF <- NA_character_
-      missing_rows$TSVALCD <- NA_character_
-      missing_rows$TSVCDREF <- NA_character_
-      missing_rows$TSVCDVER <- NA_character_
-      ts_summary <- rbind(ts_summary, missing_rows)
+    # Use mapped values if available, otherwise keep base values
+    for (col in setdiff(names(mapped_data), "TSPARMCD")) {
+      base_col <- paste0(col, ".base")
+      if (base_col %in% names(ts_summary)) {
+        ts_summary[[col]] <- ifelse(is.na(ts_summary[[col]]), ts_summary[[base_col]], ts_summary[[col]])
+        ts_summary[[base_col]] <- NULL
+      }
     }
     
-    # Sort according to the order in Trial_Summary.xlsx
-    tsparmcd_order <- unique(ts_template$TSPARMCD)  # Remove duplicates
+    if(debug) cat("Cleaned up merged data. ts_summary now has", ncol(ts_summary), "columns\n")
     
-    # Create a numeric index for sorting
-    ts_summary$sort_index <- match(ts_summary$TSPARMCD, tsparmcd_order)
+    # Ensure only required columns are present in the final output
+    ts_summary <- ts_summary[, required_columns]
     
-    # Sort using the numeric index
-    ts_summary <- ts_summary %>%
-      arrange(sort_index) %>%
-      select(-sort_index)  # Remove the temporary sorting column
+    if(debug) cat("Final ts_summary has", nrow(ts_summary), "rows and", ncol(ts_summary), "columns\n")
     
-    # Reset TSSEQ based on TSPARAMCD
-    ts_summary <- ts_summary %>%
-      group_by(TSPARMCD) %>%
-      mutate(TSSEQ = row_number()) %>%
-      ungroup()
-
+    # Create a mapping of TSPARMCD to row numbers in base_ts_summary
+    base_order <- data.frame(
+      TSPARMCD = base_ts_summary$TSPARMCD,
+      original_order = seq_along(base_ts_summary$TSPARMCD),
+      stringsAsFactors = FALSE
+    )
+    
+    # Merge this ordering information with ts_summary
+    ts_summary <- merge(ts_summary, base_order, by = "TSPARMCD", all.x = TRUE)
+    
+    # Sort by the original order
+    ts_summary <- ts_summary[order(ts_summary$original_order), ]
+    
+    # Remove the temporary column
+    ts_summary$original_order <- NULL
+    
+    if(debug) cat("After reordering, ts_summary has", nrow(ts_summary), "rows and", ncol(ts_summary), "columns\n")
+    if(debug) cat("Number of unique TSPARMCD values:", length(unique(ts_summary$TSPARMCD)), "\n")
+    
+    # Remove rows with NA TSPARMCD (if any)
+    ts_summary <- ts_summary[!is.na(ts_summary$TSPARMCD), ]
+    
+    if(debug) cat("After removing NA TSPARMCD, ts_summary has", nrow(ts_summary), "rows and", ncol(ts_summary), "columns\n")
+    
+    # Assign TSSEQ based on the row number
+    ts_summary$TSSEQ <- seq_len(nrow(ts_summary))
+    
+    # Populate TSVCDREF
+    ts_summary$TSVCDREF <- ifelse(!is.na(ts_summary$TSVAL) & ts_summary$TSVAL != "", "ClinicalTrials.gov", NA_character_)
+    
+    if(debug) cat("Final ts_summary after reordering and TSSEQ assignment has", nrow(ts_summary), "rows and", ncol(ts_summary), "columns\n")
+    if(debug) print(head(ts_summary))
+    if(debug) print(tail(ts_summary))
+    
+    # Identify extra TSVAL columns
+    extra_tsval_columns <- grep("^TSVAL\\d+$", colnames(ts_summary), value = TRUE)
+    
+    # Define the desired column order
+    base_columns <- c("STUDYID", "DOMAIN", "TSSEQ", "TSGRPID", "TSPARMCD", "TSPARM", "TSVAL")
+    end_columns <- c("TSVALNF", "TSVALCD", "TSVCDREF", "TSVCDVER")
+    
+    # Combine all columns in the desired order
+    desired_columns <- c(base_columns, extra_tsval_columns, end_columns)
+    
+    # Ensure all desired columns exist in ts_summary
+    for (col in desired_columns) {
+      if (!(col %in% colnames(ts_summary))) {
+        ts_summary[[col]] <- NA_character_
+      }
+    }
+    
+    # Select only the desired columns in the specified order
+    ts_summary <- ts_summary[, desired_columns]
+    
+    if(debug) cat("Final ts_summary after column reordering has", nrow(ts_summary), "rows and", ncol(ts_summary), "columns\n")
+    if(debug) print(colnames(ts_summary))
+    
     # Process treatments
     all_treatments <- unique(unlist(strsplit(ts_summary$TSVAL[ts_summary$TSPARMCD == "TRT"], ", ")))
     treatments <- all_treatments[all_treatments != ""]  # Remove any empty strings
@@ -203,16 +315,23 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
       stringsAsFactors = FALSE
     )
 
+    # Add all columns from desired_columns to treatment_rows and country_rows
+    for (col in setdiff(desired_columns, colnames(treatment_rows))) {
+      treatment_rows[[col]] <- NA_character_
+    }
+    for (col in setdiff(desired_columns, colnames(country_rows))) {
+      country_rows[[col]] <- NA_character_
+    }
+
     # Combine all rows
     ts_summary <- rbind(ts_summary, treatment_rows, country_rows)
 
-    # Final sort and TSSEQ reset
-    ts_summary <- ts_summary %>%
-      arrange(factor(TSPARMCD, levels = tsparmcd_order)) %>%
-      group_by(TSPARMCD) %>%
-      mutate(TSSEQ = row_number()) %>%
-      ungroup()
+    # Reorder columns again to ensure TSVAL1, TSVAL2, etc. are next to TSVAL
+    ts_summary <- ts_summary[, desired_columns]
 
+    if(debug) cat("Final ts_summary after adding treatments and countries has", nrow(ts_summary), "rows and", ncol(ts_summary), "columns\n")
+    if(debug) print(colnames(ts_summary))
+    
     # Extract lastUpdatePostDateStruct from JSON
     json_file <- file.path(output_dir, "json", paste0("study_info_", nct_ids[1], ".json"))
     if (file.exists(json_file)) {
@@ -242,10 +361,6 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     # Remove the original horizontal TRT record
     ts_summary <- ts_summary[!(ts_summary$TSPARMCD == "TRT" & grepl(",", ts_summary$TSVAL)), ]
 
-    # Populate TSVCDREF with "ClinicalTrials.gov" when TSVAL is not empty or NA
-    ts_summary <- ts_summary %>%
-      mutate(TSVCDREF = ifelse(!is.na(TSVAL) & TSVAL != "", "ClinicalTrials.gov", NA))
-
     # Populate TSVCDVER with the lastUpdatePostDateStruct date when TSVAL is not empty or NA
     ts_summary <- ts_summary %>%
       mutate(TSVCDVER = ifelse(!is.na(TSVAL) & TSVAL != "" , last_update_date, NA))
@@ -254,25 +369,11 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     ts_summary <- ts_summary %>%
       mutate(TSVALNF = ifelse(TSPARMCD == "AGEMAX" & (is.na(TSVAL) | TSVAL == ""), "PINF", TSVALNF))
 
-    # Function to truncate text and add suffix
-    truncate_text <- function(text, max_length = 200, suffix = " (As Per the Protocol)") {
-      if (is.na(text) || is.null(text) || text == "") {
-        return(text)  # Return the original value if it's NA, NULL, or an empty string
-      }
-      if (nchar(text) > max_length) {
-        truncated <- substr(text, 1, max_length - nchar(suffix))
-        return(paste0(truncated, suffix))
-      }
-      return(text)
-    }
-
-    # Apply truncation to TSVAL
-    ts_summary <- ts_summary %>%
-      mutate(TSVAL = sapply(TSVAL, truncate_text))
-
     # Ensure only desired columns are present and in the correct order
     desired_columns <- c("STUDYID", "DOMAIN", "TSSEQ", "TSGRPID", "TSPARMCD", "TSPARM", "TSVAL", "TSVALNF", "TSVALCD", "TSVCDREF", "TSVCDVER")
-    ts_summary <- ts_summary[, desired_columns]
+    extra_tsval_columns <- grep("^TSVAL\\d+$", colnames(ts_summary), value = TRUE)
+    desiredx_columns <- c(desired_columns, extra_tsval_columns)
+    ts_summary <- ts_summary[, desiredx_columns]
 
     # Count unique TSPARAMCD's
     unique_tsparmcd_count <- length(unique(ts_summary$TSPARMCD))
@@ -350,6 +451,9 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
 
     cat("\nTS domain data written to:", output_file, "\n")
 
+    # After creating the initial TS domain data frame
+    ts_summary <- integrate_controlled_terminology(ts_summary, debug)
+
     return(list(
       ts_summary = ts_summary,
       template_row_count = template_row_count,
@@ -366,13 +470,204 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
   })
 }
 
-#' Process Study Information
+#' Integrate Controlled Terminology
 #'
-#' This function processes the study information JSON to extract additional details.
+#' This function integrates controlled terminology into the TS domain's TSVALCD variable.
 #'
-#' @param study_info A list containing study information from ClinicalTrials.gov API.
-#' @param debug Logical, if TRUE, print debug information.
-#' @return A processed dataframe with extracted information.
+#' @param ts_summary The TS domain data frame
+#' @param debug Boolean flag to enable debug mode
+#'
+#' @return Updated TS domain data frame with TSVALCD populated
+#' @keywords internal
+integrate_controlled_terminology <- function(ts_summary, debug = FALSE) {
+  if(debug) cat("Starting integration of controlled terminology\n")
+
+  # Step 1: Extract Study Start Date (SSTDTC)
+  sstdtc <- ts_summary$TSVAL[ts_summary$TSPARMCD == "SSTDTC"]
+  if(length(sstdtc) == 0 || is.na(sstdtc)) {
+    if(debug) cat("SSTDTC not found in TS domain\n")
+    return(ts_summary)
+  }
+
+  # Step 2: Determine the Correct CT Version
+  ct_version <- determine_ct_version(sstdtc)
+  if(debug) cat("Determined CT version:", ct_version, "\n")
+
+  # Step 3: Fetch the CT Package from the CDISC API
+  ct_package <- fetch_ct_package(ct_version, debug)
+  if(is.null(ct_package)) {
+    if(debug) cat("Failed to fetch CT package\n")
+    return(ts_summary)
+  }
+
+  # Step 4: Extract TS-Related Controlled Terminology
+  ts_terminology <- extract_ts_terminology(ct_package, debug)
+
+  # Step 5: Flatten the Terms from the Codelists
+  flat_terminology <- flatten_terminology(ts_terminology, debug)
+
+  # Step 6: Merge the CT Data with the TS Data
+  ts_summary <- merge_ct_data(ts_summary, flat_terminology, debug)
+
+  # Step 7: Handle Numeric TSVAL Values
+  ts_summary <- handle_numeric_tsval(ts_summary, debug)
+
+  if(debug) cat("Finished integrating controlled terminology\n")
+
+  return(ts_summary)
+}
+
+#' Determine CT Version
+#'
+#' @param sstdtc Study start date
+#' @return CT version string
+#' @keywords internal
+determine_ct_version <- function(sstdtc) {
+  date <- as.Date(sstdtc)
+  # Format the date as required by the CDISC API
+  return(paste0("ct-", format(date, "%Y-%m-%d")))
+}
+
+#' Fetch CT Package from CDISC API
+#'
+#' @param ct_version CT version to fetch
+#' @param debug Debug flag
+#' @return CT package data
+#' @keywords internal
+fetch_ct_package <- function(ct_version, debug = FALSE) {
+  base_url <- "https://library.cdisc.org/api"
+  
+  # Read API key from JSON file
+  api_key_path <- system.file("extdata", "api_key.json", package = "autoTDD")
+  if (!file.exists(api_key_path)) {
+    if(debug) cat("API key file not found\n")
+    return(NULL)
+  }
+  
+  api_key <- jsonlite::fromJSON(api_key_path)
+  if (!"api_key" %in% names(api_key)) {
+    if(debug) cat("API key not found in JSON file\n")
+    return(NULL)
+  }
+  
+  # Set up headers with API key
+  headers <- httr::add_headers(`api-key` = api_key$api_key)
+  
+  # Construct the URL for the specific CT package
+  package_url <- paste0(base_url, "/mdr/ct/packages/", ct_version)
+  
+  if(debug) cat("Fetching CT package from:", package_url, "\n")
+  
+  # Fetch the package contents
+  package_response <- httr::GET(package_url, headers)
+  
+  if(httr::status_code(package_response) != 200) {
+    if(debug) cat("Failed to fetch CT package. Status code:", httr::status_code(package_response), "\n")
+    return(NULL)
+  }
+  
+  ct_package <- httr::content(package_response, "parsed")
+  
+  if(debug) cat("Successfully fetched CT package:", ct_version, "\n")
+  
+  return(ct_package)
+}
+
+#' Extract TS-Related Controlled Terminology
+#'
+#' @param ct_package CT package data
+#' @param debug Debug flag
+#' @return TS-related terminology
+#' @keywords internal
+extract_ts_terminology <- function(ct_package, debug = FALSE) {
+  ts_terminology <- list()
+  
+  for(codelist in ct_package$codelists) {
+    if(grepl("^TS", codelist$name) || grepl("TRIAL", codelist$name)) {
+      ts_terminology[[codelist$name]] <- codelist$terms
+    }
+  }
+  
+  if(debug) cat("Extracted", length(ts_terminology), "TS-related codelists\n")
+  
+  return(ts_terminology)
+}
+
+#' Flatten Terminology
+#'
+#' @param ts_terminology TS-related terminology
+#' @param debug Debug flag
+#' @return Flattened terminology data frame
+#' @keywords internal
+flatten_terminology <- function(ts_terminology, debug = FALSE) {
+  flat_terms <- data.frame(
+    TSPARMCD = character(),
+    TSVAL = character(),
+    TSVALCD = character(),
+    stringsAsFactors = FALSE
+  )
+  
+  for(codelist_name in names(ts_terminology)) {
+    for(term in ts_terminology[[codelist_name]]) {
+      flat_terms <- rbind(flat_terms, data.frame(
+        TSPARMCD = codelist_name,
+        TSVAL = term$submissionValue,
+        TSVALCD = term$conceptId,
+        stringsAsFactors = FALSE
+      ))
+    }
+  }
+  
+  if(debug) cat("Flattened terminology contains", nrow(flat_terms), "terms\n")
+  
+  return(flat_terms)
+}
+
+#' Merge CT Data with TS Data
+#'
+#' @param ts_summary TS domain data frame
+#' @param flat_terminology Flattened terminology data frame
+#' @param debug Debug flag
+#' @return Updated TS domain data frame
+#' @keywords internal
+merge_ct_data <- function(ts_summary, flat_terminology, debug = FALSE) {
+  merged_data <- merge(ts_summary, flat_terminology, 
+                       by = c("TSPARMCD", "TSVAL"), 
+                       all.x = TRUE)
+  
+  # Update TSVALCD where a match was found
+  ts_summary$TSVALCD <- ifelse(!is.na(merged_data$TSVALCD.y), 
+                               merged_data$TSVALCD.y, 
+                               ts_summary$TSVALCD)
+  
+  if(debug) cat("Merged CT data with TS data\n")
+  
+  return(ts_summary)
+}
+
+#' Handle Numeric TSVAL Values
+#'
+#' @param ts_summary TS domain data frame
+#' @param debug Debug flag
+#' @return Updated TS domain data frame
+#' @keywords internal
+handle_numeric_tsval <- function(ts_summary, debug = FALSE) {
+  numeric_rows <- which(grepl("^\\d+$", ts_summary$TSVAL))
+  
+  for(row in numeric_rows) {
+    tsparmcd <- ts_summary$TSPARMCD[row]
+    tsval <- ts_summary$TSVAL[row]
+    
+    # Here you would implement logic to assign the correct TSVALCD
+    # This might involve looking up the appropriate codelist and finding the matching conceptId
+    # For now, we'll just assign the TSVAL as the TSVALCD
+    ts_summary$TSVALCD[row] <- tsval
+  }
+  
+  if(debug) cat("Handled", length(numeric_rows), "numeric TSVAL values\n")
+  
+  return(ts_summary)
+}
 #' @export
 process_study_info <- function(study_info, debug = FALSE) {
   if(debug) cat("Starting process_study_info function\n")
@@ -443,28 +738,40 @@ define_ts_mapping <- function() {
     TPHASE = function(df) {
       tryCatch({
         if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$designModule$phases)) {
-          phase <- df[[1]]$protocolSection$designModule$phases[[1]]
-          phase <- toupper(phase)  # Take the first phase if multiple are present
+          phases <- df[[1]]$protocolSection$designModule$phases
           
-          roman_phases <- c(
-            "PHASE 1" = "PHASE I", "PHASE 2" = "PHASE II", "PHASE 3" = "PHASE III", "PHASE 4" = "PHASE IV",
-            "PHASE1" = "PHASE I", "PHASE2" = "PHASE II", "PHASE3" = "PHASE III", "PHASE4" = "PHASE IV",
-            "PHASE 1/PHASE 2" = "PHASE I/II", "PHASE 2/PHASE 3" = "PHASE II/III",
-            "PHASE1/PHASE2" = "PHASE I/II", "PHASE2/PHASE3" = "PHASE II/III",
-            "EARLY PHASE 1" = "PHASE Early I", "NOT APPLICABLE" = "N/A"
+roman_phases <- c(
+            "PHASE0" = "PHASE 0 TRIAL", "PHASE 0" = "PHASE 0 TRIAL",
+            "PHASE1" = "PHASE I TRIAL", "PHASE 1" = "PHASE I TRIAL", "PHASE I" = "PHASE I TRIAL",
+            "PHASE2" = "PHASE II TRIAL", "PHASE 2" = "PHASE II TRIAL", "PHASE II" = "PHASE II TRIAL",
+            "PHASE3" = "PHASE III TRIAL", "PHASE 3" = "PHASE III TRIAL", "PHASE III" = "PHASE III TRIAL",
+            "PHASE4" = "PHASE IV TRIAL", "PHASE 4" = "PHASE IV TRIAL", "PHASE IV" = "PHASE IV TRIAL",
+            "PHASE5" = "PHASE V TRIAL", "PHASE 5" = "PHASE V TRIAL", "PHASE V" = "PHASE V TRIAL",
+            "PHASE1/PHASE2" = "PHASE I/II TRIAL", "PHASE 1/PHASE 2" = "PHASE I/II TRIAL", "PHASE I/II" = "PHASE I/II TRIAL",
+            "PHASE1/PHASE2/PHASE3" = "PHASE I/II/III TRIAL", "PHASE 1/PHASE 2/PHASE 3" = "PHASE I/II/III TRIAL", "PHASE I/II/III" = "PHASE I/II/III TRIAL",
+            "PHASE1/PHASE3" = "PHASE I/III TRIAL", "PHASE 1/PHASE 3" = "PHASE I/III TRIAL", "PHASE I/III" = "PHASE I/III TRIAL",
+            "PHASE2/PHASE3" = "PHASE II/III TRIAL", "PHASE 2/PHASE 3" = "PHASE II/III TRIAL", "PHASE II/III" = "PHASE II/III TRIAL",
+            "PHASE1A" = "PHASE IA TRIAL", "PHASE 1A" = "PHASE IA TRIAL", "PHASE IA" = "PHASE IA TRIAL",
+            "PHASE1B" = "PHASE IB TRIAL", "PHASE 1B" = "PHASE IB TRIAL", "PHASE IB" = "PHASE IB TRIAL",
+            "PHASE2A" = "PHASE IIA TRIAL", "PHASE 2A" = "PHASE IIA TRIAL", "PHASE IIA" = "PHASE IIA TRIAL",
+            "PHASE2B" = "PHASE IIB TRIAL", "PHASE 2B" = "PHASE IIB TRIAL", "PHASE IIB" = "PHASE IIB TRIAL",
+            "PHASE3A" = "PHASE IIIA TRIAL", "PHASE 3A" = "PHASE IIIA TRIAL", "PHASE IIIA" = "PHASE IIIA TRIAL",
+            "PHASE3B" = "PHASE IIIB TRIAL", "PHASE 3B" = "PHASE IIIB TRIAL", "PHASE IIIB" = "PHASE IIIB TRIAL",
+            "EARLYPHASE1" = "PHASE Early I TRIAL", "EARLY PHASE 1" = "PHASE Early I TRIAL",
+            "NOT APPLICABLE" = "N/A"
           )
-
-          if (phase %in% names(roman_phases)) {
-            return(roman_phases[phase])
-          } else {
-            # If no exact match, try to extract numeric part and convert
-            numeric_part <- gsub("[^0-9]", "", phase)
-            if (numeric_part != "") {
-              return(paste0("PHASE ", as.roman(as.integer(numeric_part))))
+          
+          mapped_phases <- sapply(phases, function(phase) {
+            phase <- toupper(gsub(" ", "", phase))
+            if (phase %in% names(roman_phases)) {
+              return(roman_phases[phase])
             } else {
-              return(paste0("PHASE ", phase))  # Return original with PHASE prefix if no numeric part found
+              # If no exact match, return original with "TRIAL" suffix
+              return(paste(phase, "TRIAL"))
             }
-          }
+          })
+          
+          return(unique(mapped_phases))  # Return unique phases
         } else {
           return(NA_character_)
         }
@@ -503,13 +810,25 @@ define_ts_mapping <- function() {
       })
     },
     STYPE = function(df) if(is.list(df) && length(df) > 0) df[[1]]$protocolSection$designModule$studyType else NA_character_,
-    TTYPE = function(df) NA_character_,
+    TTYPE = function(trial_data) {
+      primary_purpose <- unlist(lapply(trial_data, function(x) x$protocolSection$designModule$designInfo$primaryPurpose))
+      if (length(primary_purpose) > 0) {
+        # Convert to title case and return the first value (in case of multiple values)
+        return(tools::toTitleCase(toupper(primary_purpose[1])))
+      }
+      return(NA_character_)
+    },
     ACTSUB = function(df) {
       tryCatch({
-        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$statusModule$enrollmentInfo$count)) {
-          return(as.character(df[[1]]$protocolSection$statusModule$enrollmentInfo$count))
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$designModule$enrollmentInfo)) {
+          enrollment_info <- df[[1]]$protocolSection$designModule$enrollmentInfo
+          if(!is.null(enrollment_info$type) && !is.null(enrollment_info$count)) {
+            if(enrollment_info$type[1] == "ACTUAL") {
+              return(as.character(enrollment_info$count[1]))
+            }
+          }
         }
-        return("NA")
+        return(NA_character_)
       }, error = function(e) {
         warning("Error in ACTSUB mapping: ", e$message)
         return(NA_character_)
@@ -999,9 +1318,24 @@ derive_data_cutoff_date <- function(df) {
 convert_to_roman <- function(phase) {
   phase <- toupper(phase)
   roman_phases <- c(
-    "PHASE 1" = "I", "PHASE 2" = "II", "PHASE 3" = "III", "PHASE 4" = "IV",
-    "PHASE 1/PHASE 2" = "I/II", "PHASE 2/PHASE 3" = "II/III",
-    "EARLY PHASE 1" = "Early I", "NOT APPLICABLE" = "N/A"
+            "PHASE0" = "PHASE 0 TRIAL", "PHASE 0" = "PHASE 0 TRIAL",
+            "PHASE1" = "PHASE I TRIAL", "PHASE 1" = "PHASE I TRIAL", "PHASE I" = "PHASE I TRIAL",
+            "PHASE2" = "PHASE II TRIAL", "PHASE 2" = "PHASE II TRIAL", "PHASE II" = "PHASE II TRIAL",
+            "PHASE3" = "PHASE III TRIAL", "PHASE 3" = "PHASE III TRIAL", "PHASE III" = "PHASE III TRIAL",
+            "PHASE4" = "PHASE IV TRIAL", "PHASE 4" = "PHASE IV TRIAL", "PHASE IV" = "PHASE IV TRIAL",
+            "PHASE5" = "PHASE V TRIAL", "PHASE 5" = "PHASE V TRIAL", "PHASE V" = "PHASE V TRIAL",
+            "PHASE1/PHASE2" = "PHASE I/II TRIAL", "PHASE 1/PHASE 2" = "PHASE I/II TRIAL", "PHASE I/II" = "PHASE I/II TRIAL",
+            "PHASE1/PHASE2/PHASE3" = "PHASE I/II/III TRIAL", "PHASE 1/PHASE 2/PHASE 3" = "PHASE I/II/III TRIAL", "PHASE I/II/III" = "PHASE I/II/III TRIAL",
+            "PHASE1/PHASE3" = "PHASE I/III TRIAL", "PHASE 1/PHASE 3" = "PHASE I/III TRIAL", "PHASE I/III" = "PHASE I/III TRIAL",
+            "PHASE2/PHASE3" = "PHASE II/III TRIAL", "PHASE 2/PHASE 3" = "PHASE II/III TRIAL", "PHASE II/III" = "PHASE II/III TRIAL",
+            "PHASE1A" = "PHASE IA TRIAL", "PHASE 1A" = "PHASE IA TRIAL", "PHASE IA" = "PHASE IA TRIAL",
+            "PHASE1B" = "PHASE IB TRIAL", "PHASE 1B" = "PHASE IB TRIAL", "PHASE IB" = "PHASE IB TRIAL",
+            "PHASE2A" = "PHASE IIA TRIAL", "PHASE 2A" = "PHASE IIA TRIAL", "PHASE IIA" = "PHASE IIA TRIAL",
+            "PHASE2B" = "PHASE IIB TRIAL", "PHASE 2B" = "PHASE IIB TRIAL", "PHASE IIB" = "PHASE IIB TRIAL",
+            "PHASE3A" = "PHASE IIIA TRIAL", "PHASE 3A" = "PHASE IIIA TRIAL", "PHASE IIIA" = "PHASE IIIA TRIAL",
+            "PHASE3B" = "PHASE IIIB TRIAL", "PHASE 3B" = "PHASE IIIB TRIAL", "PHASE IIIB" = "PHASE IIIB TRIAL",
+            "EARLYPHASE1" = "PHASE Early I TRIAL", "EARLY PHASE 1" = "PHASE Early I TRIAL",
+            "NOT APPLICABLE" = "N/A"
   )
 
   if (phase %in% names(roman_phases)) {

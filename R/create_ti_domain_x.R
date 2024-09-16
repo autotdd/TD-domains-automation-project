@@ -16,7 +16,7 @@
 #' @param debug Logical, if TRUE, print debug messages. Default is FALSE.
 #' @return A list containing the number of inclusion and exclusion criteria, first criteria of each, and output file location.
 #' @export
-#' @importFrom dplyr mutate select bind_rows group_by ungroup
+#' @importFrom dplyr mutate select bind_rows group_by ungroup last
 #' @importFrom stringr str_split str_extract str_replace_all str_trim str_locate_all str_sub str_locate fixed str_detect str_replace
 #' @importFrom openxlsx write.xlsx createWorkbook addWorksheet writeData setColWidths createStyle addStyle saveWorkbook
 #' @importFrom pdftools pdf_text
@@ -37,14 +37,16 @@ create_ti_domain <- function(study_id, method, pdf_path = NULL, nct_id = NULL,
   if (method == "pdf") {
     if(debug) cat("Processing PDF method\n")
     result <- process_pdf_method(study_id, pdf_path, incl_range, excl_range, incl_section, excl_section, end_section, debug)
+    pdf_text <- pdftools::pdf_text(pdf_path)
   } else if (method == "api") {
     if(debug) cat("Processing API method\n")
     result <- process_api_method(study_id, nct_id, debug)
+    pdf_text <- NULL
   }
   
   # Generate TI domain data frame
   if(debug) cat("Generating TI domain data frame\n")
-  ti_domain <- generate_ti_domain(study_id, result$inclusion, result$exclusion, debug)
+  ti_domain <- generate_ti_domain(study_id, result$inclusion, result$exclusion, pdf_text, debug)
   
   # Save to Excel
   if(debug) cat("Saving to Excel\n")
@@ -59,6 +61,44 @@ create_ti_domain <- function(study_id, method, pdf_path = NULL, nct_id = NULL,
   
   # Return summary
   return(summary)
+}
+
+#' Extract Version Information
+#'
+#' This function extracts version information from the PDF text.
+#'
+#' @param text A character string containing the PDF text.
+#' @param debug Logical, if TRUE, print debug messages.
+#' @return A character string representing the version, or NA if not found.
+#' @keywords internal
+extract_version <- function(text, debug = FALSE) {
+  if(debug) cat("Entering extract_version function\n")
+  
+  # Define patterns to match various version formats
+  patterns <- c(
+    "Protocol\\s+\\w+,\\s*(Version\\s*\\d+(\\.\\d+)*)",
+    "(Version\\s*\\d+(\\.\\d+)*)",
+    "(V\\s*\\d+(\\.\\d+)*)"
+  )
+  
+  # Join all lines of text
+  full_text <- paste(text, collapse = " ")
+  
+  for (pattern in patterns) {
+    match <- stringr::str_match(full_text, pattern)
+    if (!is.na(match[1,2])) {
+      version <- match[1,2]
+      # Ensure the version starts with "Version"
+      if (!grepl("^Version", version, ignore.case = TRUE)) {
+        version <- paste("Version", gsub("^V\\s*", "", version))
+      }
+      if(debug) cat("Version found:", version, "\n")
+      return(version)
+    }
+  }
+  
+  if(debug) cat("No version information found\n")
+  return(NA)
 }
 
 #' Validate Input Parameters
@@ -425,7 +465,7 @@ handle_text_length <- function(text, max_length = 200) {
     truncated_text <- stringr::str_sub(text, 1, max_length - suffix_length - 1)
     last_space <- stringr::str_locate_all(truncated_text, " ")[[1]]
     if (!is.null(last_space) && nrow(last_space) > 0) {
-      last_space_position <- last(last_space[, 1])
+      last_space_position <- last_space[nrow(last_space), 1]
       text <- stringr::str_sub(truncated_text, 1, last_space_position - 1)
     }
     text <- paste0(text, " ", suffix)
@@ -784,8 +824,11 @@ clean_criteria_list <- function(criteria_list, debug = FALSE) {
 #' @return A data frame representing the TI domain.
 #' @importFrom dplyr mutate
 #' @keywords internal
-generate_ti_domain <- function(study_id, inclusion_criteria, exclusion_criteria, debug = FALSE) {
+generate_ti_domain <- function(study_id, inclusion_criteria, exclusion_criteria, pdf_text = NULL, debug = FALSE) {
   if(debug) cat("Entering generate_ti_domain function\n")
+  
+  # Extract version information if pdf_text is provided
+  tivers <- if (!is.null(pdf_text)) extract_version(pdf_text, debug) else NA
   
   ti_domain <- data.frame(
     STUDYID = character(),
@@ -795,37 +838,38 @@ generate_ti_domain <- function(study_id, inclusion_criteria, exclusion_criteria,
     IECAT = character(),
     IESCAT = character(),
     IEORRES = character(),
+    TIVERS = character(),
     stringsAsFactors = FALSE
   )
   
   for (i in seq_along(inclusion_criteria)) {
     iescat <- if(!is.null(inclusion_criteria[[i]]$subsection)) inclusion_criteria[[i]]$subsection else ""
-    iecat <- if(iescat != "") "Inclusion" else ""
     
     ti_domain <- rbind(ti_domain, data.frame(
       STUDYID = study_id,
       DOMAIN = "TI",
       IETESTCD = paste0("INCL", sprintf("%03d", i)),
       IETEST = "Inclusion Criteria",
-      IECAT = iecat,
+      IECAT = "Inclusion",
       IESCAT = iescat,
-      IEORRES = inclusion_criteria[[i]]$text,
+      IEORRES = trimws(inclusion_criteria[[i]]$text),  # Remove leading/trailing whitespace
+      TIVERS = tivers,
       stringsAsFactors = FALSE
     ))
   }
   
   for (i in seq_along(exclusion_criteria)) {
     iescat <- if(!is.null(exclusion_criteria[[i]]$subsection)) exclusion_criteria[[i]]$subsection else ""
-    iecat <- if(iescat != "") "Exclusion" else ""
     
     ti_domain <- rbind(ti_domain, data.frame(
       STUDYID = study_id,
       DOMAIN = "TI",
       IETESTCD = paste0("EXCL", sprintf("%03d", i)),
       IETEST = "Exclusion Criteria",
-      IECAT = iecat,
+      IECAT = "Exclusion",
       IESCAT = iescat,
-      IEORRES = exclusion_criteria[[i]]$text,
+      IEORRES = trimws(exclusion_criteria[[i]]$text),  # Remove leading/trailing whitespace
+      TIVERS = tivers,
       stringsAsFactors = FALSE
     ))
   }

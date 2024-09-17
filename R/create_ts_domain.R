@@ -94,7 +94,10 @@ split_text <- function(text, max_length = 200) {
 #' @param study_id The study ID
 #' @param output_dir The output directory (default: current working directory)
 #' @param debug Boolean flag to enable debug mode (default: FALSE)
-#'
+#' @import dplyr
+#' @import openxlsx
+#' @importFrom jsonlite fromJSON
+#' @importFrom httr GET content
 #' @return A list containing the TS domain data frame and count information
 #' @export
 create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FALSE) {
@@ -475,10 +478,40 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
   #   ts_summary$TSVCDREF <- ifelse(ts_summary$TSVALNF == "NI", "ISO 21090", ts_summary$TSVCDREF)
   #   if(debug) cat("Rows where TSVCDREF was set to 'ISO 21090' for TSVALNF = 'NI':", sum(ts_summary$TSVALNF == "NI", na.rm = TRUE), "\n")
 
-   # Combined condition for TSVCDREF and TSVALCD
+    
+    # Extract EUDRACT number
+    eudract_number <- study_info$protocolSection$identificationModule$secondaryIdInfos %>%
+      filter(type == "EUDRACT_NUMBER") %>%
+      pull(id)
+    
+    # Create additional rows for REGID with NCTID and EUDRACT number
+    regid_rows <- ts_summary %>%
+      filter(TSPARMCD == "REGID")
+    
+    regid_nctid_rows <- regid_rows %>%
+      slice(rep(1:n(), each = length(nct_ids))) %>%
+      mutate(TSVAL = rep(nct_ids, times = nrow(regid_rows)), 
+             TSVCDREF = "ClinicalTrials.gov", 
+             TSVALCD = TSVAL)
+    
+    regid_eudract_rows <- regid_rows %>%
+      slice(rep(1:n(), each = length(eudract_number))) %>%
+      mutate(TSVAL = rep(eudract_number, times = nrow(regid_rows)), 
+             TSVCDREF = "EUDRACT", 
+             TSVALCD = TSVAL)
+    
+    # Remove existing REGID rows
+    ts_summary <- ts_summary %>%
+      filter(TSPARMCD != "REGID")
+    
+    # Combine the original ts_summary with the new REGID rows
+    ts_summary <- bind_rows(ts_summary, regid_nctid_rows, regid_eudract_rows)
+    
+    # Combined condition for TSVCDREF and TSVALCD
     ts_summary <- ts_summary %>%
       mutate(
-        TSVCDREF = dplyr::case_when(
+        TSVCDREF = case_when(
+          TSPARMCD == "REGID" & grepl("^NCT", TSVAL) ~ "ClinicalTrials.gov",
           TSPARMCD == "REGID" & !is.na(TSVAL) & TSVAL != "" ~ "EUDRACT",
           TSVALNF == "NI" ~ "ISO 21090",
           !is.na(TSVAL) & TSVAL != "" ~ "ClinicalTrials.gov",
@@ -486,9 +519,10 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
         ),
         TSVALCD = ifelse(TSPARMCD == "REGID" & !is.na(TSVAL) & TSVAL != "", TSVAL, TSVALCD)
       )
-
+    
     if(debug) {
-      cat("Rows where TSVCDREF was set to 'EUDRACT' and TSVALCD was set to TSVAL for REGID:", sum(ts_summary$TSPARMCD == "REGID" & !is.na(ts_summary$TSVAL) & ts_summary$TSVAL != ""), "\n")
+      cat("Rows where TSVCDREF was set to 'EUDRACT' and TSVALCD was set to TSVAL for REGID:", sum(ts_summary$TSPARMCD == "REGID" & ts_summary$TSVAL == eudract_number), "\n")
+      cat("Rows where TSVCDREF was set to 'ClinicalTrials.gov' for REGID with TSVAL starting with 'NCT':", sum(ts_summary$TSPARMCD == "REGID" & grepl("^NCT", ts_summary$TSVAL)), "\n")
       cat("Rows where TSVALNF was set to 'NI':", sum(ts_summary$TSVALNF == "NI", na.rm = TRUE), "\n")
       cat("Rows where TSVCDREF was set to 'ISO 21090' for TSVALNF = 'NI':", sum(ts_summary$TSVALNF == "NI", na.rm = TRUE), "\n")
       cat("Rows where TSVCDREF was set to 'ClinicalTrials.gov':", sum(ts_summary$TSVCDREF == "ClinicalTrials.gov", na.rm = TRUE), "\n")
@@ -548,6 +582,15 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
         FUN = function(x) c(min = min(x), max = max(x), count = length(x))
       )
       print(tsseq_check)
+    }
+
+    # Arrange TSVAL1 column next to TSVAL
+    ts_summary <- ts_summary %>%
+      select(STUDYID, DOMAIN, TSSEQ, TSGRPID, TSPARMCD, TSPARM, TSVAL, starts_with("TSVAL1"), everything())
+    
+    if(debug) {
+      cat("Final ts_summary after arranging TSVAL1 column has", nrow(ts_summary), "rows and", ncol(ts_summary), "columns\n")
+      print(colnames(ts_summary))
     }
 
     # Write to Excel with minimal formatting
@@ -737,6 +780,7 @@ extract_ts_terminology <- function(ct_package, debug = FALSE) {
 #' @param ts_terminology TS-related terminology
 #' @param debug Debug flag
 #' @return Flattened terminology data frame
+#' @importFrom dplyr filter mutate select slice bind_rows case_when
 #' @keywords internal
 flatten_terminology <- function(ts_terminology, debug = FALSE) {
   flat_terms <- data.frame(

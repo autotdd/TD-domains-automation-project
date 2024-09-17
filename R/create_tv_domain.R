@@ -106,11 +106,17 @@ create_tv_domain <- function(study_id , file_path = NULL , output_dir = getwd())
 
   #Assign the Visit day for Screening and Cycle 1 Day 1 if both have 0 target day in ALS file
 
-  # Update the Visitdy if targetdays for cycle 1 is 0 in the ALS file
+  # Update the Visitdy if targetdays for cycle 1 is 0 in the ALS file, if it is 0 for Cycle 1 Day 1 then visitdy must be 1
 
-  data2 <- data2 %>% mutate(VISITDY = case_when(
-    grepl("SCREENING", VISIT, ignore.case = TRUE)  ~ VISITDY , TRUE ~  VISITDY +1 ))
+  row_count <- data %>% filter(!(is.na(Targetdays)) & Targetdays ==1 & grepl("Cycle 1 day 1| Cycle 1(D1)", FolderName, ignore.case = TRUE ))
 
+  nrow(row_count)
+
+
+  if (nrow(row_count) == 0) {
+    data2 <- data2 %>% mutate(VISITDY = case_when(
+      grepl("SCREENING", VISIT, ignore.case = TRUE)  ~ VISITDY , TRUE ~  VISITDY +1 ))
+  }
 
 
   data2$VISITDY[(grepl("SCREENING", data2$VISIT, ignore.case = TRUE) & data2$VISITDY == 0 ) ] <- -28

@@ -75,7 +75,9 @@ create_tv_domain <- function(study_id , file_path = NULL , output_dir = getwd())
   #To include non missing target days and Screening and treatment discontintion
 
   data1_1 <- data %>% select (c("FolderName" ,"Ordinal", "Targetdays", "OverDueDays"))  %>%
-    filter(!(is.na(Targetdays))  | (grepl("Treatment Discontinuation|Screening|Study Drug Discontinuation", FolderName, ignore.case = TRUE)) )
+    filter(!(is.na(Targetdays))  |  toupper(FolderName) %in% c('SCREENING', 'TREATMENT DISCONTINUATION' , 'TREATMENT DISCONTINUATION VISIT' , 'STUDY DRUG DISCONTINUATION' ) )
+
+  #filter(!(is.na(Targetdays))  | (grepl("Treatment Discontinuation|Screening|Study Drug Discontinuation", FolderName, ignore.case = TRUE)) )
 
   #To exclude other Screening visits
 
@@ -119,7 +121,7 @@ create_tv_domain <- function(study_id , file_path = NULL , output_dir = getwd())
   }
 
 
-  data2$VISITDY[(grepl("SCREENING", data2$VISIT, ignore.case = TRUE) & data2$VISITDY == 0 ) ] <- -28
+  data2$VISITDY[(grepl("SCREENING", data2$VISIT, ignore.case = TRUE) & data2$VISITDY == 0 ) ] <- NA
 
   data2$VISITDY[(grepl("CYCLE 1 Day 1", data2$VISIT, ignore.case = TRUE) & data2$VISITDY == 0 ) ] <- 1
 
@@ -130,7 +132,9 @@ create_tv_domain <- function(study_id , file_path = NULL , output_dir = getwd())
 
 
 
-  data3$TVSTRL[grepl("SCREENING", data3$VISIT, ignore.case = TRUE) & data3$VISITDY == -28 ] <- "Informed consent obtained"
+  #data3$TVSTRL[grepl("SCREENING", data3$VISIT, ignore.case = TRUE) & data3$VISITDY == -28 ] <- "Informed consent obtained"
+
+  data3$TVSTRL[grepl("SCREENING", data3$VISIT, ignore.case = TRUE) & !(is.na(data3$VISITDY) ) ] <- "Informed consent obtained"
 
 
   data3 <- data3 %>% mutate(TVSTRL = case_when(
@@ -143,12 +147,19 @@ create_tv_domain <- function(study_id , file_path = NULL , output_dir = getwd())
   data3$VISIT[(grepl("Treatment Discontinuation", data3$VISIT, ignore.case = TRUE)) ] <- 'TREATMENT DISCONTINUATION'
 
 
-  #Reassign the Visit start rule for TVSTRL for treatment/Study discontinuation and for followup visits
+  #Reassign the Visit start rule for TVSTRL for treatment/Study discontinuation and for follow up visits
 
-  data3$TVSTRL[(grepl("Treatment Discontinuation", data3$VISIT, ignore.case = TRUE)) ] <- '30 Days from final dose'
+  #data3$TVSTRL[(grepl("Treatment Discontinuation", data3$VISIT, ignore.case = TRUE)) ] <- '30 Days from final dose'
 
   data3 <- data3 %>% mutate(TVSTRL = case_when(
-    grepl("Follow Up Month|Follow-Up Month|Follow - Up Month|FollowUp Month|Long Term Follow Up|Follow Up", VISIT, ignore.case = TRUE) ~
+    grepl("Treatment Discontinuation", VISIT, ignore.case = TRUE) &  !(is.na(VISITDY))  ~
+      paste( VISITDY,  "Days from final dose", sep =" "),   TRUE ~
+      TVSTRL ))
+
+  data3$TVENRL[grepl("Treatment Discontinuation", data3$VISIT, ignore.case = TRUE) & is.na(data3$TVSTRL)] <- ""
+
+  data3 <- data3 %>% mutate(TVSTRL = case_when(
+    grepl("Follow Up Month|Follow-Up Month|Follow - Up Month|FollowUp Month|Long Term Follow Up|Follow Up|Long-Term Follow-Up", VISIT, ignore.case = TRUE) ~
       gsub("Cycle 1 Day 1", "final dose", TVSTRL), TRUE ~
       TVSTRL ))
 
@@ -157,7 +168,7 @@ create_tv_domain <- function(study_id , file_path = NULL , output_dir = getwd())
 
   data3$VISITDY[(grepl("Treatment Discontinuation|Study Discontinuation|STUDY DRUG DISCONTINUATION", data3$VISIT, ignore.case = TRUE) ) ] <- NA
 
-  data3$VISITDY[(grepl("Follow Up Month|Follow-Up Month|Follow - Up Month|FollowUp Month|Long Term Follow Up|Follow Up", data3$VISIT, ignore.case = TRUE) ) ] <- NA
+  data3$VISITDY[(grepl("Follow Up Month|Follow-Up Month|Follow - Up Month|FollowUp Month|Long Term Follow Up|Follow Up|Long-Term Follow-Up", data3$VISIT, ignore.case = TRUE) ) ] <- NA
 
 
   #Assign start and end rule as missing if Screening target day (visitday) is missing

@@ -4,7 +4,10 @@
 \alias{define_ts_mapping}
 \title{Define TS Mapping}
 \usage{
-define_ts_mapping()
+define_ts_mapping(debug = FALSE)
+}
+\arguments{
+\item{debug}{Boolean flag to enable debug mode}
 }
 \value{
 A list containing the TS mapping.

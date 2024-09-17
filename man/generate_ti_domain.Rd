@@ -8,6 +8,7 @@ generate_ti_domain(
   study_id,
   inclusion_criteria,
   exclusion_criteria,
+  pdf_text = NULL,
   debug = FALSE
 )
 }

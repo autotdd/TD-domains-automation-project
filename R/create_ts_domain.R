@@ -56,8 +56,12 @@ fetch_study_info_v2 <- function(nct_ids, debug = FALSE) {
   return(study_info)
 }
 
-# Function to split text across multiple columns
+# Update the split_text function to handle vectors
 split_text <- function(text, max_length = 200) {
+  if (length(text) > 1) {
+    return(lapply(text, function(t) split_text(t, max_length)))
+  }
+  
   if (is.na(text) || is.null(text) || nchar(text) <= max_length) {
     return(list(TSVAL = text))
   }
@@ -135,7 +139,7 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
 
     if(debug) cat("Trial data processed\n")
 
-    ts_mapping <- define_ts_mapping()
+    ts_mapping <- define_ts_mapping(debug)
     if(debug) cat("TS mapping defined\n")
 
     if(debug) cat("Starting to create mapped_data\n")
@@ -149,30 +153,34 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
       if (length(mapped_values) > 0 && !all(is.na(mapped_values))) {
         if(debug) cat("  Found", length(mapped_values), "values for", param, "\n")
         for (value in mapped_values) {
-          split_values <- split_text(value)
-          if(debug) cat("  Split into", length(split_values), "parts\n")
-          new_row <- data.frame(TSPARMCD = param, stringsAsFactors = FALSE)
-          for (col_name in names(split_values)) {
-            new_row[[col_name]] <- split_values[[col_name]]
-          }
-          
-          # Ensure all columns are present in mapped_data
-          for (col in names(new_row)) {
-            if (!(col %in% names(mapped_data))) {
-              mapped_data[[col]] <- character(nrow(mapped_data))
+          tryCatch({
+            split_values <- split_text(value)
+            if(debug) cat("  Split into", length(split_values), "parts\n")
+            new_row <- data.frame(TSPARMCD = param, stringsAsFactors = FALSE)
+            for (col_name in names(split_values)) {
+              new_row[[col_name]] <- split_values[[col_name]]
             }
-          }
-          
-          # Ensure new_row has all columns present in mapped_data
-          for (col in names(mapped_data)) {
-            if (!(col %in% names(new_row))) {
-              new_row[[col]] <- NA_character_
+            
+            # Ensure all columns are present in mapped_data
+            for (col in names(new_row)) {
+              if (!(col %in% names(mapped_data))) {
+                mapped_data[[col]] <- character(nrow(mapped_data))
+              }
             }
-          }
-          
-          mapped_data <- rbind(mapped_data, new_row)
-          
-          if(debug) cat("  Added new row. mapped_data now has", nrow(mapped_data), "rows and", ncol(mapped_data), "columns\n")
+            
+            # Ensure new_row has all columns present in mapped_data
+            for (col in names(mapped_data)) {
+              if (!(col %in% names(new_row))) {
+                new_row[[col]] <- NA_character_
+              }
+            }
+            
+            mapped_data <- rbind(mapped_data, new_row)
+            
+            if(debug) cat("  Added new row. mapped_data now has", nrow(mapped_data), "rows and", ncol(mapped_data), "columns\n")
+          }, error = function(e) {
+            if(debug) cat("Error processing value:", value, "\nError:", conditionMessage(e), "\n")
+          })
         }
       }
     }
@@ -238,18 +246,45 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     ts_summary$original_order <- NULL
     
     if(debug) cat("After reordering, ts_summary has", nrow(ts_summary), "rows and", ncol(ts_summary), "columns\n")
-    if(debug) cat("Number of unique TSPARMCD values:", length(unique(ts_summary$TSPARMCD)), "\n")
+    if(debug) cat("Number of unique TSPARAMCD values:", length(unique(ts_summary$TSPARMCD)), "\n")
     
     # Remove rows with NA TSPARMCD (if any)
     ts_summary <- ts_summary[!is.na(ts_summary$TSPARMCD), ]
     
     if(debug) cat("After removing NA TSPARMCD, ts_summary has", nrow(ts_summary), "rows and", ncol(ts_summary), "columns\n")
     
-    # Assign TSSEQ based on the row number
-    ts_summary$TSSEQ <- seq_len(nrow(ts_summary))
+    # Add debug print before modifications
+    if(debug) {
+      cat("Before modifications:\n")
+      print(table(ts_summary$TSVALNF, useNA = "ifany"))
+      print(table(ts_summary$TSVCDREF, useNA = "ifany"))
+      print(table(ts_summary$TSVALCD, useNA = "ifany"))
+    }
+
+    # Update TSVALNF and TSVCDREF based on TSVAL
+    ts_summary$TSVALNF <- ifelse(is.na(ts_summary$TSVAL), "NI", ts_summary$TSVALNF)
+    if(debug) cat("Rows where TSVALNF was set to 'NI':", sum(ts_summary$TSVALNF == "NI", na.rm = TRUE), "\n")
     
-    # Populate TSVCDREF
-    ts_summary$TSVCDREF <- ifelse(!is.na(ts_summary$TSVAL) & ts_summary$TSVAL != "", "ClinicalTrials.gov", NA_character_)
+    ts_summary$TSVCDREF <- ifelse(!is.na(ts_summary$TSVAL) & ts_summary$TSVAL != "" , "ClinicalTrials.gov", ts_summary$TSVCDREF)
+    if(debug) cat("Rows where TSVCDREF was set to 'ClinicalTrials.gov':", sum(ts_summary$TSVCDREF == "ClinicalTrials.gov", na.rm = TRUE), "\n")
+    
+    # Update TSVALCD and TSVCDREF based on specific TSVAL content
+    ts_summary$TSVALCD <- ifelse(grepl("Hoffmann-La Roche", ts_summary$TSVAL, ignore.case = TRUE), "480008226", ts_summary$TSVALCD)
+    if(debug) cat("Rows where TSVALCD was set to '480008226':", sum(ts_summary$TSVALCD == "480008226", na.rm = TRUE), "\n")
+    
+    ts_summary$TSVCDREF <- ifelse(grepl("Hoffmann-La Roche", ts_summary$TSVAL, ignore.case = TRUE), "DUNS", ts_summary$TSVCDREF)
+    if(debug) cat("Rows where TSVCDREF was set to 'DUNS':", sum(ts_summary$TSVCDREF == "DUNS", na.rm = TRUE), "\n")
+
+    # Add debug print after modifications
+    if(debug) {
+      cat("After modifications:\n")
+      print(table(ts_summary$TSVALNF, useNA = "ifany"))
+      print(table(ts_summary$TSVCDREF, useNA = "ifany"))
+      print(table(ts_summary$TSVALCD, useNA = "ifany"))
+      
+      cat("Number of NA TSVAL:", sum(is.na(ts_summary$TSVAL)), "\n")
+      cat("Number of rows with 'Hoffmann-La Roche' in TSVAL:", sum(grepl("Hoffmann-La Roche", ts_summary$TSVAL, ignore.case = TRUE), na.rm = TRUE), "\n")
+    }
     
     if(debug) cat("Final ts_summary after reordering and TSSEQ assignment has", nrow(ts_summary), "rows and", ncol(ts_summary), "columns\n")
     if(debug) print(head(ts_summary))
@@ -292,7 +327,7 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
       TSVAL = toupper(treatments),
       TSVALNF = NA_character_,
       TSVALCD = NA_character_,
-      TSVCDREF = NA_character_,
+      TSVCDREF = "ClinicalTrials.gov",
       TSVCDVER = NA_character_,
       stringsAsFactors = FALSE
     )
@@ -315,6 +350,7 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
       stringsAsFactors = FALSE
     )
 
+
     # Add all columns from desired_columns to treatment_rows and country_rows
     for (col in setdiff(desired_columns, colnames(treatment_rows))) {
       treatment_rows[[col]] <- NA_character_
@@ -323,9 +359,63 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
       country_rows[[col]] <- NA_character_
     }
 
+    # Handle INTTYPE
+    if(debug) cat("Processing INTTYPE\n")
+    int_types <- ts_mapping$INTTYPE(trial_data)
+    if(length(int_types) > 0) {
+      inttype_df <- data.frame(
+        STUDYID = study_id,
+        DOMAIN = "TS",
+        TSSEQ = NA,  # We'll set this later
+        TSPARMCD = "INTTYPE",
+        TSPARM = "Intervention Type",
+        TSVAL = int_types[1],  # Take only the first (and likely only) value
+        TSVALNF = NA_character_,
+        TSVALCD = NA_character_,
+        TSVCDREF = "ClinicalTrials.gov",
+        TSVCDVER = NA_character_,
+        stringsAsFactors = FALSE
+      )
+      
+      if(debug) {
+        cat("INTTYPE data:\n")
+        print(inttype_df)
+      }
+      
+      # Ensure inttype_df has the same columns as ts_summary
+      missing_cols <- setdiff(colnames(ts_summary), colnames(inttype_df))
+      for (col in missing_cols) {
+        inttype_df[[col]] <- NA_character_
+      }
+      
+      # Combine with existing ts_summary
+      ts_summary <- rbind(ts_summary, inttype_df)
+    } else {
+      if(debug) cat("No valid INTTYPE values found\n")
+    }
+    # Populate TSVCDREF
+    ts_summary$TSVCDREF <- ifelse(!is.na(ts_summary$TSVAL) & ts_summary$TSVAL != "" , "ClinicalTrials.gov", ts_summary$TSVCDREF)
+    
     # Combine all rows
     ts_summary <- rbind(ts_summary, treatment_rows, country_rows)
 
+    # # Ensure INTMODEL and INTTYPE values are valid
+    # valid_intmodel_values <- c("CROSSOVER", "FACTORIAL", "PARALLEL", "SEQUENTIAL", "SINGLE GROUP")
+    # valid_inttype_values <- c("DRUG", "DEVICE", "BIOLOGIC", "PROCEDURE", "RADIATION", "BEHAVIORAL", "DIETARY SUPPLEMENT", "GENETIC", "COMBINATION PRODUCT", "OTHER")
+
+    # ts_summary$INTMODEL <- toupper(gsub("_", " ", ts_summary$INTMODEL))
+    # ts_summary$INTTYPE <- toupper(gsub("_", " ", ts_summary$INTTYPE))
+
+    # ts_summary$INTMODEL <- ifelse(ts_summary$INTMODEL %in% valid_intmodel_values, ts_summary$INTMODEL, NA)
+    # ts_summary$INTTYPE <- ifelse(ts_summary$INTTYPE %in% valid_inttype_values, ts_summary$INTTYPE, NA)
+
+    # if(debug) {
+    #   cat("INTMODEL values after validation:\n")
+    #   print(table(ts_summary$INTMODEL, useNA = "ifany"))
+    #   cat("INTTYPE values after validation:\n")
+    #   print(table(ts_summary$INTTYPE, useNA = "ifany"))
+    # }
+    
     # Reorder columns again to ensure TSVAL1, TSVAL2, etc. are next to TSVAL
     ts_summary <- ts_summary[, desired_columns]
 
@@ -369,6 +459,40 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     ts_summary <- ts_summary %>%
       mutate(TSVALNF = ifelse(TSPARMCD == "AGEMAX" & (is.na(TSVAL) | TSVAL == ""), "PINF", TSVALNF))
 
+  #   # New condition for REGID
+  #   ts_summary$TSVCDREF <- ifelse(ts_summary$TSPARMCD == "REGID" & !is.na(ts_summary$TSVAL) & ts_summary$TSVAL != "", "EUDRACT", ts_summary$TSVCDREF)
+  #   ts_summary$TSVALCD <- ifelse(ts_summary$TSPARMCD == "REGID" & !is.na(ts_summary$TSVAL) & ts_summary$TSVAL != "", ts_summary$TSVAL, ts_summary$TSVALCD)
+  #   if(debug) cat("Rows where TSVCDREF was set to 'EUDRACT' and TSVALCD was set to TSVAL for REGID:", sum(ts_summary$TSPARMCD == "REGID" & !is.na(ts_summary$TSVAL) & ts_summary$TSVAL != ""), "\n")
+
+  #   # Update TSVALNF and TSVCDREF based on TSVAL
+  #   ts_summary$TSVALNF <- ifelse(is.na(ts_summary$TSVAL), "NI", ts_summary$TSVALNF)
+  #   if(debug) cat("Rows where TSVALNF was set to 'NI':", sum(ts_summary$TSVALNF == "NI", na.rm = TRUE), "\n")
+    
+  #   ts_summary$TSVCDREF <- ifelse(!is.na(ts_summary$TSVAL) & ts_summary$TSVAL != "" , "ClinicalTrials.gov", ts_summary$TSVCDREF)
+  #   if(debug) cat("Rows where TSVCDREF was set to 'ClinicalTrials.gov':", sum(ts_summary$TSVCDREF == "ClinicalTrials.gov", na.rm = TRUE), "\n")
+
+  #  # New condition for TSVALNF = 'NI'
+  #   ts_summary$TSVCDREF <- ifelse(ts_summary$TSVALNF == "NI", "ISO 21090", ts_summary$TSVCDREF)
+  #   if(debug) cat("Rows where TSVCDREF was set to 'ISO 21090' for TSVALNF = 'NI':", sum(ts_summary$TSVALNF == "NI", na.rm = TRUE), "\n")
+
+   # Combined condition for TSVCDREF and TSVALCD
+    ts_summary <- ts_summary %>%
+      mutate(
+        TSVCDREF = dplyr::case_when(
+          TSPARMCD == "REGID" & !is.na(TSVAL) & TSVAL != "" ~ "EUDRACT",
+          TSVALNF == "NI" ~ "ISO 21090",
+          !is.na(TSVAL) & TSVAL != "" ~ "ClinicalTrials.gov",
+          TRUE ~ TSVCDREF
+        ),
+        TSVALCD = ifelse(TSPARMCD == "REGID" & !is.na(TSVAL) & TSVAL != "", TSVAL, TSVALCD)
+      )
+
+    if(debug) {
+      cat("Rows where TSVCDREF was set to 'EUDRACT' and TSVALCD was set to TSVAL for REGID:", sum(ts_summary$TSPARMCD == "REGID" & !is.na(ts_summary$TSVAL) & ts_summary$TSVAL != ""), "\n")
+      cat("Rows where TSVALNF was set to 'NI':", sum(ts_summary$TSVALNF == "NI", na.rm = TRUE), "\n")
+      cat("Rows where TSVCDREF was set to 'ISO 21090' for TSVALNF = 'NI':", sum(ts_summary$TSVALNF == "NI", na.rm = TRUE), "\n")
+      cat("Rows where TSVCDREF was set to 'ClinicalTrials.gov':", sum(ts_summary$TSVCDREF == "ClinicalTrials.gov", na.rm = TRUE), "\n")
+    }
     # Ensure only desired columns are present and in the correct order
     desired_columns <- c("STUDYID", "DOMAIN", "TSSEQ", "TSGRPID", "TSPARMCD", "TSPARM", "TSVAL", "TSVALNF", "TSVALCD", "TSVCDREF", "TSVCDVER")
     extra_tsval_columns <- grep("^TSVAL\\d+$", colnames(ts_summary), value = TRUE)
@@ -380,6 +504,7 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
 
     # Count non-missing TSVAL's
     non_missing_tsval_count <- sum(!is.na(ts_summary$TSVAL) & ts_summary$TSVAL != "")
+
 
     # Print summary to console
     cat("\nTS Domain Summary:\n")
@@ -409,6 +534,20 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
       cat("Extra TSPARAM/TSPARAMCD in output:", paste(extra_params, collapse = ", "), "\n")
     } else {
       cat("No extra TSPARAM/TSPARAMCD in output.\n")
+    }
+
+    # Reset TSSEQ for each TSPARMCD
+    ts_summary <- ts_summary[order(ts_summary$TSPARMCD), ]
+    ts_summary$TSSEQ <- ave(seq_along(ts_summary$TSPARMCD), ts_summary$TSPARMCD, FUN = seq_along)
+
+    if(debug) {
+      cat("\nTSSEQ reset check:\n")
+      tsseq_check <- aggregate(
+        TSSEQ ~ TSPARMCD, 
+        data = ts_summary, 
+        FUN = function(x) c(min = min(x), max = max(x), count = length(x))
+      )
+      print(tsseq_check)
     }
 
     # Write to Excel with minimal formatting
@@ -720,9 +859,10 @@ format_date_iso8601 <- function(date) {
 #'
 #' This function defines the mapping between TS parameters and extracted fields.
 #'
+#' @param debug Boolean flag to enable debug mode
 #' @return A list containing the TS mapping.
 #' @keywords internal
-define_ts_mapping <- function() {
+define_ts_mapping <- function(debug = FALSE) {
   mapping <- list(
     STUDYID = function(df) if(is.list(df) && length(df) > 0) df[[1]]$protocolSection$identificationModule$nctId else NA_character_,
     DOMAIN = function(df) "TS",
@@ -798,17 +938,24 @@ roman_phases <- c(
         return(NA_character_)
       })
     },
-    INTTYPE = function(df) {
-      tryCatch({
-        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$designModule$designInfo$allocation)) {
-          return(paste(df[[1]]$protocolSection$designModule$designInfo$allocation, collapse = "; "))
-        }
-        return("NA")
-      }, error = function(e) {
-        warning("Error in INTTYPE mapping: ", e$message)
+    INTTYPE = function(df) { 
+      if(debug) cat("Processing INTTYPE\n")
+      interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
+      
+      if(debug) {
+        cat("Interventions structure:\n")
+        print(str(interventions))
+      }
+      
+      if (is.data.frame(interventions) && "type" %in% colnames(interventions)) {
+          int_types <- unique(interventions$type)
+          if(debug) cat("Unique INTTYPE values:", paste(int_types, collapse = ", "), "\n")
+          return(int_types)
+        } else {
+        if(debug) cat("Unexpected interventions format\n")
         return(NA_character_)
-      })
-    },
+        }
+      },
     STYPE = function(df) if(is.list(df) && length(df) > 0) df[[1]]$protocolSection$designModule$studyType else NA_character_,
     TTYPE = function(trial_data) {
       primary_purpose <- unlist(lapply(trial_data, function(x) x$protocolSection$designModule$designInfo$primaryPurpose))
@@ -971,7 +1118,7 @@ roman_phases <- c(
         return(NA_character_)
       })
     },
-    NCOHORT = function(df) {
+    NARMS = function(df) {
       tryCatch({
         if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$armsInterventionsModule$interventions) && "armGroupLabels" %in% names(df[[1]]$protocolSection$armsInterventionsModule$interventions)) {
           all_labels <- unlist(df[[1]]$protocolSection$armsInterventionsModule$interventions$armGroupLabels)
@@ -998,7 +1145,7 @@ roman_phases <- c(
         return(NA_character_)
       })
     },
-    NARMS = function(df) if(is.list(df) && length(df) > 0) df[[1]]$protocolSection$designModule$numberOfArms else NA_integer_,
+    NCOHORT = function(df) if(is.list(df) && length(df) > 0) df[[1]]$protocolSection$designModule$numberOfArms else NA_integer_,
     ONGOSIND = function(df) if(is.list(df) && length(df) > 0 && df[[1]]$protocolSection$statusModule$overallStatus %in% c("Recruiting", "Active, not recruiting")) "Y" else "N",
     OUTMSPRI = function(df) {
       tryCatch({
@@ -1039,7 +1186,11 @@ roman_phases <- c(
     SEXPOP = function(df) {
       tryCatch({
         if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$eligibilityModule$sex)) {
-          return(df[[1]]$protocolSection$eligibilityModule$sex)
+          sex <- df[[1]]$protocolSection$eligibilityModule$sex
+          if (toupper(sex) == "ALL") {
+            return("BOTH")
+          }
+          return(sex)
         }
         return("NA")
       }, error = function(e) {

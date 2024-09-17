@@ -85,7 +85,7 @@ split_text <- function(text, max_length = 200) {
   
   return(result)
 }
-
+ 
 #' Create TS Domain
 #'
 #' This function creates the TS domain based on the provided NCT IDs and study ID.

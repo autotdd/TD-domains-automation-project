@@ -130,7 +130,7 @@ extract_ti_domain <- function(study_id = "AB64554", pdf_path = "592_Protocol.pdf
       IECAT = c(rep("Inclusion", length(inclusion_result$criteria)),
                 rep("Exclusion", length(exclusion_result$criteria))),
       IESCAT = ifelse(c(inclusion_result$subcategories, exclusion_result$subcategories) == "", NA, c(inclusion_result$subcategories, exclusion_result$subcategories)),
-      IEORRES = c(inclusion_result$criteria, exclusion_result$criteria),
+      IETEST = c(inclusion_result$criteria, exclusion_result$criteria),
       stringsAsFactors = FALSE
     )
     

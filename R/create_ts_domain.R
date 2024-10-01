@@ -98,6 +98,7 @@ split_text <- function(text, max_length = 200) {
 #' @import openxlsx
 #' @importFrom jsonlite fromJSON
 #' @importFrom httr GET content
+#' @importFrom tidyr pivot_longer
 #' @return A list containing the TS domain data frame and count information
 #' @export
 create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FALSE) {
@@ -274,9 +275,7 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     # Update TSVALCD and TSVCDREF based on specific TSVAL content
     ts_summary$TSVALCD <- ifelse(grepl("Hoffmann-La Roche", ts_summary$TSVAL, ignore.case = TRUE), "480008226", ts_summary$TSVALCD)
     if(debug) cat("Rows where TSVALCD was set to '480008226':", sum(ts_summary$TSVALCD == "480008226", na.rm = TRUE), "\n")
-    
-    ts_summary$TSVCDREF <- ifelse(grepl("Hoffmann-La Roche", ts_summary$TSVAL, ignore.case = TRUE), "DUNS", ts_summary$TSVCDREF)
-    if(debug) cat("Rows where TSVCDREF was set to 'DUNS':", sum(ts_summary$TSVCDREF == "DUNS", na.rm = TRUE), "\n")
+
 
     # Add debug print after modifications
     if(debug) {
@@ -532,6 +531,28 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     extra_tsval_columns <- grep("^TSVAL\\d+$", colnames(ts_summary), value = TRUE)
     desiredx_columns <- c(desired_columns, extra_tsval_columns)
     ts_summary <- ts_summary[, desiredx_columns]
+    
+    ts_summary$TSVCDREF <- ifelse(grepl("Hoffmann-La Roche", ts_summary$TSVAL, ignore.case = TRUE), "DUNS", ts_summary$TSVCDREF)
+    if(debug) cat("Rows where TSVCDREF was set to 'DUNS':", sum(ts_summary$TSVCDREF == "DUNS", na.rm = TRUE), "\n")
+
+    # Function to split multiple values in TSVAL
+    split_multiple_values <- function(df, tsparmcd_values) {
+      df %>%
+        tidyr::separate_rows(TSVAL, sep = ";") %>%
+        mutate(TSVAL = trimws(TSVAL))
+    }
+
+    # Split rows for COMPTRT, CURTRT, and TTYPE
+    ts_summary <- ts_summary %>%
+      group_by(TSPARMCD) %>%
+      group_modify(~ {
+        if (.y$TSPARMCD %in% c("COMPTRT", "CURTRT", "TTYPE")) {
+          split_multiple_values(.x, .y$TSPARMCD)
+        } else {
+          .x
+        }
+      }) %>%
+      ungroup()
 
     # Count unique TSPARAMCD's
     unique_tsparmcd_count <- length(unique(ts_summary$TSPARMCD))
@@ -1136,12 +1157,16 @@ roman_phases <- c(
       tryCatch({
         if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$armsInterventionsModule$interventions)) {
           interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
-          comp_treatments <- interventions[grepl("carboplatin|cisplatin|pemetrexed", interventions$name, ignore.case = TRUE), ]
+          
+          # Filter for comparative treatments (assuming they are not labeled as 'EXPERIMENTAL')
+          comp_treatments <- interventions[interventions$type == "DRUG" & 
+                                          !grepl("EXPERIMENTAL", toupper(interventions$armGroupLabels)), ]
+          
           if (nrow(comp_treatments) > 0) {
-            return(paste(comp_treatments$name, collapse = "; "))
+            return(comp_treatments$name)
           }
         }
-        return("NA")
+        return(NA_character_)
       }, error = function(e) {
         warning("Error in COMPTRT mapping: ", e$message)
         return(NA_character_)
@@ -1151,12 +1176,15 @@ roman_phases <- c(
       tryCatch({
         if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$armsInterventionsModule$interventions)) {
           interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
-          cur_treatments <- interventions[grepl("divarasib|pembrolizumab", interventions$name, ignore.case = TRUE), ]
+          
+          # Filter for current treatments (assuming they are labeled as 'EXPERIMENTAL')
+          cur_treatments <- interventions[interventions$type == "DRUG"]
+          
           if (nrow(cur_treatments) > 0) {
-            return(paste(cur_treatments$name, collapse = "; "))
+            return(cur_treatments$name)
           }
         }
-        return("NA")
+        return(NA_character_)
       }, error = function(e) {
         warning("Error in CURTRT mapping: ", e$message)
         return(NA_character_)

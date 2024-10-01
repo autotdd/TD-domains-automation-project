@@ -126,15 +126,15 @@ create_ti_domain_pdf <- function(study_id, pdf_path, incl_range, excl_range, inc
       IECAT = c(rep("Inclusion", length(inclusion_result$criteria)),
                 rep("Exclusion", length(exclusion_result$criteria))),
       IESCAT = ifelse(c(inclusion_result$subcategories, exclusion_result$subcategories) == "", NA, c(inclusion_result$subcategories, exclusion_result$subcategories)),
-      IEORRES = c(inclusion_result$criteria, exclusion_result$criteria),
+      IETEST = c(inclusion_result$criteria, exclusion_result$criteria),
       stringsAsFactors = FALSE
     )
     
-    # Remove footnote patterns from IEORRES
-    ti_domain$IEORRES <- remove_footnote_patterns(ti_domain$IEORRES, footnotes)
+    # Remove footnote patterns from IETEST
+    ti_domain$IETEST <- remove_footnote_patterns(ti_domain$IETEST, footnotes)
     
-    # Truncate IEORRES and remove introduction text
-    truncate_and_clean_ieorres <- function(text, criteria_type) {
+    # Truncate IETEST and remove introduction text
+    truncate_and_clean_IETEST <- function(text, criteria_type) {
   # Dynamically identify and remove any introductory text matching the above patterns
   for (pattern in intro_patterns) {
     text <- gsub(pattern, "", text)
@@ -147,9 +147,9 @@ create_ti_domain_pdf <- function(study_id, pdf_path, incl_range, excl_range, inc
       return(trimws(text))
     }
     
-    ti_domain$IEORRES <- sapply(ti_domain$IEORRES, function(x) {
+    ti_domain$IETEST <- sapply(ti_domain$IETEST, function(x) {
       criteria_type <- ifelse(grepl("^INCL", x), "inclusion", "exclusion")
-      truncate_and_clean_ieorres(x, criteria_type)
+      truncate_and_clean_IETEST(x, criteria_type)
     })
     
     if (nrow(ti_domain) > 0) {
@@ -708,8 +708,8 @@ create_ti_domain_pdf <- function(study_id, pdf_path, incl_range, excl_range, inc
     inclusion_result <- extract_criteria(list(inclusion_text), incl_section, excl_section, character(0))
     exclusion_result <- extract_criteria(list(exclusion_text), excl_section, end_section, character(0))
     
-    # Function to truncate IEORRES
-    truncate_ieorres <- function(text) {
+    # Function to truncate IETEST
+    truncate_IETEST <- function(text) {
       if (nchar(text) > 200) {
         return(paste0(substr(text, 1, 196), "... (As per the protocol)"))
       }
@@ -726,7 +726,7 @@ create_ti_domain_pdf <- function(study_id, pdf_path, incl_range, excl_range, inc
       IECAT = c(rep("Inclusion", length(inclusion_result$criteria)),
                 rep("Exclusion", length(exclusion_result$criteria))),
       IESCAT = c(inclusion_result$subcategories, exclusion_result$subcategories),
-      IEORRES = sapply(c(inclusion_result$criteria, exclusion_result$criteria), truncate_ieorres),
+      IETEST = sapply(c(inclusion_result$criteria, exclusion_result$criteria), truncate_IETEST),
       stringsAsFactors = FALSE
     )
     
@@ -807,8 +807,8 @@ create_ti_domain_api <- function(study_id, nct_id, output_dir) {
     print(paste("Number of inclusion criteria:", length(inclusion_criteria)))
     print(paste("Number of exclusion criteria:", length(exclusion_criteria)))
     
-    # Function to truncate IEORRES and remove leading asterisk
-    truncate_and_clean_ieorres <- function(text) {
+    # Function to truncate IETEST and remove leading asterisk
+    truncate_and_clean_IETEST <- function(text) {
       # Remove leading asterisk and whitespace
       text <- sub("^\\s*\\*\\s*", "", text)
       if (nchar(text) > 200) {
@@ -827,7 +827,7 @@ create_ti_domain_api <- function(study_id, nct_id, output_dir) {
                  rep("Exclusion Criteria", length(exclusion_criteria))),
       IECAT = "",
       IESCAT = "",
-      IEORRES = sapply(c(inclusion_criteria, exclusion_criteria), truncate_and_clean_ieorres),
+      IETEST = sapply(c(inclusion_criteria, exclusion_criteria), truncate_and_clean_IETEST),
       stringsAsFactors = FALSE
     )
     
@@ -875,7 +875,7 @@ process_ti_domain <- function(inclusion_criteria_df, exclusion_criteria_df, stud
       TIRL = NA,
       TIVERS = 1
     ) %>%
-    select(STUDYID, DOMAIN, IETESTCD, IETEST, IECAT, IESCAT, IEORRES, TIRL, TIVERS)
+    select(STUDYID, DOMAIN, IETESTCD, IETEST, IECAT, IESCAT, IETEST, TIRL, TIVERS)
 
   # Save the data frame to an xlsx file with formatting
   save_ti_domain_to_excel(ti_domain, study_id, output_dir)
@@ -898,7 +898,7 @@ save_ti_domain_to_excel <- function(ti_domain, study_id, output_dir) {
 
   # Set column widths
   setColWidths(wb, "TI_Domain", cols = 1:6, widths = c(10, 10, 10, 20, 10, 10))
-  setColWidths(wb, "TI_Domain", cols = 7, widths = 150)  # IEORRES column
+  setColWidths(wb, "TI_Domain", cols = 7, widths = 150)  # IETEST column
 
   # Apply text wrapping to all columns
   wrapStyle <- createStyle(wrapText = TRUE, valign = "top")

@@ -837,7 +837,7 @@ generate_ti_domain <- function(study_id, inclusion_criteria, exclusion_criteria,
     IETEST = character(),
     IECAT = character(),
     IESCAT = character(),
-    IEORRES = character(),
+    IETEST = character(),
     TIVERS = character(),
     stringsAsFactors = FALSE
   )
@@ -852,7 +852,7 @@ generate_ti_domain <- function(study_id, inclusion_criteria, exclusion_criteria,
       IETEST = "Inclusion Criteria",
       IECAT = "Inclusion",
       IESCAT = iescat,
-      IEORRES = trimws(inclusion_criteria[[i]]$text),  # Remove leading/trailing whitespace
+      IETEST = trimws(inclusion_criteria[[i]]$text),  # Remove leading/trailing whitespace
       TIVERS = tivers,
       stringsAsFactors = FALSE
     ))
@@ -868,7 +868,7 @@ generate_ti_domain <- function(study_id, inclusion_criteria, exclusion_criteria,
       IETEST = "Exclusion Criteria",
       IECAT = "Exclusion",
       IESCAT = iescat,
-      IEORRES = trimws(exclusion_criteria[[i]]$text),  # Remove leading/trailing whitespace
+      IETEST = trimws(exclusion_criteria[[i]]$text),  # Remove leading/trailing whitespace
       TIVERS = tivers,
       stringsAsFactors = FALSE
     ))

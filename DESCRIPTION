@@ -19,7 +19,8 @@ Imports:
     pdftools,
     stringr,
     readxl,
-    stringdist
+    stringdist,
+    tidyr
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

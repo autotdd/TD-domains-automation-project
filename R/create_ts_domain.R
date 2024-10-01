@@ -98,7 +98,12 @@ split_text <- function(text, max_length = 200) {
 #' @import openxlsx
 #' @importFrom jsonlite fromJSON
 #' @importFrom httr GET content
+#' @importFrom openxlsx read.xlsx
+#' @importFrom stringr str_split
 #' @importFrom tidyr pivot_longer
+#' @importFrom purrr map
+#' @importFrom stringr str_split
+#' @importFrom dplyr mutate filter select
 #' @return A list containing the TS domain data frame and count information
 #' @export
 create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FALSE) {
@@ -275,7 +280,9 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     # Update TSVALCD and TSVCDREF based on specific TSVAL content
     ts_summary$TSVALCD <- ifelse(grepl("Hoffmann-La Roche", ts_summary$TSVAL, ignore.case = TRUE), "480008226", ts_summary$TSVALCD)
     if(debug) cat("Rows where TSVALCD was set to '480008226':", sum(ts_summary$TSVALCD == "480008226", na.rm = TRUE), "\n")
-
+    
+    ts_summary$TSVCDREF <- ifelse(grepl("Hoffmann-La Roche", ts_summary$TSVAL, ignore.case = TRUE), "DUNS", ts_summary$TSVCDREF)
+    if(debug) cat("Rows where TSVCDREF was set to 'DUNS':", sum(ts_summary$TSVCDREF == "DUNS", na.rm = TRUE), "\n")
 
     # Add debug print after modifications
     if(debug) {
@@ -335,8 +342,29 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     )
 
     # Process countries
-    countries <- unique(unlist(strsplit(ts_summary$TSVAL[ts_summary$TSPARMCD == "FCNTRY"], ", ")))
+    fcntry_values <- ts_summary$TSVAL[ts_summary$TSPARMCD == "FCNTRY"]
     fcntry_tsparm <- ts_template$TSPARM[ts_template$TSPARMCD == "FCNTRY"][1]  # Get TSPARM for FCNTRY from template
+
+    # Function to process country names
+    process_country <- function(country_string) {
+      known_countries_with_commas <- c("Korea, Republic of", "Congo, Democratic Republic of the", "Tanzania, United Republic of")
+      countries <- strsplit(country_string, ", ")[[1]]
+      processed_countries <- c()
+      i <- 1
+      while (i <= length(countries)) {
+        if (i < length(countries) && paste(countries[i], countries[i+1], sep = ", ") %in% known_countries_with_commas) {
+      processed_countries <- c(processed_countries, paste(countries[i], countries[i+1], sep = ", "))
+      i <- i + 2
+    } else {
+          processed_countries <- c(processed_countries, countries[i])
+          i <- i + 1
+        }
+      }
+      return(processed_countries)
+    }
+
+    countries <- unique(unlist(lapply(fcntry_values, process_country)))
+
     country_rows <- data.frame(
       STUDYID = study_id,
       DOMAIN = "TS",
@@ -351,7 +379,6 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
       TSVCDVER = NA_character_,
       stringsAsFactors = FALSE
     )
-
 
     # Add all columns from desired_columns to treatment_rows and country_rows
     for (col in setdiff(desired_columns, colnames(treatment_rows))) {
@@ -401,23 +428,10 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     # Combine all rows
     ts_summary <- rbind(ts_summary, treatment_rows, country_rows)
 
-    # # Ensure INTMODEL and INTTYPE values are valid
-    # valid_intmodel_values <- c("CROSSOVER", "FACTORIAL", "PARALLEL", "SEQUENTIAL", "SINGLE GROUP")
-    # valid_inttype_values <- c("DRUG", "DEVICE", "BIOLOGIC", "PROCEDURE", "RADIATION", "BEHAVIORAL", "DIETARY SUPPLEMENT", "GENETIC", "COMBINATION PRODUCT", "OTHER")
+# Remove the horizontal list of countries (rows with more than one comma)
+    ts_summary <- ts_summary[!(ts_summary$TSPARMCD == "FCNTRY" & 
+                               stringr::str_count(ts_summary$TSVAL, ",") > 1), ]
 
-    # ts_summary$INTMODEL <- toupper(gsub("_", " ", ts_summary$INTMODEL))
-    # ts_summary$INTTYPE <- toupper(gsub("_", " ", ts_summary$INTTYPE))
-
-    # ts_summary$INTMODEL <- ifelse(ts_summary$INTMODEL %in% valid_intmodel_values, ts_summary$INTMODEL, NA)
-    # ts_summary$INTTYPE <- ifelse(ts_summary$INTTYPE %in% valid_inttype_values, ts_summary$INTTYPE, NA)
-
-    # if(debug) {
-    #   cat("INTMODEL values after validation:\n")
-    #   print(table(ts_summary$INTMODEL, useNA = "ifany"))
-    #   cat("INTTYPE values after validation:\n")
-    #   print(table(ts_summary$INTTYPE, useNA = "ifany"))
-    # }
-    
     # Reorder columns again to ensure TSVAL1, TSVAL2, etc. are next to TSVAL
     ts_summary <- ts_summary[, desired_columns]
 
@@ -461,28 +475,16 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     ts_summary <- ts_summary %>%
       mutate(TSVALNF = ifelse(TSPARMCD == "AGEMAX" & (is.na(TSVAL) | TSVAL == ""), "PINF", TSVALNF))
 
-  #   # New condition for REGID
-  #   ts_summary$TSVCDREF <- ifelse(ts_summary$TSPARMCD == "REGID" & !is.na(ts_summary$TSVAL) & ts_summary$TSVAL != "", "EUDRACT", ts_summary$TSVCDREF)
-  #   ts_summary$TSVALCD <- ifelse(ts_summary$TSPARMCD == "REGID" & !is.na(ts_summary$TSVAL) & ts_summary$TSVAL != "", ts_summary$TSVAL, ts_summary$TSVALCD)
-  #   if(debug) cat("Rows where TSVCDREF was set to 'EUDRACT' and TSVALCD was set to TSVAL for REGID:", sum(ts_summary$TSPARMCD == "REGID" & !is.na(ts_summary$TSVAL) & ts_summary$TSVAL != ""), "\n")
-
-  #   # Update TSVALNF and TSVCDREF based on TSVAL
-  #   ts_summary$TSVALNF <- ifelse(is.na(ts_summary$TSVAL), "NI", ts_summary$TSVALNF)
-  #   if(debug) cat("Rows where TSVALNF was set to 'NI':", sum(ts_summary$TSVALNF == "NI", na.rm = TRUE), "\n")
-    
-  #   ts_summary$TSVCDREF <- ifelse(!is.na(ts_summary$TSVAL) & ts_summary$TSVAL != "" , "ClinicalTrials.gov", ts_summary$TSVCDREF)
-  #   if(debug) cat("Rows where TSVCDREF was set to 'ClinicalTrials.gov':", sum(ts_summary$TSVCDREF == "ClinicalTrials.gov", na.rm = TRUE), "\n")
-
-  #  # New condition for TSVALNF = 'NI'
-  #   ts_summary$TSVCDREF <- ifelse(ts_summary$TSVALNF == "NI", "ISO 21090", ts_summary$TSVCDREF)
-  #   if(debug) cat("Rows where TSVCDREF was set to 'ISO 21090' for TSVALNF = 'NI':", sum(ts_summary$TSVALNF == "NI", na.rm = TRUE), "\n")
-
-    
     # Extract EUDRACT number
-    eudract_number <- study_info$protocolSection$identificationModule$secondaryIdInfos %>%
-      filter(type == "EUDRACT_NUMBER") %>%
-      pull(id)
-    
+    eudract_number <- tryCatch({
+      study_info$protocolSection$identificationModule$secondaryIdInfos %>%
+        filter(type == "EUDRACT_NUMBER") %>%
+        pull(id)
+    }, error = function(e) {
+      if(debug) cat("Error extracting EUDRACT number:", conditionMessage(e), "\n")
+      return(character(0))  # Return an empty character vector if there's an error
+    })
+
     # Create additional rows for REGID with NCTID and EUDRACT number
     regid_rows <- ts_summary %>%
       filter(TSPARMCD == "REGID")
@@ -493,11 +495,15 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
              TSVCDREF = "ClinicalTrials.gov", 
              TSVALCD = TSVAL)
     
-    regid_eudract_rows <- regid_rows %>%
-      slice(rep(1:n(), each = length(eudract_number))) %>%
-      mutate(TSVAL = rep(eudract_number, times = nrow(regid_rows)), 
-             TSVCDREF = "EUDRACT", 
-             TSVALCD = TSVAL)
+    regid_eudract_rows <- if(length(eudract_number) > 0) {
+      regid_rows %>%
+        slice(rep(1:n(), each = length(eudract_number))) %>%
+        mutate(TSVAL = rep(eudract_number, times = nrow(regid_rows)), 
+               TSVCDREF = "EUDRACT", 
+               TSVALCD = TSVAL)
+    } else {
+      data.frame()  # Return an empty data frame if there's no EUDRACT number
+    }
     
     # Remove existing REGID rows
     ts_summary <- ts_summary %>%
@@ -531,28 +537,6 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     extra_tsval_columns <- grep("^TSVAL\\d+$", colnames(ts_summary), value = TRUE)
     desiredx_columns <- c(desired_columns, extra_tsval_columns)
     ts_summary <- ts_summary[, desiredx_columns]
-    
-    ts_summary$TSVCDREF <- ifelse(grepl("Hoffmann-La Roche", ts_summary$TSVAL, ignore.case = TRUE), "DUNS", ts_summary$TSVCDREF)
-    if(debug) cat("Rows where TSVCDREF was set to 'DUNS':", sum(ts_summary$TSVCDREF == "DUNS", na.rm = TRUE), "\n")
-
-    # Function to split multiple values in TSVAL
-    split_multiple_values <- function(df, tsparmcd_values) {
-      df %>%
-        tidyr::separate_rows(TSVAL, sep = ";") %>%
-        mutate(TSVAL = trimws(TSVAL))
-    }
-
-    # Split rows for COMPTRT, CURTRT, and TTYPE
-    ts_summary <- ts_summary %>%
-      group_by(TSPARMCD) %>%
-      group_modify(~ {
-        if (.y$TSPARMCD %in% c("COMPTRT", "CURTRT", "TTYPE")) {
-          split_multiple_values(.x, .y$TSPARMCD)
-        } else {
-          .x
-        }
-      }) %>%
-      ungroup()
 
     # Count unique TSPARAMCD's
     unique_tsparmcd_count <- length(unique(ts_summary$TSPARMCD))
@@ -1057,6 +1041,63 @@ roman_phases <- c(
         return(NA_character_)
       })
     },
+AEDICT = function(df) {
+  tryCatch({
+    if(debug) cat("Entering AEDICT function\n")
+    
+    if(is.list(df) && length(df) > 0) {
+      if(debug) cat("df is a non-empty list\n")
+      
+      # Function to recursively search for sourceVocabulary
+      find_source_vocabulary <- function(x) {
+        if(is.list(x)) {
+          results <- unlist(lapply(x, find_source_vocabulary))
+          return(unique(results[!is.na(results) & results != ""]))
+        } else if(is.character(x) && length(x) == 1 && grepl("MedDRA", x, ignore.case = TRUE)) {
+          return(x)
+        }
+        return(NULL)
+      }
+      
+      result <- find_source_vocabulary(df)
+      if(length(result) > 0) {
+        if(debug) cat("Found sourceVocabulary:", result[1], "\n")
+        return(result[1])  # Return the first (and hopefully only) unique value
+      } else {
+        if(debug) cat("sourceVocabulary not found\n")
+      }
+    } else {
+      if(debug) cat("df is not a non-empty list\n")
+    }
+    
+    if(debug) cat("Returning NA for AEDICT\n")
+    return(NA_character_)
+  }, error = function(e) {
+    warning(paste("Error in AEDICT mapping:", conditionMessage(e)))
+    if(debug) {
+      cat("Error details:\n")
+      print(e)
+    }
+    return(NA_character_)
+  })
+},
+        HLTSUBJI = function(df) {
+      tryCatch({
+        if(is.list(df) && length(df) > 0 && 
+           !is.null(df[[1]]$protocolSection$eligibilityModule$healthyVolunteers)) {
+          healthy_volunteers <- df[[1]]$protocolSection$eligibilityModule$healthyVolunteers[[1]]
+          if(isTRUE(healthy_volunteers)) {
+            return("Y")
+          } else {
+            return("N")
+          }
+        }
+        return(NA_character_)
+      }, error = function(e) {
+        warning("Error in HLTSUBJI mapping: ", e$message)
+        return(NA_character_)
+      })
+    },
     SENDTC = function(df) {
       tryCatch({
         if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$statusModule$completionDateStruct$date)) {
@@ -1157,16 +1198,12 @@ roman_phases <- c(
       tryCatch({
         if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$armsInterventionsModule$interventions)) {
           interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
-          
-          # Filter for comparative treatments (assuming they are not labeled as 'EXPERIMENTAL')
-          comp_treatments <- interventions[interventions$type == "DRUG" & 
-                                          !grepl("EXPERIMENTAL", toupper(interventions$armGroupLabels)), ]
-          
+          comp_treatments <- interventions[grepl("carboplatin|cisplatin|pemetrexed", interventions$name, ignore.case = TRUE), ]
           if (nrow(comp_treatments) > 0) {
-            return(comp_treatments$name)
+            return(paste(comp_treatments$name, collapse = "; "))
           }
         }
-        return(NA_character_)
+        return("NA")
       }, error = function(e) {
         warning("Error in COMPTRT mapping: ", e$message)
         return(NA_character_)
@@ -1176,15 +1213,12 @@ roman_phases <- c(
       tryCatch({
         if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$armsInterventionsModule$interventions)) {
           interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
-          
-          # Filter for current treatments (assuming they are labeled as 'EXPERIMENTAL')
-          cur_treatments <- interventions[interventions$type == "DRUG"]
-          
+          cur_treatments <- interventions[grepl("divarasib|pembrolizumab", interventions$name, ignore.case = TRUE), ]
           if (nrow(cur_treatments) > 0) {
-            return(cur_treatments$name)
+            return(paste(cur_treatments$name, collapse = "; "))
           }
         }
-        return(NA_character_)
+        return("NA")
       }, error = function(e) {
         warning("Error in CURTRT mapping: ", e$message)
         return(NA_character_)
@@ -1285,11 +1319,8 @@ roman_phases <- c(
       tryCatch({
         if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$contactsLocationsModule$locations) && "country" %in% names(df[[1]]$protocolSection$contactsLocationsModule$locations)) {
           locations <- df[[1]]$protocolSection$contactsLocationsModule$locations
-          unique_countries <- unique(locations$country)
-          unique_countries <- unique_countries[!is.na(unique_countries) & unique_countries != ""]
-          if (length(unique_countries) > 0) {
-            return(toupper(unique_countries))
-          }
+          countries <- unique(locations$country)
+          return(paste(countries, collapse = ", "))
         }
         return(NA_character_)
       }, error = function(e) {

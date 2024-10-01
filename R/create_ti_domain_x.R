@@ -88,10 +88,9 @@ extract_version <- function(text, debug = FALSE) {
     match <- stringr::str_match(full_text, pattern)
     if (!is.na(match[1,2])) {
       version <- match[1,2]
-      # Ensure the version starts with "Version"
-      if (!grepl("^Version", version, ignore.case = TRUE)) {
-        version <- paste("Version", gsub("^V\\s*", "", version))
-      }
+      # Remove "Version" or "V" prefix and any leading/trailing whitespace
+      version <- gsub("^(Version|V)\\s*", "", version)
+      version <- trimws(version)
       if(debug) cat("Version found:", version, "\n")
       return(version)
     }
@@ -837,7 +836,7 @@ generate_ti_domain <- function(study_id, inclusion_criteria, exclusion_criteria,
     IETEST = character(),
     IECAT = character(),
     IESCAT = character(),
-    IETEST = character(),
+    TIRL = character(),
     TIVERS = character(),
     stringsAsFactors = FALSE
   )
@@ -849,10 +848,10 @@ generate_ti_domain <- function(study_id, inclusion_criteria, exclusion_criteria,
       STUDYID = study_id,
       DOMAIN = "TI",
       IETESTCD = paste0("INCL", sprintf("%03d", i)),
-      IETEST = "Inclusion Criteria",
-      IECAT = "Inclusion",
-      IESCAT = iescat,
       IETEST = trimws(inclusion_criteria[[i]]$text),  # Remove leading/trailing whitespace
+      IECAT = "INCLUSION",
+      IESCAT = iescat,
+      TIRL = "",
       TIVERS = tivers,
       stringsAsFactors = FALSE
     ))
@@ -865,10 +864,10 @@ generate_ti_domain <- function(study_id, inclusion_criteria, exclusion_criteria,
       STUDYID = study_id,
       DOMAIN = "TI",
       IETESTCD = paste0("EXCL", sprintf("%03d", i)),
-      IETEST = "Exclusion Criteria",
+      IETEST = trimws(exclusion_criteria[[i]]$text),  # Remove leading/trailing whitespace
       IECAT = "Exclusion",
       IESCAT = iescat,
-      IETEST = trimws(exclusion_criteria[[i]]$text),  # Remove leading/trailing whitespace
+      TIRL = "",
       TIVERS = tivers,
       stringsAsFactors = FALSE
     ))

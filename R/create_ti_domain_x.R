@@ -865,7 +865,7 @@ generate_ti_domain <- function(study_id, inclusion_criteria, exclusion_criteria,
       DOMAIN = "TI",
       IETESTCD = paste0("EXCL", sprintf("%03d", i)),
       IETEST = trimws(exclusion_criteria[[i]]$text),  # Remove leading/trailing whitespace
-      IECAT = "Exclusion",
+      IECAT = "EXCLUSION",
       IESCAT = iescat,
       TIRL = "",
       TIVERS = tivers,

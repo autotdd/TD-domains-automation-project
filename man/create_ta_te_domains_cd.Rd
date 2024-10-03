@@ -18,7 +18,7 @@ create_ta_te_domains_cd(
 
 \item{trial_design}{A character string representing the trial design. Should be "CROSS-OVER DESIGN".}
 
-\item{arms_data}{A list of arm data. Each element in the list should be a list containing \code{armcd} and \code{epochs}.}
+\item{arms_data}{A list of arm data. Each element in the list should be a list containing \code{armcd}, \code{epochs}, and optionally \code{etcd}.}
 
 \item{treatments}{A list of treatments for the trial.}
 
@@ -35,5 +35,37 @@ for a given study ID using the CROSS-OVER DESIGN.
 }
 \examples{
 \dontrun{
+study_id <- "STUDY003"
+trial_design <- "CROSS-OVER DESIGN"
+arms_data <- list(
+  list(
+    armcd = "ARM1",
+    epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment",
+    etcd = c("SCRN", "TRT1", "WSH1", "TRT2", "WSH2", "TRT3")
+  ),
+  list(
+    armcd = "ARM2",
+    epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment",
+    etcd = c("SCRN", "TRT2", "WSH1", "TRT3", "WSH2", "TRT1")
+  ),
+  list(
+    armcd = "ARM3",
+    epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment",
+    etcd = c("SCRN", "TRT3", "WSH1", "TRT1", "WSH2", "TRT2")
+  )
+)
+treatments <- list(c("A", "B", "C"))
+te_rules <- data.frame(
+  ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "WASHOUT"),
+  TESTRL = c("Informed consent", "First dose of study drug", "First dose of study drug",
+             "First dose of study drug", "End of washout"),
+  TEENRL = c("End of screening", "End of treatment period", "End of treatment period",
+             "End of treatment period", "End of washout period"),
+  TEDUR = c("P7D", "P14D", "P7D", "P21D", "P7D")
+)
+
+result <- create_ta_te_domains_cd(study_id, trial_design, arms_data, treatments, te_rules)
+print(result$TA)
+print(result$TE)
 }
 }

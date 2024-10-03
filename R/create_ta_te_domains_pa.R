@@ -1,77 +1,75 @@
-# File: R/create_ta_te_domains_pa.R
-
-#' Generate TA and TE Datasets for Parallel Design
+#' Create TA and TE Domains for Parallel Arm Studies
 #'
-#' This function generates the TA (Trial Arms) and TE (Trial Elements) datasets
-#' for a given study ID. It supports both simple "PARALLEL DESIGN" and
-#' "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS".
+#' This function generates Trial Arms (TA) and Trial Elements (TE) domains for parallel arm studies,
+#' including those with branches and transitions.
 #'
-#' @param study_id A character string representing the Study ID.
-#' @param trial_design A character string representing the trial design.
-#'        Should be either "PARALLEL DESIGN" or "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS".
-#' @param arms_data A list of arm data. Each element in the list should be a list containing
-#'        `armcd`, `epochs`, and optionally `branch` and `trans`.
-#' @param treatments_list A list of treatments corresponding to each arm.
-#' @param te_rules A data frame containing `ELEMENT`, `TESTRL`, `TEENRL`, and `TEDUR` rules.
-#' @param output_dir A character string representing the output directory. Defaults to the current working directory.
-#' @return A list containing two data frames: TA dataset and TE dataset.
-#' @export
-#' @importFrom dplyr add_row distinct arrange mutate select left_join row_number
-#' @importFrom openxlsx createWorkbook addWorksheet writeData createStyle saveWorkbook
+#' @param study_id A string identifying the study.
+#' @param trial_design A string specifying the trial design, either "PARALLEL DESIGN" or "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS".
+#' @param arms_data A list of arm data, each containing armcd, arm, epochs, and etcd.
+#' @param treatments_list A list of treatments for each arm.
+#' @param te_rules A data frame specifying rules for trial elements.
+#' @param output_dir The directory where output files will be saved (default is current working directory).
+#'
+#' @return A list containing TA and TE data frames.
+#'
 #' @examples
-#' \dontrun{
-#' # Example for simple PARALLEL DESIGN
-#' study_id <- "STUDY002"
+#' # Example for "PARALLEL DESIGN"
+#' study_id <- "STUDY001"
 #' trial_design <- "PARALLEL DESIGN"
 #' arms_data <- list(
 #'   list(
 #'     armcd = "ARM1",
-#'     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
+#'     arm = "Arm 1",
+#'     epochs = "Screening,Treatment,Follow-Up",
+#'     etcd = c("SCREEN", "TREAT", "FOLLOW")
 #'   ),
 #'   list(
 #'     armcd = "ARM2",
-#'     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
+#'     arm = "Arm 2",
+#'     epochs = "Screening,Treatment,Follow-Up",
+#'     etcd = c("SCREEN", "TREAT", "FOLLOW")
 #'   )
 #' )
-#' treatments_list <- list(
-#'   c("A", "B", "C"),
-#'   c("D", "E", "F") 
-#' )
+#' treatments_list <- list(c("A"), c("B"))
 #' te_rules <- data.frame(
-#'   ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C",
-#'               "TREATMENT D", "TREATMENT E", "TREATMENT F", "FOLLOW-UP"),
-#'   TESTRL = c("Informed consent", "First dose A", "First dose B", "First dose C",
-#'              "First dose D", "First dose E", "First dose F", "End of treatment"),
-#'   TEENRL = c("End of screening", "End of A", "End of B", "End of C",
-#'              "End of D", "End of E", "End of F", "End of follow-up"),
-#'   TEDUR = c("P7D", "P14D", "P14D", "P14D", "P14D", "P14D", "P14D", "P21D")
+#'   ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "FOLLOW-UP"),
+#'   TESTRL = c("Informed consent", "First dose A", "First dose B", "End of treatment"),
+#'   TEENRL = c("End of screening", "End of A", "End of B", "End of follow-up"),
+#'   TEDUR = c("P7D", "P14D", "P14D", "P21D")
 #' )
-#'
 #' result <- create_ta_te_domains_pa(study_id, trial_design, arms_data, treatments_list, te_rules)
-#' print(result$TA)
-#' print(result$TE)
 #'
-#' # Example for PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS
+#' # Example for "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS"
+#' study_id <- "STUDY002"
 #' trial_design <- "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS"
 #' arms_data <- list(
 #'   list(
 #'     armcd = "ARM1",
+#'     arm = "Arm 1",
 #'     epochs = "Screening,Treatment,Treatment,Follow-Up",
-#'     branch = c(NA, "Branch1", NA, NA),
-#'     trans = c(NA, "Trans1", "Trans2", NA)
+#'     etcd = c("SCREEN", "TREAT A", "TREAT B", "FOLLOW"),
+#'     branch = c(NA, "BRANCH1", "BRANCH2", NA),
+#'     trans = c(NA, NA, "TRANS1", NA)
 #'   ),
 #'   list(
 #'     armcd = "ARM2",
+#'     arm = "Arm 2",
 #'     epochs = "Screening,Treatment,Treatment,Follow-Up",
-#'     branch = c(NA, "Branch2", NA, NA),
-#'     trans = c(NA, "Trans3", "Trans4", NA)
+#'     etcd = c("SCREEN", "TREAT C", "TREAT D", "FOLLOW"),
+#'     branch = c(NA, "BRANCH3", "BRANCH4", NA),
+#'     trans = c(NA, NA, "TRANS2", NA)
 #'   )
 #' )
+#' treatments_list <- list(c("A", "B"), c("C", "D"))
+#' te_rules <- data.frame(
+#'   ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "TREATMENT D", "FOLLOW-UP"),
+#'   TESTRL = c("Informed consent", "First dose A", "First dose B", "First dose C", "First dose D", "End of treatment"),
+#'   TEENRL = c("End of screening", "End of A", "End of B", "End of C", "End of D", "End of follow-up"),
+#'   TEDUR = c("P7D", "P14D", "P14D", "P14D", "P14D", "P21D")
+#' )
+#' result <- create_ta_te_domains_pa(study_id, trial_design, arms_data, treatments_list, te_rules)
 #'
-#' result_with_transitions <- create_ta_te_domains_pa(study_id, trial_design, arms_data, treatments_list, te_rules)
-#' print(result_with_transitions$TA)
-#' print(result_with_transitions$TE)
-#' }
+#' @export
 create_ta_te_domains_pa <- function(study_id, trial_design, arms_data, treatments_list, te_rules, output_dir = getwd()) {
 
   for (i in seq_along(arms_data)) {
@@ -102,6 +100,23 @@ create_ta_te_domains_pa <- function(study_id, trial_design, arms_data, treatment
     stringsAsFactors = FALSE
   )
 
+  # Updated helper function
+  generate_elements <- function(epochs, treatments) {
+    elements <- character(length(epochs))
+    treatment_index <- 1
+    
+    for (i in seq_along(epochs)) {
+      if (toupper(epochs[i]) == "TREATMENT") {
+        elements[i] <- paste("TREATMENT", toupper(treatments[treatment_index]))
+        treatment_index <- treatment_index + 1
+      } else {
+        elements[i] <- toupper(epochs[i])
+      }
+    }
+    
+    return(elements)
+  }
+
   # Populate TA domain data frame based on input rows
   for (i in seq_along(arms_data)) {
     arm_data <- arms_data[[i]]
@@ -114,15 +129,6 @@ create_ta_te_domains_pa <- function(study_id, trial_design, arms_data, treatment
     armcd <- ifelse(is.null(arm_data$armcd), paste0("ARM", i), arm_data$armcd)
     arm <- ifelse(is.null(arm_data$arm), paste0("Group ", i), arm_data$arm)
 
-    # Validate the lengths of element descriptions and epochs
-    if (length(element_descriptions) != num_elements) {
-      stop(paste("Element descriptions do not match the number of elements for arm", i))
-    }
-
-    if (length(epochs) != num_elements) {
-      stop(paste("Epochs do not match the number of elements for arm", i))
-    }
-
     for (j in seq_along(element_descriptions)) {
       row_index <- (i - 1) * num_elements + j
       ta_df <- ta_df %>%
@@ -132,22 +138,53 @@ create_ta_te_domains_pa <- function(study_id, trial_design, arms_data, treatment
           ARMCD = armcd,
           ARM = arm,
           TAETORD = j,
-          ETCD = paste0("ET", row_index),
-          ELEMENT = element_descriptions[j],
+          ETCD = ifelse(!is.null(arm_data$etcd), arm_data$etcd[j], paste0("ET", row_index)),
+          ELEMENT = element_descriptions[j],  # Use the generated element descriptions
           TABRANCH = if (trial_design == "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS" && !is.null(arm_data$branch)) arm_data$branch[j] else NA,
           TATRANS = if (trial_design == "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS" && !is.null(arm_data$trans)) arm_data$trans[j] else NA,
-          EPOCH = ifelse(grepl("TREATMENT", epochs[j], ignore.case = TRUE), "TREATMENT", epochs[j])
+          EPOCH = epochs[j]
         )
     }
   }
 
-  # Create TE domain directly from te_rules
-  te_df <- te_rules %>%
+  # Create a complete mapping of ELEMENT to ETCD
+  etcd_mapping <- data.frame(
+    ELEMENT = character(),
+    ETCD = character(),
+    stringsAsFactors = FALSE
+  )
+
+  for (i in seq_along(arms_data)) {
+    arm <- arms_data[[i]]
+    epochs <- toupper(unlist(strsplit(arm$epochs, ",")))
+    etcds <- arm$etcd
+    treatments <- treatments_list[[i]]
+    
+    treatment_index <- 1
+    for (j in seq_along(epochs)) {
+      if (epochs[j] == "TREATMENT") {
+        element <- paste("TREATMENT", toupper(treatments[treatment_index]))
+        treatment_index <- treatment_index + 1
+      } else {
+        element <- epochs[j]
+      }
+      
+      etcd_mapping <- rbind(etcd_mapping, data.frame(ELEMENT = element, ETCD = etcds[j]))
+    }
+  }
+  etcd_mapping <- distinct(etcd_mapping)
+
+  # Merge te_rules with etcd_mapping
+  te_df <- merge(te_rules, etcd_mapping, by = "ELEMENT", all = TRUE)
+
+  # Process TE rules and sort by days in TEDUR (ISO8601 format)
+  te_df <- te_df %>%
     mutate(
       STUDYID = study_id,
       DOMAIN = "TE",
-      ETCD = paste0("ET", row_number())
+      DurationDays = as.numeric(gsub("[^0-9]", "", TEDUR)) # Extract days from TEDUR in ISO8601 format
     ) %>%
+    arrange(DurationDays) %>% # Sort by the numeric value of days
     select(STUDYID, DOMAIN, ETCD, ELEMENT, TESTRL, TEENRL, TEDUR)
 
   # Save TA to Excel file
@@ -165,30 +202,4 @@ create_ta_te_domains_pa <- function(study_id, trial_design, arms_data, treatment
   saveWorkbook(wb_te, te_output_file, overwrite = TRUE)
 
   return(list(TA = ta_df, TE = te_df))
-}
-
-# Helper function
-
-#' Generate Element Descriptions
-#'
-#' This function generates element descriptions from epochs with additional text for treatment.
-#'
-#' @param epochs A character vector of epochs.
-#' @param treatments A character vector of treatments.
-#' @return A character vector of element descriptions.
-#' @keywords internal
-generate_elements <- function(epochs, treatments) {
-  treatment_counter <- 1
-  num_treatments <- length(treatments)
-  elements <- sapply(seq_along(epochs), function(i) {
-    if (grepl("TREATMENT", epochs[i], ignore.case = TRUE)) {
-      treatment_index <- (treatment_counter - 1) %% num_treatments + 1
-      element <- paste0("TREATMENT ", treatments[treatment_index])
-      treatment_counter <<- treatment_counter + 1
-      return(element)
-    } else {
-      return(epochs[i])
-    }
-  })
-  return(elements)
 }

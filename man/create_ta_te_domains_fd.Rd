@@ -18,11 +18,11 @@ create_ta_te_domains_fd(
 
 \item{trial_design}{A character string representing the trial design. Should be "FACTORIAL DESIGN".}
 
-\item{arms_data}{A list of arm data. Each element in the list should be a list containing \code{armcd} and \code{epochs}.}
+\item{arms_data}{A list of arm data. Each element in the list should be a list containing \code{armcd}, \code{epochs}, \code{etcd} (optional).}
 
-\item{treatments}{A list of treatments for the trial.}
+\item{treatments}{A list of treatments for each arm. Each element should be a vector of treatments corresponding to the arm.}
 
-\item{te_rules}{A data frame containing TE rules with columns: ELEMENT, TESTRL, TEENRL, TEDUR.}
+\item{te_rules}{A data frame containing TE rules with columns: ELEMENT, TESTRL, TEENRL, TEDUR (in ISO 8601 format).}
 
 \item{output_dir}{A character string representing the output directory. Defaults to the current working directory.}
 }

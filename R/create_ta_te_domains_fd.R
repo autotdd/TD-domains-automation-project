@@ -1,5 +1,3 @@
-# File: R/create_ta_te_domains_fd.R
-
 #' Generate TA and TE Datasets for Factorial Design
 #'
 #' This function generates the TA (Trial Arms) and TE (Trial Elements) datasets
@@ -7,14 +5,15 @@
 #'
 #' @param study_id A character string representing the Study ID.
 #' @param trial_design A character string representing the trial design. Should be "FACTORIAL DESIGN".
-#' @param arms_data A list of arm data. Each element in the list should be a list containing `armcd` and `epochs`.
-#' @param treatments A list of treatments for the trial.
-#' @param te_rules A data frame containing TE rules with columns: ELEMENT, TESTRL, TEENRL, TEDUR.
+#' @param arms_data A list of arm data. Each element in the list should be a list containing `armcd`, `epochs`, `etcd` (optional).
+#' @param treatments A list of treatments for each arm. Each element should be a vector of treatments corresponding to the arm.
+#' @param te_rules A data frame containing TE rules with columns: ELEMENT, TESTRL, TEENRL, TEDUR (in ISO 8601 format).
 #' @param output_dir A character string representing the output directory. Defaults to the current working directory.
 #' @return A list containing two data frames: TA dataset and TE dataset.
 #' @export
-#' @importFrom dplyr add_row distinct mutate select left_join
+#' @importFrom dplyr add_row distinct mutate select left_join arrange
 #' @importFrom openxlsx createWorkbook addWorksheet writeData createStyle saveWorkbook
+#' @importFrom lubridate duration
 #' @examples
 #' \dontrun{
 # study_id <- "STUDY004"
@@ -22,69 +21,57 @@
 # arms_data <- list(
 #   list(
 #     armcd = "ARM1",
-#     epochs = "Screening,Treatment,Treatment,Follow-Up"
+#     epochs = "Screening,Treatment,Treatment,Follow-Up",
+#     etcd = c("SCRN", "TRT1", "TRT2", "FU")
 #   ),
 #   list(
 #     armcd = "ARM2",
-#     epochs = "Screening,Treatment,Treatment,Follow-Up"
+#     epochs = "Screening,Treatment,Treatment,Follow-Up",
+#     etcd = c("SCRN", "TRT3", "TRT4", "FU")
 #   ),
 #   list(
 #     armcd = "ARM3",
-#     epochs = "Screening,Treatment,Treatment,Follow-Up"
-#   ),
-#   list(
-#     armcd = "ARM4",
-#     epochs = "Screening,Treatment,Treatment,Follow-Up"
-#   ),
-#   list(
-#     armcd = "ARM5",
-#     epochs = "Screening,Treatment,Treatment,Follow-Up"
-#   ),
-#   list(
-#     armcd = "ARM6",
-#     epochs = "Screening,Treatment,Treatment,Follow-Up"
+#     epochs = "Screening,Treatment,Treatment,Follow-Up",
+#     etcd = c("SCRN", "TRT5", "TRT6", "FU")
 #   )
 # )
 # treatments <- list(
 #   c("Treatment A", "Treatment B"), # Treatments for ARM1
-#   c("Placebo B", "Treatment A"), # Treatments for ARM2
-#   c("Placebo A", "Treatment B"), # Treatments for ARM3
-#   c("Placebo B", "Treatment B"), # Treatments for ARM4
-#   c("Placebo A", "Treatment A"), # Treatments for ARM5
-#   c("Placebo A", "Placebo B")  # Treatments for ARM6
+#   c("Treatment C", "Treatment D"), # Treatments for ARM2
+#   c("Treatment E", "Treatment F")  # Treatments for ARM3
 # )
 # te_rules <- data.frame(
 #   ELEMENT = c(
 #     "SCREENING",
-#     "TREATMENT TREATMENT A TREATMENT B",
-#     "TREATMENT PLACEBO B TREATMENT A",
-#     "TREATMENT PLACEBO A TREATMENT B",
-#     "TREATMENT PLACEBO B TREATMENT B",
-#     "TREATMENT PLACEBO A TREATMENT A",
-#     "TREATMENT PLACEBO A PLACEBO B",
+#     "TREATMENT A",
+#     "TREATMENT B",
+#     "TREATMENT C",
+#     "TREATMENT D",
+#     "TREATMENT E",
+#     "TREATMENT F",
 #     "FOLLOW-UP"
 #   ),
 #   TESTRL = c(
 #     "Informed consent",
-#     "First dose of Treatment A and Treatment B",
-#     "First dose of Placebo B and Treatment A",
-#     "First dose of Placebo A and Treatment B",
-#     "First dose of Placebo B and Treatment B",
-#     "First dose of Placebo A and Treatment A",
-#     "First dose of Placebo A and Placebo B",
+#     "First dose of Treatment A",
+#     "First dose of Treatment B",
+#     "First dose of Treatment C",
+#     "First dose of Treatment D",
+#     "First dose of Treatment E",
+#     "First dose of Treatment F",
 #     "End of follow-up"
 #   ),
 #   TEENRL = c(
 #     "End of screening",
-#     "End of Treatment A and Treatment B",
-#     "End of Placebo B and Treatment A",
-#     "End of Placebo A and Treatment B",
-#     "End of Placebo B and Treatment B",
-#     "End of Placebo A and Treatment A",
-#     "End of Placebo A and Placebo B",
+#     "End of Treatment A",
+#     "End of Treatment B",
+#     "End of Treatment C",
+#     "End of Treatment D",
+#     "End of Treatment E",
+#     "End of Treatment F",
 #     "End of study"
 #   ),
-#   TEDUR = c("P7D", "P14D", "P14D", "P14D", "P14D", "P14D", "P14D", "P21D"),
+#   TEDUR = c("P7D", "P14D", "P14D", "P21D", "P14D", "P14D", "P21D", "P30D"),
 #   stringsAsFactors = FALSE
 # )
 #
@@ -93,7 +80,6 @@
 # print(result$TE)
 #' }
 create_ta_te_domains_fd <- function(study_id, trial_design, arms_data, treatments, te_rules, output_dir = getwd()) {
-
   # Validate inputs
   if (trial_design != "FACTORIAL DESIGN") {
     stop("This function is customized only for 'FACTORIAL DESIGN'.")
@@ -128,20 +114,11 @@ create_ta_te_domains_fd <- function(study_id, trial_design, arms_data, treatment
     arm_data <- arms_data[[i]]
     epochs <- toupper(unlist(strsplit(arm_data$epochs, ",")))
     element_descriptions <- generate_elements_fd(epochs, treatments[[i]])
+    etcd <- arm_data$etcd  # Allow users to specify ETCD as free text
     num_elements <- length(element_descriptions)
 
-    # Use provided ARMCD and ARM values or default to generated ones
     armcd <- ifelse(is.null(arm_data$armcd), paste0("ARM", i), arm_data$armcd)
     arm <- ifelse(is.null(arm_data$arm), paste0("Group ", i), arm_data$arm)
-
-    # Validate the lengths of element descriptions and epochs
-    if (length(element_descriptions) != num_elements) {
-      stop(paste("Element descriptions do not match the number of elements for arm", i))
-    }
-
-    if (length(epochs) != num_elements) {
-      stop(paste("Epochs do not match the number of elements for arm", i))
-    }
 
     for (j in seq_along(element_descriptions)) {
       row_index <- (i - 1) * num_elements + j
@@ -152,37 +129,43 @@ create_ta_te_domains_fd <- function(study_id, trial_design, arms_data, treatment
           ARMCD = armcd,
           ARM = arm,
           TAETORD = j,
-          ETCD = paste0("ET", row_index),
-          ELEMENT = element_descriptions[j],
+          ETCD = if (!is.null(etcd)) etcd[j] else paste0("ET", row_index),
+          ELEMENT = element_descriptions[j],  # No "TREATMENT" prefix
           TABRANCH = NA,
           TATRANS = NA,
-          EPOCH = ifelse(grepl("TREATMENT", epochs[j], ignore.case = TRUE), "TREATMENT", epochs[j])
+          EPOCH = epochs[j]
         )
-    } 
+    }
   }
 
   # Create TE domain
   unique_elements <- ta_df %>%
-    distinct(ELEMENT, .keep_all = TRUE) %>%
+    distinct(STUDYID, ELEMENT, ETCD, .keep_all = TRUE) %>%
     arrange(factor(EPOCH, levels = c("SCREENING", "TREATMENT", "FOLLOW-UP"))) %>%
-    mutate(ETCD = paste0("ET", row_number()), DOMAIN = "TE")
+    mutate(DOMAIN = "TE",
+           ELEMENT_UPPER = toupper(ELEMENT))  # Add uppercase ELEMENT for joining
 
-  te_df <- te_rules %>%
+  # Prepare te_rules
+  te_rules <- te_rules %>%
     mutate(
       STUDYID = study_id,
       DOMAIN = "TE",
-      ETCD = paste0("ET", row_number())
-    ) %>%
-    select(STUDYID, DOMAIN, ETCD, ELEMENT, TESTRL, TEENRL, TEDUR)
+      ELEMENT_UPPER = toupper(ELEMENT)  # Add uppercase ELEMENT for joining
+    )
 
-  # Save TA domain to Excel file
+  # Join TE rules with unique elements from TA domain
+  te_df <- unique_elements %>%
+    left_join(te_rules, by = c("ELEMENT_UPPER" = "ELEMENT_UPPER")) %>%
+    select(STUDYID = STUDYID.x, DOMAIN = DOMAIN.x, ETCD, ELEMENT = ELEMENT.x, TESTRL, TEENRL, TEDUR) %>%
+    distinct()
+
+  # Save TA and TE domain to Excel files
   ta_output_file <- file.path(output_dir, paste0(study_id, "_TA.xlsx"))
   wb_ta <- createWorkbook()
   addWorksheet(wb_ta, "TA")
   writeData(wb_ta, "TA", ta_df, headerStyle = createStyle(textDecoration = "bold"))
   saveWorkbook(wb_ta, ta_output_file, overwrite = TRUE)
 
-  # Save TE domain to Excel file
   te_output_file <- file.path(output_dir, paste0(study_id, "_TE.xlsx"))
   wb_te <- createWorkbook()
   addWorksheet(wb_te, "TE")
@@ -192,23 +175,13 @@ create_ta_te_domains_fd <- function(study_id, trial_design, arms_data, treatment
   return(list(TA = ta_df, TE = te_df))
 }
 
-# Helper function
-
-#' Generate Element Descriptions for Factorial Design
-#'
-#' This function generates element descriptions from epochs with additional text for treatment
-#' specifically for factorial design trials.
-#'
-#' @param epochs A character vector of epochs.
-#' @param treatments A character vector of treatments for the current arm.
-#' @return A character vector of element descriptions.
-#' @keywords internal
+# Helper function for generating elements
 generate_elements_fd <- function(epochs, treatments) {
   elements <- character(length(epochs))
   treatment_index <- 1
   for (i in seq_along(epochs)) {
     if (grepl("TREATMENT", epochs[i], ignore.case = TRUE)) {
-      elements[i] <- paste("TREATMENT", treatments[treatment_index])
+      elements[i] <- treatments[treatment_index]  # No prefix
       treatment_index <- treatment_index + 1
     } else {
       elements[i] <- epochs[i]
@@ -217,77 +190,8 @@ generate_elements_fd <- function(epochs, treatments) {
   return(elements)
 }
 
-# study_id <- "STUDY004"
-# trial_design <- "FACTORIAL DESIGN"
-# arms_data <- list(
-#   list(
-#     armcd = "ARM1",
-#     epochs = "Screening,Treatment,Treatment,Follow-Up"
-#   ),
-#   list(
-#     armcd = "ARM2",
-#     epochs = "Screening,Treatment,Treatment,Follow-Up"
-#   ),
-#   list(
-#     armcd = "ARM3",
-#     epochs = "Screening,Treatment,Treatment,Follow-Up"
-#   ),
-#   list(
-#     armcd = "ARM4",
-#     epochs = "Screening,Treatment,Treatment,Follow-Up"
-#   ),
-#   list(
-#     armcd = "ARM5",
-#     epochs = "Screening,Treatment,Treatment,Follow-Up"
-#   ),
-#   list(
-#     armcd = "ARM6",
-#     epochs = "Screening,Treatment,Treatment,Follow-Up"
-#   )
-# )
-# treatments <- list(
-#   c("Treatment A", "Treatment B"), # Treatments for ARM1
-#   c("Placebo B", "Treatment A"), # Treatments for ARM2
-#   c("Placebo A", "Treatment B"), # Treatments for ARM3
-#   c("Placebo B", "Treatment B"), # Treatments for ARM4
-#   c("Placebo A", "Treatment A"), # Treatments for ARM5
-#   c("Placebo A", "Placebo B")  # Treatments for ARM6
-# )
-# te_rules <- data.frame(
-#   ELEMENT = c(
-#     "SCREENING",
-#     "TREATMENT TREATMENT A TREATMENT B",
-#     "TREATMENT PLACEBO B TREATMENT A",
-#     "TREATMENT PLACEBO A TREATMENT B",
-#     "TREATMENT PLACEBO B TREATMENT B",
-#     "TREATMENT PLACEBO A TREATMENT A",
-#     "TREATMENT PLACEBO A PLACEBO B",
-#     "FOLLOW-UP"
-#   ),
-#   TESTRL = c(
-#     "Informed consent",
-#     "First dose of Treatment A and Treatment B",
-#     "First dose of Placebo B and Treatment A",
-#     "First dose of Placebo A and Treatment B",
-#     "First dose of Placebo B and Treatment B",
-#     "First dose of Placebo A and Treatment A",
-#     "First dose of Placebo A and Placebo B",
-#     "End of follow-up"
-#   ),
-#   TEENRL = c(
-#     "End of screening",
-#     "End of Treatment A and Treatment B",
-#     "End of Placebo B and Treatment A",
-#     "End of Placebo A and Treatment B",
-#     "End of Placebo B and Treatment B",
-#     "End of Placebo A and Treatment A",
-#     "End of Placebo A and Placebo B",
-#     "End of study"
-#   ),
-#   TEDUR = c("P7D", "P14D", "P14D", "P14D", "P14D", "P14D", "P14D", "P21D"),
-#   stringsAsFactors = FALSE
-# )
-#
-# result <- create_ta_te_domains_fd(study_id, trial_design, arms_data, treatments, te_rules)
-# print(result$TA)
-# print(result$TE)
+# Function to convert ISO 8601 duration to numeric days
+convert_iso8601_to_days <- function(duration_str) {
+  duration_obj <- duration(duration_str)
+  as.numeric(duration_obj, "days")
+}

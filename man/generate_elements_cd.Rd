@@ -4,7 +4,7 @@
 \alias{generate_elements_cd}
 \title{Generate Element Descriptions for Cross-Over Design}
 \usage{
-generate_elements_cd(epochs, arm_index, treatments)
+generate_elements_cd(epochs, arm_index, treatments, etcd = NULL)
 }
 \arguments{
 \item{epochs}{A character vector of epochs.}

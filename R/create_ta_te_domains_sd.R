@@ -81,7 +81,6 @@ create_ta_te_domains_sd <- function(study_id, arms_data, treatments, te_rules, o
     }
 
     for (j in seq_along(element_descriptions)) {
-      row_index <- (i - 1) * num_elements + j
       ta_df <- ta_df %>%
         add_row(
           STUDYID = study_id,
@@ -89,7 +88,7 @@ create_ta_te_domains_sd <- function(study_id, arms_data, treatments, te_rules, o
           ARMCD = armcd,
           ARM = arm,
           TAETORD = j,
-          ETCD = paste0("ET", row_index),
+          ETCD = ifelse(!is.null(arm_data$etcd), arm_data$etcd[j], paste0("ET", j)),
           ELEMENT = element_descriptions[j],
           TABRANCH = NA,
           TATRANS = NA,
@@ -98,17 +97,36 @@ create_ta_te_domains_sd <- function(study_id, arms_data, treatments, te_rules, o
     }
   }
 
-  # Create TE domain
-  unique_elements <- ta_df %>%
-    distinct(ELEMENT) %>%
-    mutate(
-      ETCD = paste0("ET", row_number()),
-      DOMAIN = "TE"
-    )
+  # Create a complete mapping of ELEMENT to ETCD
+  etcd_mapping <- data.frame(
+    ELEMENT = character(),
+    ETCD = character(),
+    stringsAsFactors = FALSE
+  )
 
-  te_df <- unique_elements %>%
-    left_join(te_rules, by = "ELEMENT") %>%
-    mutate(STUDYID = study_id) %>%
+  for (i in seq_along(arms_data)) {
+    arm <- arms_data[[i]]
+    epochs <- toupper(unlist(strsplit(arm$epochs, ",")))
+    etcds <- arm$etcd
+    element_descriptions <- generate_elements_sd(epochs, treatments)
+    
+    for (j in seq_along(epochs)) {
+      etcd_mapping <- rbind(etcd_mapping, data.frame(ELEMENT = element_descriptions[j], ETCD = etcds[j]))
+    }
+  }
+  etcd_mapping <- distinct(etcd_mapping)
+
+  # Merge te_rules with etcd_mapping
+  te_df <- merge(te_rules, etcd_mapping, by = "ELEMENT", all = TRUE)
+
+  # Process TE rules and sort by days in TEDUR (ISO8601 format)
+  te_df <- te_df %>%
+    mutate(
+      STUDYID = study_id,
+      DOMAIN = "TE",
+      DurationDays = as.numeric(gsub("[^0-9]", "", TEDUR)) # Extract days from TEDUR in ISO8601 format
+    ) %>%
+    arrange(DurationDays) %>% # Sort by the numeric value of days
     select(STUDYID, DOMAIN, ETCD, ELEMENT, TESTRL, TEENRL, TEDUR)
 
   # Save TA domain to Excel file

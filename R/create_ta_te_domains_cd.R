@@ -1,5 +1,3 @@
-# File: R/create_ta_te_domains_cd.R
-
 #' Generate TA and TE Datasets for Cross-Over Design
 #'
 #' This function generates the TA (Trial Arms) and TE (Trial Elements) datasets
@@ -7,7 +5,7 @@
 #'
 #' @param study_id A character string representing the Study ID.
 #' @param trial_design A character string representing the trial design. Should be "CROSS-OVER DESIGN".
-#' @param arms_data A list of arm data. Each element in the list should be a list containing `armcd`, `epochs`, and optionally `etcd`.
+#' @param arms_data A list of arm data. Each element in the list should be a list containing `armcd`, `arm`, `epochs`, and `etcd`.
 #' @param treatments A list of treatments for the trial.
 #' @param te_rules A data frame containing TE rules with columns: ELEMENT, TESTRL, TEENRL, TEDUR.
 #' @param output_dir A character string representing the output directory. Defaults to the current working directory.
@@ -23,23 +21,26 @@
 #' arms_data <- list(
 #'   list(
 #'     armcd = "ARM1",
+#'     arm = "Sequence 1",
 #'     epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment",
-#'     etcd = c("SCRN", "TRT1", "WSH1", "TRT2", "WSH2", "TRT3")
+#'     etcd = "SCRN, TRT1, WSH1, TRT2, WSH2, TRT3"
 #'   ),
 #'   list(
 #'     armcd = "ARM2",
+#'     arm = "Sequence 2",
 #'     epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment",
-#'     etcd = c("SCRN", "TRT2", "WSH1", "TRT3", "WSH2", "TRT1")
+#'     etcd = "SCRN, TRT2, WSH1, TRT3, WSH2, TRT1"
 #'   ),
 #'   list(
 #'     armcd = "ARM3",
+#'     arm = "Sequence 3",
 #'     epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment",
-#'     etcd = c("SCRN", "TRT3", "WSH1", "TRT1", "WSH2", "TRT2")
+#'     etcd = "SCRN, TRT3, WSH1, TRT1, WSH2, TRT2"
 #'   )
 #' )
 #' treatments <- list(c("A", "B", "C"))
 #' te_rules <- data.frame(
-#'   ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "WASHOUT"),
+#'   ELEMENT = c("SCREENING", "A", "B", "C", "WASHOUT"),
 #'   TESTRL = c("Informed consent", "First dose of study drug", "First dose of study drug",
 #'              "First dose of study drug", "End of washout"),
 #'   TEENRL = c("End of screening", "End of treatment period", "End of treatment period",
@@ -52,10 +53,12 @@
 #' print(result$TE)
 #' }
 create_ta_te_domains_cd <- function(study_id, trial_design, arms_data, treatments, te_rules, output_dir = getwd()) {
-    # Load necessary libraries
-    library(dplyr)
-    library(openxlsx)
-    library(lubridate)
+    # Load necessary libraries silently
+    suppressPackageStartupMessages({
+        library(dplyr)
+        library(openxlsx)
+        library(lubridate)
+    })
 
     # Validate inputs
     if (trial_design != "CROSS-OVER DESIGN") {
@@ -223,10 +226,16 @@ create_ta_te_domains_cd <- function(study_id, trial_design, arms_data, treatment
 generate_elements_cd <- function(epochs, arm_index, treatments, etcd = NULL) {
     num_treatments <- length(treatments[[1]])
     treatment_counter <- (arm_index - 1) %% num_treatments
+    
+    # Split etcd string into a vector if it's provided
+    if (!is.null(etcd)) {
+        etcd <- unlist(strsplit(etcd, ",\\s*"))
+    }
+    
     elements <- sapply(seq_along(epochs), function(i) {
         if (grepl("TREATMENT", epochs[i], ignore.case = TRUE)) {
             treatment_index <- (treatment_counter %% num_treatments) + 1
-            element <- paste0("TREATMENT ", treatments[[1]][treatment_index])
+            element <- treatments[[1]][treatment_index]  # Remove "TREATMENT" prefix
             treatment_counter <<- treatment_counter + 1
             return(element)
         } else {
@@ -248,20 +257,23 @@ generate_elements_cd <- function(epochs, arm_index, treatments, etcd = NULL) {
 # arms_data <- list(
 #   list(
 #     armcd = "ARM1",
+#     arm = "Sequence 1",
 #     epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment"
 #   ),
 #   list(
 #     armcd = "ARM2",
+#     arm = "Sequence 2",
 #     epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment"
 #   ),
 #   list(
 #     armcd = "ARM3",
+#     arm = "Sequence 3",
 #     epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment"
 #   )
 # )
 # treatments <- list(c("A", "B", "C")) # Define the treatments dynamically
 # te_rules <- data.frame(
-#   ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "WASHOUT"),
+#   ELEMENT = c("SCREENING", "A", "B", "C", "WASHOUT"),
 #   TESTRL = c("Informed consent", "First dose of study drug", "First dose of study drug",
 #              "First dose of study drug", "End of washout"),
 #   TEENRL = c("End of screening", "End of treatment period", "End of treatment period",

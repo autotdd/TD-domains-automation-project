@@ -6,30 +6,33 @@
 #' for a given study ID based on the SINGLE GROUP DESIGN.
 #'
 #' @param study_id A character string representing the Study ID.
-#' @param arms_data A list of arm data. Each element in the list should be a list containing `armcd` and `epochs`.
+#' @param arms_data A list of arm data. Each element in the list should be a list containing `armcd`, `arm`, `epochs`, and `etcd`.
 #' @param treatments A list of treatments for the trial.
 #' @param te_rules A data frame containing TE rules with columns: ELEMENT, TESTRL, TEENRL, TEDUR.
 #' @param output_dir A character string representing the output directory. Defaults to the current working directory.
 #' @return A list containing two data frames: TA dataset and TE dataset.
 #' @export
-#' @importFrom dplyr add_row distinct mutate select left_join
+#' @import dplyr openxlsx lubridate
 #' @importFrom openxlsx createWorkbook addWorksheet writeData createStyle saveWorkbook
+#' @importFrom stringr str_to_upper
 #' @examples
 #' \dontrun{
 #' study_id <- "STUDY001"
 #' arms_data <- list(
 #'   list(
 #'     armcd = "ARM1",
-#'     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
+#'     arm = "Single Treatment Arm",
+#'     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up",
+#'     etcd = "SCRN,TRT1,TRT2,TRT3,FUP"
 #'   )
 #' )
-#' treatments <- list("A", "B", "C") # Define the treatments dynamically as a list
+#' treatments <- list("A", "B", "C")
 #' te_rules <- data.frame(
-#'   ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "FOLLOW-UP"),
-#'   TESTRL = c("Informed consent", "First dose of study drug A", "First dose of study drug B",
-#'              "First dose of study drug C", "End of treatment"),
-#'   TEENRL = c("End of screening", "End of treatment A", "End of treatment B",
-#'              "End of treatment C", "End of follow-up period"),
+#'   ELEMENT = c("SCREENING", "A", "B", "C", "FOLLOW-UP"),
+#'   TESTRL = c("Informed consent", "First dose of A", "First dose of B",
+#'              "First dose of C", "End of treatment"),
+#'   TEENRL = c("End of screening", "End of A", "End of B",
+#'              "End of C", "End of follow-up period"),
 #'   TEDUR = c("P7D", "P14D", "P14D", "P14D", "P21D")
 #' )
 #'
@@ -38,7 +41,6 @@
 #' print(result$TE)
 #' }
 create_ta_te_domains_sd <- function(study_id, arms_data, treatments, te_rules, output_dir = getwd()) {
-
   # Initialize TA domain data frame
   ta_df <- data.frame(
     STUDYID = character(),
@@ -58,42 +60,36 @@ create_ta_te_domains_sd <- function(study_id, arms_data, treatments, te_rules, o
   for (i in seq_along(arms_data)) {
     arm_data <- arms_data[[i]]
     epochs <- toupper(unlist(strsplit(arm_data$epochs, ",")))
+    etcd <- unlist(strsplit(arm_data$etcd, ","))
     element_descriptions <- generate_elements_sd(epochs, treatments)
     num_elements <- length(element_descriptions)
 
-    # Use provided ARMCD and ARM values or default to generated ones
-    armcd <- ifelse(is.null(arm_data$armcd), paste0("ARM", i), arm_data$armcd)
-    arm <- ifelse(is.null(arm_data$arm), paste0("Group ", i), arm_data$arm)
+    armcd <- arm_data$armcd
+    arm <- arm_data$arm
 
-    # Validate the lengths of element descriptions and epochs
-    if(length(element_descriptions) != num_elements) {
-      stop(paste("Element descriptions do not match the number of elements for arm", i))
+    if(length(element_descriptions) != num_elements || length(epochs) != num_elements || length(etcd) != num_elements) {
+      stop(paste("Mismatch in the number of elements, epochs, or ETCDs for arm", i))
     }
 
-    if(length(epochs) != num_elements) {
-      stop(paste("Epochs do not match the number of elements for arm", i))
-    }
-
-    # Check if the number of treatments matches the number of Treatment epochs
     treatment_epochs <- sum(grepl("TREATMENT", epochs, ignore.case = TRUE))
     if(treatment_epochs != length(treatments)) {
       stop(paste("Mismatch between number of treatments and treatment epochs for arm", i))
     }
 
     for (j in seq_along(element_descriptions)) {
-      ta_df <- ta_df %>%
-        add_row(
-          STUDYID = study_id,
-          DOMAIN = "TA",
-          ARMCD = armcd,
-          ARM = arm,
-          TAETORD = j,
-          ETCD = ifelse(!is.null(arm_data$etcd), arm_data$etcd[j], paste0("ET", j)),
-          ELEMENT = element_descriptions[j],
-          TABRANCH = NA,
-          TATRANS = NA,
-          EPOCH = epochs[j]
-        )
+      ta_df <- rbind(ta_df, data.frame(
+        STUDYID = study_id,
+        DOMAIN = "TA",
+        ARMCD = armcd,
+        ARM = arm,
+        TAETORD = j,
+        ETCD = etcd[j],
+        ELEMENT = as.character(element_descriptions[j]),
+        TABRANCH = NA,
+        TATRANS = NA,
+        EPOCH = epochs[j],
+        stringsAsFactors = FALSE
+      ))
     }
   }
 
@@ -107,27 +103,31 @@ create_ta_te_domains_sd <- function(study_id, arms_data, treatments, te_rules, o
   for (i in seq_along(arms_data)) {
     arm <- arms_data[[i]]
     epochs <- toupper(unlist(strsplit(arm$epochs, ",")))
-    etcds <- arm$etcd
+    etcds <- unlist(strsplit(arm$etcd, ","))
     element_descriptions <- generate_elements_sd(epochs, treatments)
     
     for (j in seq_along(epochs)) {
-      etcd_mapping <- rbind(etcd_mapping, data.frame(ELEMENT = element_descriptions[j], ETCD = etcds[j]))
+      etcd_mapping <- rbind(etcd_mapping, data.frame(
+        ELEMENT = as.character(element_descriptions[j]), 
+        ETCD = etcds[j], 
+        stringsAsFactors = FALSE
+      ))
     }
   }
-  etcd_mapping <- distinct(etcd_mapping)
+  etcd_mapping <- unique(etcd_mapping)
+
+  # Ensure te_rules ELEMENT column is character
+  te_rules$ELEMENT <- as.character(te_rules$ELEMENT)
 
   # Merge te_rules with etcd_mapping
   te_df <- merge(te_rules, etcd_mapping, by = "ELEMENT", all = TRUE)
 
   # Process TE rules and sort by days in TEDUR (ISO8601 format)
-  te_df <- te_df %>%
-    mutate(
-      STUDYID = study_id,
-      DOMAIN = "TE",
-      DurationDays = as.numeric(gsub("[^0-9]", "", TEDUR)) # Extract days from TEDUR in ISO8601 format
-    ) %>%
-    arrange(DurationDays) %>% # Sort by the numeric value of days
-    select(STUDYID, DOMAIN, ETCD, ELEMENT, TESTRL, TEENRL, TEDUR)
+  te_df$STUDYID <- study_id
+  te_df$DOMAIN <- "TE"
+  te_df$DurationDays <- as.numeric(gsub("[^0-9]", "", te_df$TEDUR))
+  te_df <- te_df[order(te_df$DurationDays), ]
+  te_df <- te_df[, c("STUDYID", "DOMAIN", "ETCD", "ELEMENT", "TESTRL", "TEENRL", "TEDUR")]
 
   # Save TA domain to Excel file
   ta_output_file <- file.path(output_dir, paste0(study_id, "_TA.xlsx"))
@@ -160,15 +160,15 @@ create_ta_te_domains_sd <- function(study_id, arms_data, treatments, te_rules, o
 generate_elements_sd <- function(epochs, treatments) {
   treatment_counter <- 1
   num_treatments <- length(treatments)
-  elements <- sapply(seq_along(epochs), function(i) {
+  elements <- character(length(epochs))
+  for (i in seq_along(epochs)) {
     if (grepl("TREATMENT", epochs[i], ignore.case = TRUE)) {
       treatment_index <- (treatment_counter - 1) %% num_treatments + 1
-      element <- paste0("TREATMENT ", treatments[treatment_index])
-      treatment_counter <<- treatment_counter + 1
-      return(element)
+      elements[i] <- as.character(treatments[treatment_index])
+      treatment_counter <- treatment_counter + 1
     } else {
-      return(epochs[i])
+      elements[i] <- as.character(epochs[i])
     }
-  })
+  }
   return(elements)
 }

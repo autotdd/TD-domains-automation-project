@@ -18,7 +18,7 @@ create_ta_te_domains_pa(
 
 \item{trial_design}{A string specifying the trial design, either "PARALLEL DESIGN" or "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS".}
 
-\item{arms_data}{A list of arm data, each containing armcd, arm, epochs, and etcd.}
+\item{arms_data}{A list of arm data, each containing armcd, arm, epochs, etcd, tabranch, and tatrans.}
 
 \item{treatments_list}{A list of treatments for each arm.}
 
@@ -34,60 +34,35 @@ This function generates Trial Arms (TA) and Trial Elements (TE) domains for para
 including those with branches and transitions.
 }
 \examples{
-# Example for "PARALLEL DESIGN"
+\dontrun{
 study_id <- "STUDY001"
-trial_design <- "PARALLEL DESIGN"
-arms_data <- list(
-  list(
-    armcd = "ARM1",
-    arm = "Arm 1",
-    epochs = "Screening,Treatment,Follow-Up",
-    etcd = c("SCREEN", "TREAT", "FOLLOW")
-  ),
-  list(
-    armcd = "ARM2",
-    arm = "Arm 2",
-    epochs = "Screening,Treatment,Follow-Up",
-    etcd = c("SCREEN", "TREAT", "FOLLOW")
-  )
-)
-treatments_list <- list(c("A"), c("B"))
-te_rules <- data.frame(
-  ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "FOLLOW-UP"),
-  TESTRL = c("Informed consent", "First dose A", "First dose B", "End of treatment"),
-  TEENRL = c("End of screening", "End of A", "End of B", "End of follow-up"),
-  TEDUR = c("P7D", "P14D", "P14D", "P21D")
-)
-result <- create_ta_te_domains_pa(study_id, trial_design, arms_data, treatments_list, te_rules)
-
-# Example for "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS"
-study_id <- "STUDY002"
 trial_design <- "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS"
 arms_data <- list(
   list(
     armcd = "ARM1",
     arm = "Arm 1",
-    epochs = "Screening,Treatment,Treatment,Follow-Up",
-    etcd = c("SCREEN", "TREAT A", "TREAT B", "FOLLOW"),
-    branch = c(NA, "BRANCH1", "BRANCH2", NA),
-    trans = c(NA, NA, "TRANS1", NA)
+    epochs = "Screening,Treatment,Follow-Up",
+    etcd = "SCRN,TRT1,FUP",
+    tabranch = "NA,BR1,NA",
+    tatrans = "NA,TR1,NA"
   ),
   list(
     armcd = "ARM2",
     arm = "Arm 2",
-    epochs = "Screening,Treatment,Treatment,Follow-Up",
-    etcd = c("SCREEN", "TREAT C", "TREAT D", "FOLLOW"),
-    branch = c(NA, "BRANCH3", "BRANCH4", NA),
-    trans = c(NA, NA, "TRANS2", NA)
+    epochs = "Screening,Treatment,Follow-Up",
+    etcd = "SCRN,TRT2,FUP",
+    tabranch = "NA,BR2,NA",
+    tatrans = "NA,TR2,NA"
   )
 )
-treatments_list <- list(c("A", "B"), c("C", "D"))
+treatments_list <- list(c("A"), c("B"))
 te_rules <- data.frame(
-  ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "TREATMENT D", "FOLLOW-UP"),
-  TESTRL = c("Informed consent", "First dose A", "First dose B", "First dose C", "First dose D", "End of treatment"),
-  TEENRL = c("End of screening", "End of A", "End of B", "End of C", "End of D", "End of follow-up"),
-  TEDUR = c("P7D", "P14D", "P14D", "P14D", "P14D", "P21D")
+  ELEMENT = c("SCREENING", "A", "B", "FOLLOW-UP"),
+  TESTRL = c("Informed consent", "First dose A", "First dose B", "End of treatment"),
+  TEENRL = c("End of screening", "End of A", "End of B", "End of follow-up"),
+  TEDUR = c("P7D", "P14D", "P14D", "P21D")
 )
 result <- create_ta_te_domains_pa(study_id, trial_design, arms_data, treatments_list, te_rules)
+}
 
 }

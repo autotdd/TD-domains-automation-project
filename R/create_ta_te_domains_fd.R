@@ -5,79 +5,80 @@
 #'
 #' @param study_id A character string representing the Study ID.
 #' @param trial_design A character string representing the trial design. Should be "FACTORIAL DESIGN".
-#' @param arms_data A list of arm data. Each element in the list should be a list containing `armcd`, `epochs`, `etcd` (optional).
+#' @param arms_data A list of arm data. Each element in the list should be a list containing `armcd`, `arm`, `epochs`, and `etcd`.
 #' @param treatments A list of treatments for each arm. Each element should be a vector of treatments corresponding to the arm.
 #' @param te_rules A data frame containing TE rules with columns: ELEMENT, TESTRL, TEENRL, TEDUR (in ISO 8601 format).
 #' @param output_dir A character string representing the output directory. Defaults to the current working directory.
 #' @return A list containing two data frames: TA dataset and TE dataset.
 #' @export
-#' @importFrom dplyr add_row distinct mutate select left_join arrange
-#' @importFrom openxlsx createWorkbook addWorksheet writeData createStyle saveWorkbook
-#' @importFrom lubridate duration
+#' @import dplyr openxlsx lubridate
 #' @examples
 #' \dontrun{
-# study_id <- "STUDY004"
-# trial_design <- "FACTORIAL DESIGN"
-# arms_data <- list(
-#   list(
-#     armcd = "ARM1",
-#     epochs = "Screening,Treatment,Treatment,Follow-Up",
-#     etcd = c("SCRN", "TRT1", "TRT2", "FU")
-#   ),
-#   list(
-#     armcd = "ARM2",
-#     epochs = "Screening,Treatment,Treatment,Follow-Up",
-#     etcd = c("SCRN", "TRT3", "TRT4", "FU")
-#   ),
-#   list(
-#     armcd = "ARM3",
-#     epochs = "Screening,Treatment,Treatment,Follow-Up",
-#     etcd = c("SCRN", "TRT5", "TRT6", "FU")
-#   )
-# )
-# treatments <- list(
-#   c("Treatment A", "Treatment B"), # Treatments for ARM1
-#   c("Treatment C", "Treatment D"), # Treatments for ARM2
-#   c("Treatment E", "Treatment F")  # Treatments for ARM3
-# )
-# te_rules <- data.frame(
-#   ELEMENT = c(
-#     "SCREENING",
-#     "TREATMENT A",
-#     "TREATMENT B",
-#     "TREATMENT C",
-#     "TREATMENT D",
-#     "TREATMENT E",
-#     "TREATMENT F",
-#     "FOLLOW-UP"
-#   ),
-#   TESTRL = c(
-#     "Informed consent",
-#     "First dose of Treatment A",
-#     "First dose of Treatment B",
-#     "First dose of Treatment C",
-#     "First dose of Treatment D",
-#     "First dose of Treatment E",
-#     "First dose of Treatment F",
-#     "End of follow-up"
-#   ),
-#   TEENRL = c(
-#     "End of screening",
-#     "End of Treatment A",
-#     "End of Treatment B",
-#     "End of Treatment C",
-#     "End of Treatment D",
-#     "End of Treatment E",
-#     "End of Treatment F",
-#     "End of study"
-#   ),
-#   TEDUR = c("P7D", "P14D", "P14D", "P21D", "P14D", "P14D", "P21D", "P30D"),
-#   stringsAsFactors = FALSE
-# )
-#
-# result <- create_ta_te_domains_fd(study_id, trial_design, arms_data, treatments, te_rules)
-# print(result$TA)
-# print(result$TE)
+#' study_id <- "STUDY004"
+#' trial_design <- "FACTORIAL DESIGN"
+#' arms_data <- list(
+#'   list(
+#'     armcd = "ARM1",
+#'     arm = "Treatment A + B",
+#'     epochs = "Screening,Treatment,Treatment,Follow-Up",
+#'     etcd = "SCRN,TRT1,TRT2,FU"
+#'   ),
+#'   list(
+#'     armcd = "ARM2",
+#'     arm = "Treatment C + D",
+#'     epochs = "Screening,Treatment,Treatment,Follow-Up",
+#'     etcd = "SCRN,TRT3,TRT4,FU"
+#'   ),
+#'   list(
+#'     armcd = "ARM3",
+#'     arm = "Treatment E + F",
+#'     epochs = "Screening,Treatment,Treatment,Follow-Up",
+#'     etcd = "SCRN,TRT5,TRT6,FU"
+#'   )
+#' )
+#' treatments <- list(
+#'   c("Treatment A", "Treatment B"), # Treatments for ARM1
+#'   c("Treatment C", "Treatment D"), # Treatments for ARM2
+#'   c("Treatment E", "Treatment F")  # Treatments for ARM3
+#' )
+#' te_rules <- data.frame(
+#'   ELEMENT = c(
+#'     "SCREENING",
+#'     "TREATMENT A",
+#'     "TREATMENT B",
+#'     "TREATMENT C",
+#'     "TREATMENT D",
+#'     "TREATMENT E",
+#'     "TREATMENT F",
+#'     "FOLLOW-UP"
+#'   ),
+#'   TESTRL = c(
+#'     "Informed consent",
+#'     "First dose of Treatment A",
+#'     "First dose of Treatment B",
+#'     "First dose of Treatment C",
+#'     "First dose of Treatment D",
+#'     "First dose of Treatment E",
+#'     "First dose of Treatment F",
+#'     "End of follow-up"
+#'   ),
+#'   TEENRL = c(
+#'     "End of screening",
+#'     "End of Treatment A",
+#'     "End of Treatment B",
+#'     "End of Treatment C",
+#'     "End of Treatment D",
+#'     "End of Treatment E",
+#'     "End of Treatment F",
+#'     "End of study"
+#'   ),
+#'   TEDUR = c("P7D", "P14D", "P14D", "P21D", "P14D", "P14D", "P21D", "P30D"),
+#'   stringsAsFactors = FALSE
+#' )
+#'
+#' result <- create_ta_te_domains_fd(study_id, trial_design, arms_data, treatments, te_rules)
+#' print(result$TA)
+#' print(result$TE)
 #' }
 create_ta_te_domains_fd <- function(study_id, trial_design, arms_data, treatments, te_rules, output_dir = getwd()) {
   # Validate inputs
@@ -114,14 +115,13 @@ create_ta_te_domains_fd <- function(study_id, trial_design, arms_data, treatment
     arm_data <- arms_data[[i]]
     epochs <- toupper(unlist(strsplit(arm_data$epochs, ",")))
     element_descriptions <- generate_elements_fd(epochs, treatments[[i]])
-    etcd <- arm_data$etcd  # Allow users to specify ETCD as free text
+    etcd <- unlist(strsplit(arm_data$etcd, ","))  # Split etcd string into a vector
     num_elements <- length(element_descriptions)
 
-    armcd <- ifelse(is.null(arm_data$armcd), paste0("ARM", i), arm_data$armcd)
-    arm <- ifelse(is.null(arm_data$arm), paste0("Group ", i), arm_data$arm)
+    armcd <- arm_data$armcd
+    arm <- arm_data$arm
 
     for (j in seq_along(element_descriptions)) {
-      row_index <- (i - 1) * num_elements + j
       ta_df <- ta_df %>%
         add_row(
           STUDYID = study_id,
@@ -129,8 +129,8 @@ create_ta_te_domains_fd <- function(study_id, trial_design, arms_data, treatment
           ARMCD = armcd,
           ARM = arm,
           TAETORD = j,
-          ETCD = if (!is.null(etcd)) etcd[j] else paste0("ET", row_index),
-          ELEMENT = element_descriptions[j],  # No "TREATMENT" prefix
+          ETCD = etcd[j],
+          ELEMENT = element_descriptions[j],
           TABRANCH = NA,
           TATRANS = NA,
           EPOCH = epochs[j]
@@ -181,7 +181,7 @@ generate_elements_fd <- function(epochs, treatments) {
   treatment_index <- 1
   for (i in seq_along(epochs)) {
     if (grepl("TREATMENT", epochs[i], ignore.case = TRUE)) {
-      elements[i] <- treatments[treatment_index]  # No prefix
+      elements[i] <- treatments[treatment_index]
       treatment_index <- treatment_index + 1
     } else {
       elements[i] <- epochs[i]

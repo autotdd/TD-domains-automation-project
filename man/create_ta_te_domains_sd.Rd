@@ -15,7 +15,7 @@ create_ta_te_domains_sd(
 \arguments{
 \item{study_id}{A character string representing the Study ID.}
 
-\item{arms_data}{A list of arm data. Each element in the list should be a list containing \code{armcd} and \code{epochs}.}
+\item{arms_data}{A list of arm data. Each element in the list should be a list containing \code{armcd}, \code{arm}, \code{epochs}, and \code{etcd}.}
 
 \item{treatments}{A list of treatments for the trial.}
 
@@ -36,16 +36,18 @@ study_id <- "STUDY001"
 arms_data <- list(
   list(
     armcd = "ARM1",
-    epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up"
+    arm = "Single Treatment Arm",
+    epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up",
+    etcd = "SCRN,TRT1,TRT2,TRT3,FUP"
   )
 )
-treatments <- list("A", "B", "C") # Define the treatments dynamically as a list
+treatments <- list("A", "B", "C")
 te_rules <- data.frame(
-  ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "FOLLOW-UP"),
-  TESTRL = c("Informed consent", "First dose of study drug A", "First dose of study drug B",
-             "First dose of study drug C", "End of treatment"),
-  TEENRL = c("End of screening", "End of treatment A", "End of treatment B",
-             "End of treatment C", "End of follow-up period"),
+  ELEMENT = c("SCREENING", "A", "B", "C", "FOLLOW-UP"),
+  TESTRL = c("Informed consent", "First dose of A", "First dose of B",
+             "First dose of C", "End of treatment"),
+  TEENRL = c("End of screening", "End of A", "End of B",
+             "End of C", "End of follow-up period"),
   TEDUR = c("P7D", "P14D", "P14D", "P14D", "P21D")
 )
 

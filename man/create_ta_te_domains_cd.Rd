@@ -18,7 +18,7 @@ create_ta_te_domains_cd(
 
 \item{trial_design}{A character string representing the trial design. Should be "CROSS-OVER DESIGN".}
 
-\item{arms_data}{A list of arm data. Each element in the list should be a list containing \code{armcd}, \code{epochs}, and optionally \code{etcd}.}
+\item{arms_data}{A list of arm data. Each element in the list should be a list containing \code{armcd}, \code{arm}, \code{epochs}, and \code{etcd}.}
 
 \item{treatments}{A list of treatments for the trial.}
 
@@ -40,23 +40,26 @@ trial_design <- "CROSS-OVER DESIGN"
 arms_data <- list(
   list(
     armcd = "ARM1",
+    arm = "Sequence 1",
     epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment",
-    etcd = c("SCRN", "TRT1", "WSH1", "TRT2", "WSH2", "TRT3")
+    etcd = "SCRN, TRT1, WSH1, TRT2, WSH2, TRT3"
   ),
   list(
     armcd = "ARM2",
+    arm = "Sequence 2",
     epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment",
-    etcd = c("SCRN", "TRT2", "WSH1", "TRT3", "WSH2", "TRT1")
+    etcd = "SCRN, TRT2, WSH1, TRT3, WSH2, TRT1"
   ),
   list(
     armcd = "ARM3",
+    arm = "Sequence 3",
     epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment",
-    etcd = c("SCRN", "TRT3", "WSH1", "TRT1", "WSH2", "TRT2")
+    etcd = "SCRN, TRT3, WSH1, TRT1, WSH2, TRT2"
   )
 )
 treatments <- list(c("A", "B", "C"))
 te_rules <- data.frame(
-  ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "WASHOUT"),
+  ELEMENT = c("SCREENING", "A", "B", "C", "WASHOUT"),
   TESTRL = c("Informed consent", "First dose of study drug", "First dose of study drug",
              "First dose of study drug", "End of washout"),
   TEENRL = c("End of screening", "End of treatment period", "End of treatment period",

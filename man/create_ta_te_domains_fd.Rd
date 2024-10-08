@@ -18,11 +18,11 @@ create_ta_te_domains_fd(
 
 \item{trial_design}{A character string representing the trial design. Should be "FACTORIAL DESIGN".}
 
-\item{arms_data}{A list of arm data. Each element in the list should be a list containing \code{armcd}, \code{arm}, \code{epochs}, and \code{etcd}.}
+\item{arms_data}{A list of arm data. Each element in the list should be a list containing \code{armcd}, \code{arm}, \code{epochs}, \code{etcd}, and \code{elements}.}
 
 \item{treatments}{A list of treatments for each arm. Each element should be a vector of treatments corresponding to the arm.}
 
-\item{te_rules}{A data frame containing TE rules with columns: ELEMENT, TESTRL, TEENRL, TEDUR (in ISO 8601 format).}
+\item{te_rules}{A data frame containing TE rules with columns: ETCD, TESTRL, TEENRL, TEDUR (in ISO 8601 format).}
 
 \item{output_dir}{A character string representing the output directory. Defaults to the current working directory.}
 }
@@ -34,71 +34,52 @@ This function generates the TA (Trial Arms) and TE (Trial Elements) datasets
 for a given study ID based on the FACTORIAL DESIGN.
 }
 \examples{
-\dontrun{
-study_id <- "STUDY004"
+study_id <- "FDXXX"
 trial_design <- "FACTORIAL DESIGN"
 arms_data <- list(
   list(
-    armcd = "ARM1",
-    arm = "Treatment A + B",
-    epochs = "Screening,Treatment,Treatment,Follow-Up",
-    etcd = "SCRN,TRT1,TRT2,FU"
+    armcd = "A1B1",
+    arm = "Factor A Level 1 + Factor B Level 1",
+    epochs = "SCREENING,TREATMENT,FOLLOW-UP",
+    etcd = "SCRN,TRT,F/U",
+    elements = "Screening,Treatment A1B1,Follow-up"
   ),
   list(
-    armcd = "ARM2",
-    arm = "Treatment C + D",
-    epochs = "Screening,Treatment,Treatment,Follow-Up",
-    etcd = "SCRN,TRT3,TRT4,FU"
+    armcd = "A1B2",
+    arm = "Factor A Level 1 + Factor B Level 2",
+    epochs = "SCREENING,TREATMENT,FOLLOW-UP",
+    etcd = "SCRN,TRT,F/U",
+    elements = "Screening,Treatment A1B2,Follow-up"
   ),
   list(
-    armcd = "ARM3",
-    arm = "Treatment E + F",
-    epochs = "Screening,Treatment,Treatment,Follow-Up",
-    etcd = "SCRN,TRT5,TRT6,FU"
+    armcd = "A2B1",
+    arm = "Factor A Level 2 + Factor B Level 1",
+    epochs = "SCREENING,TREATMENT,FOLLOW-UP",
+    etcd = "SCRN,TRT,F/U",
+    elements = "Screening,Treatment A2B1,Follow-up"
+  ),
+  list(
+    armcd = "A2B2",
+    arm = "Factor A Level 2 + Factor B Level 2",
+    epochs = "SCREENING,TREATMENT,FOLLOW-UP",
+    etcd = "SCRN,TRT,F/U",
+    elements = "Screening,Treatment A2B2,Follow-up"
   )
 )
 treatments <- list(
-  c("Treatment A", "Treatment B"), # Treatments for ARM1
-  c("Treatment C", "Treatment D"), # Treatments for ARM2
-  c("Treatment E", "Treatment F")  # Treatments for ARM3
+  c("Treatment A1B1"),
+  c("Treatment A1B2"),
+  c("Treatment A2B1"),
+  c("Treatment A2B2")
 )
 te_rules <- data.frame(
-  ELEMENT = c(
-    "SCREENING",
-    "TREATMENT A",
-    "TREATMENT B",
-    "TREATMENT C",
-    "TREATMENT D",
-    "TREATMENT E",
-    "TREATMENT F",
-    "FOLLOW-UP"
-  ),
-  TESTRL = c(
-    "Informed consent",
-    "First dose of Treatment A",
-    "First dose of Treatment B",
-    "First dose of Treatment C",
-    "First dose of Treatment D",
-    "First dose of Treatment E",
-    "First dose of Treatment F",
-    "End of follow-up"
-  ),
-  TEENRL = c(
-    "End of screening",
-    "End of Treatment A",
-    "End of Treatment B",
-    "End of Treatment C",
-    "End of Treatment D",
-    "End of Treatment E",
-    "End of Treatment F",
-    "End of study"
-  ),
-  TEDUR = c("P7D", "P14D", "P14D", "P21D", "P14D", "P14D", "P21D", "P30D"),
-  stringsAsFactors = FALSE
+  ETCD = c("SCRN", "TRT", "F/U"),
+  TESTRL = c("Informed consent", "First dose of study treatment", "Last dose of study treatment"),
+  TEENRL = c("Randomization", "Last dose of study treatment", "30 days after last dose"),
+  TEDUR = c("P28D", "P12W", "P30D")
 )
 
 result <- create_ta_te_domains_fd(study_id, trial_design, arms_data, treatments, te_rules)
-print(result$TA)
-print(result$TE)
-}
+FDXXX_TA <- result$TA
+FDXXX_TE <- result$TE
 }

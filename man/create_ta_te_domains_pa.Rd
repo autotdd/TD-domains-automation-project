@@ -35,7 +35,7 @@ including those with branches and transitions.
 }
 \examples{
 \dontrun{
-study_id <- "STUDY001"
+study_id <- "STUDY002"
 trial_design <- "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS"
 arms_data <- list(
   list(

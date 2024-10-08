@@ -6,41 +6,59 @@
 #' for a given study ID based on the SINGLE GROUP DESIGN.
 #'
 #' @param study_id A character string representing the Study ID.
-#' @param arms_data A list of arm data. Each element in the list should be a list containing `armcd`, `arm`, `epochs`, and `etcd`.
-#' @param treatments A list of treatments for the trial.
-#' @param te_rules A data frame containing TE rules with columns: ELEMENT, TESTRL, TEENRL, TEDUR.
+#' @param trial_design A character string representing the trial design. Should be "SINGLE GROUP DESIGN".
+#' @param arms_data A list containing a single arm data. The arm data should be a list containing `armcd`, `arm`, `epochs`, `etcd`, and `elements`.
+#' @param treatments A list containing a single vector of treatments for the trial.
+#' @param te_rules A data frame containing TE rules with columns: ETCD, TESTRL, TEENRL, TEDUR.
 #' @param output_dir A character string representing the output directory. Defaults to the current working directory.
 #' @return A list containing two data frames: TA dataset and TE dataset.
 #' @export
 #' @import dplyr openxlsx lubridate
 #' @importFrom openxlsx createWorkbook addWorksheet writeData createStyle saveWorkbook
 #' @importFrom stringr str_to_upper
+#'
 #' @examples
-#' \dontrun{
-#' study_id <- "STUDY001"
+#' # Example: Dose Escalation Study
+#' study_id <- "SGDE001"
+#' trial_design <- "SINGLE GROUP DESIGN"
 #' arms_data <- list(
 #'   list(
-#'     armcd = "ARM1",
-#'     arm = "Single Treatment Arm",
-#'     epochs = "Screening,Treatment,Treatment,Treatment,Follow-Up",
-#'     etcd = "SCRN,TRT1,TRT2,TRT3,FUP"
+#'     armcd = "DOSE_ESC",
+#'     arm = "Dose Escalation Arm",
+#'     epochs = "SCREENING,TREATMENT_1,TREATMENT_2,TREATMENT_3,FOLLOW-UP",
+#'     etcd = "SCRN,TRT1,TRT2,TRT3,F/U",
+#'     elements = "Screening,Treatment Dose Level 1,Treatment Dose Level 2,Treatment Dose Level 3,Follow-up"
 #'   )
 #' )
-#' treatments <- list("A", "B", "C")
+#' treatments <- list(c("Dose Level 1", "Dose Level 2", "Dose Level 3"))
 #' te_rules <- data.frame(
-#'   ELEMENT = c("SCREENING", "A", "B", "C", "FOLLOW-UP"),
-#'   TESTRL = c("Informed consent", "First dose of A", "First dose of B",
-#'              "First dose of C", "End of treatment"),
-#'   TEENRL = c("End of screening", "End of A", "End of B",
-#'              "End of C", "End of follow-up period"),
-#'   TEDUR = c("P7D", "P14D", "P14D", "P14D", "P21D")
+#'   ETCD = c("SCRN", "TRT1", "TRT2", "TRT3", "F/U"),
+#'   TESTRL = c("Informed consent", 
+#'              "First dose of Dose Level 1", 
+#'              "First dose of Dose Level 2",
+#'              "First dose of Dose Level 3",
+#'              "Last dose of study treatment"),
+#'   TEENRL = c("First dose of Dose Level 1", 
+#'              "Last dose of Dose Level 1 or dose-limiting toxicity", 
+#'              "Last dose of Dose Level 2 or dose-limiting toxicity",
+#'              "Last dose of Dose Level 3 or dose-limiting toxicity",
+#'              "30 days after last dose or resolution of all toxicities"),
+#'   TEDUR = c("P28D", "P14D", "P14D", "P14D", "P30D")
 #' )
 #'
-#' result <- create_ta_te_domains_sd(study_id, arms_data, treatments, te_rules)
-#' print(result$TA)
-#' print(result$TE)
-#' }
-create_ta_te_domains_sd <- function(study_id, arms_data, treatments, te_rules, output_dir = getwd()) {
+#' result <- create_ta_te_domains_sd(study_id, trial_design, arms_data, treatments, te_rules)
+#' SGDE001_TA <- result$TA
+#' SGDE001_TE <- result$TE
+create_ta_te_domains_sd <- function(study_id, trial_design, arms_data, treatments, te_rules, output_dir = getwd()) {
+  # Validate inputs
+  if (trial_design != "SINGLE GROUP DESIGN") {
+    stop("This function is customized only for 'SINGLE GROUP DESIGN'.")
+  }
+
+  if (length(arms_data) != 1) {
+    stop("Single Group Design should have only one arm.")
+  }
+
   # Initialize TA domain data frame
   ta_df <- data.frame(
     STUDYID = character(),
@@ -57,77 +75,51 @@ create_ta_te_domains_sd <- function(study_id, arms_data, treatments, te_rules, o
   )
  
   # Populate TA domain data frame based on input rows
-  for (i in seq_along(arms_data)) {
-    arm_data <- arms_data[[i]]
-    epochs <- toupper(unlist(strsplit(arm_data$epochs, ",")))
-    etcd <- unlist(strsplit(arm_data$etcd, ","))
-    element_descriptions <- generate_elements_sd(epochs, treatments)
-    num_elements <- length(element_descriptions)
+  arm_data <- arms_data[[1]]
+  epochs <- toupper(unlist(strsplit(arm_data$epochs, ",")))
+  etcd <- unlist(strsplit(arm_data$etcd, ","))
+  elements <- unlist(strsplit(arm_data$elements, ","))
+  num_elements <- length(elements)
 
-    armcd <- arm_data$armcd
-    arm <- arm_data$arm
+  armcd <- arm_data$armcd
+  arm <- arm_data$arm
 
-    if(length(element_descriptions) != num_elements || length(epochs) != num_elements || length(etcd) != num_elements) {
-      stop(paste("Mismatch in the number of elements, epochs, or ETCDs for arm", i))
-    }
-
-    treatment_epochs <- sum(grepl("TREATMENT", epochs, ignore.case = TRUE))
-    if(treatment_epochs != length(treatments)) {
-      stop(paste("Mismatch between number of treatments and treatment epochs for arm", i))
-    }
-
-    for (j in seq_along(element_descriptions)) {
-      ta_df <- rbind(ta_df, data.frame(
-        STUDYID = study_id,
-        DOMAIN = "TA",
-        ARMCD = armcd,
-        ARM = arm,
-        TAETORD = j,
-        ETCD = etcd[j],
-        ELEMENT = as.character(element_descriptions[j]),
-        TABRANCH = NA,
-        TATRANS = NA,
-        EPOCH = epochs[j],
-        stringsAsFactors = FALSE
-      ))
-    }
+  if(length(elements) != num_elements || length(epochs) != num_elements || length(etcd) != num_elements) {
+    stop("Mismatch in the number of elements, epochs, or ETCDs")
   }
 
-  # Create a complete mapping of ELEMENT to ETCD
-  etcd_mapping <- data.frame(
-    ELEMENT = character(),
-    ETCD = character(),
-    stringsAsFactors = FALSE
-  )
-
-  for (i in seq_along(arms_data)) {
-    arm <- arms_data[[i]]
-    epochs <- toupper(unlist(strsplit(arm$epochs, ",")))
-    etcds <- unlist(strsplit(arm$etcd, ","))
-    element_descriptions <- generate_elements_sd(epochs, treatments)
-    
-    for (j in seq_along(epochs)) {
-      etcd_mapping <- rbind(etcd_mapping, data.frame(
-        ELEMENT = as.character(element_descriptions[j]), 
-        ETCD = etcds[j], 
-        stringsAsFactors = FALSE
-      ))
-    }
+  treatment_epochs <- sum(grepl("TREATMENT", epochs, ignore.case = TRUE))
+  if(treatment_epochs != length(treatments[[1]])) {
+    stop("Mismatch between number of treatments and treatment epochs")
   }
-  etcd_mapping <- unique(etcd_mapping)
 
-  # Ensure te_rules ELEMENT column is character
-  te_rules$ELEMENT <- as.character(te_rules$ELEMENT)
+  for (j in seq_along(elements)) {
+    ta_df <- rbind(ta_df, data.frame(
+      STUDYID = study_id,
+      DOMAIN = "TA",
+      ARMCD = armcd,
+      ARM = arm,
+      TAETORD = j,
+      ETCD = etcd[j],
+      ELEMENT = elements[j],
+      TABRANCH = NA,
+      TATRANS = NA,
+      EPOCH = epochs[j],
+      stringsAsFactors = FALSE
+    ))
+  }
 
-  # Merge te_rules with etcd_mapping
-  te_df <- merge(te_rules, etcd_mapping, by = "ELEMENT", all = TRUE)
-
-  # Process TE rules and sort by days in TEDUR (ISO8601 format)
-  te_df$STUDYID <- study_id
-  te_df$DOMAIN <- "TE"
-  te_df$DurationDays <- as.numeric(gsub("[^0-9]", "", te_df$TEDUR))
-  te_df <- te_df[order(te_df$DurationDays), ]
-  te_df <- te_df[, c("STUDYID", "DOMAIN", "ETCD", "ELEMENT", "TESTRL", "TEENRL", "TEDUR")]
+  # Create TE domain
+  te_df <- ta_df %>%
+    distinct(STUDYID, ETCD, ELEMENT) %>%
+    left_join(te_rules, by = "ETCD") %>%
+    mutate(
+      DOMAIN = "TE",
+      TESTRL = coalesce(TESTRL, ""),
+      TEENRL = coalesce(TEENRL, ""),
+      TEDUR = coalesce(TEDUR, NA_character_)
+    ) %>%
+    select(STUDYID, DOMAIN, everything())
 
   # Save TA domain to Excel file
   ta_output_file <- file.path(output_dir, paste0(study_id, "_TA.xlsx"))
@@ -144,31 +136,4 @@ create_ta_te_domains_sd <- function(study_id, arms_data, treatments, te_rules, o
   saveWorkbook(wb_te, te_output_file, overwrite = TRUE)
 
   return(list(TA = ta_df, TE = te_df))
-}
-
-# Helper function
-
-#' Generate Element Descriptions for Single Group Design
-#'
-#' This function generates element descriptions from epochs with additional text for treatment
-#' specifically for single group design trials.
-#'
-#' @param epochs A character vector of epochs.
-#' @param treatments A list of treatments for the trial.
-#' @return A character vector of element descriptions.
-#' @keywords internal
-generate_elements_sd <- function(epochs, treatments) {
-  treatment_counter <- 1
-  num_treatments <- length(treatments)
-  elements <- character(length(epochs))
-  for (i in seq_along(epochs)) {
-    if (grepl("TREATMENT", epochs[i], ignore.case = TRUE)) {
-      treatment_index <- (treatment_counter - 1) %% num_treatments + 1
-      elements[i] <- as.character(treatments[treatment_index])
-      treatment_counter <- treatment_counter + 1
-    } else {
-      elements[i] <- as.character(epochs[i])
-    }
-  }
-  return(elements)
 }

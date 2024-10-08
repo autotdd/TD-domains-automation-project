@@ -18,11 +18,11 @@ create_ta_te_domains_cd(
 
 \item{trial_design}{A character string representing the trial design. Should be "CROSS-OVER DESIGN".}
 
-\item{arms_data}{A list of arm data. Each element in the list should be a list containing \code{armcd}, \code{arm}, \code{epochs}, and \code{etcd}.}
+\item{arms_data}{A list of arm data. Each element in the list should be a list containing \code{armcd}, \code{arm}, \code{epochs}, \code{etcd}, and \code{elements}.}
 
 \item{treatments}{A list of treatments for the trial.}
 
-\item{te_rules}{A data frame containing TE rules with columns: ELEMENT, TESTRL, TEENRL, TEDUR.}
+\item{te_rules}{A data frame containing TE rules with columns: ETCD, TESTRL, TEENRL, TEDUR.}
 
 \item{output_dir}{A character string representing the output directory. Defaults to the current working directory.}
 }
@@ -34,41 +34,33 @@ This function generates the TA (Trial Arms) and TE (Trial Elements) datasets
 for a given study ID using the CROSS-OVER DESIGN.
 }
 \examples{
-\dontrun{
-study_id <- "STUDY003"
+study_id <- "CDXXX"
 trial_design <- "CROSS-OVER DESIGN"
 arms_data <- list(
   list(
-    armcd = "ARM1",
-    arm = "Sequence 1",
-    epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment",
-    etcd = "SCRN, TRT1, WSH1, TRT2, WSH2, TRT3"
+    armcd = "AB",
+    arm = "A then B",
+    epochs = "SCREENING,TREATMENT 1,WASHOUT,TREATMENT 2,FOLLOW-UP",
+    etcd = "SCRN,TRT1,WASH,TRT2,F/U",
+    elements = "Screening,Treatment A,Washout,Treatment B,Follow-up"
   ),
   list(
-    armcd = "ARM2",
-    arm = "Sequence 2",
-    epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment",
-    etcd = "SCRN, TRT2, WSH1, TRT3, WSH2, TRT1"
-  ),
-  list(
-    armcd = "ARM3",
-    arm = "Sequence 3",
-    epochs = "Screening, Treatment, Washout, Treatment, Washout, Treatment",
-    etcd = "SCRN, TRT3, WSH1, TRT1, WSH2, TRT2"
+    armcd = "BA",
+    arm = "B then A",
+    epochs = "SCREENING,TREATMENT 1,WASHOUT,TREATMENT 2,FOLLOW-UP",
+    etcd = "SCRN,TRT1,WASH,TRT2,F/U",
+    elements = "Screening,Treatment B,Washout,Treatment A,Follow-up"
   )
 )
-treatments <- list(c("A", "B", "C"))
+treatments <- list(c("Treatment A", "Treatment B"))
 te_rules <- data.frame(
-  ELEMENT = c("SCREENING", "A", "B", "C", "WASHOUT"),
-  TESTRL = c("Informed consent", "First dose of study drug", "First dose of study drug",
-             "First dose of study drug", "End of washout"),
-  TEENRL = c("End of screening", "End of treatment period", "End of treatment period",
-             "End of treatment period", "End of washout period"),
-  TEDUR = c("P7D", "P14D", "P7D", "P21D", "P7D")
+  ETCD = c("SCRN", "TRT1", "WASH", "TRT2", "F/U"),
+  TESTRL = c("Informed consent", "First dose", "Last dose of Treatment 1", "First dose", "Last dose of Treatment 2"),
+  TEENRL = c("Randomization", "Last dose", "First dose of Treatment 2", "Last dose", "Study completion"),
+  TEDUR = c("P28D", "P12W", "P4W", "P12W", "P4W")
 )
 
 result <- create_ta_te_domains_cd(study_id, trial_design, arms_data, treatments, te_rules)
-print(result$TA)
-print(result$TE)
-}
+CDXXX_TA <- result$TA
+CDXXX_TE <- result$TE
 }

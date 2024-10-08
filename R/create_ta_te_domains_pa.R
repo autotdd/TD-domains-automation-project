@@ -14,7 +14,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' study_id <- "STUDY001"
+#' study_id <- "STUDY002"
 #' trial_design <- "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS"
 #' arms_data <- list(
 #'   list(
@@ -50,7 +50,7 @@ create_ta_te_domains_pa <- function(study_id, trial_design, arms_data, treatment
   if (!trial_design %in% c("PARALLEL DESIGN", "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS")) {
     stop("This function only supports 'PARALLEL DESIGN' and 'PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS'")
   }
-
+ 
   # Initialize TA domain data frame
   ta_df <- data.frame(
     STUDYID = character(),
@@ -70,17 +70,31 @@ create_ta_te_domains_pa <- function(study_id, trial_design, arms_data, treatment
   for (i in seq_along(arms_data)) {
     arm_data <- arms_data[[i]]
     epochs <- toupper(unlist(strsplit(arm_data$epochs, ",")))
-    treatments <- treatments_list[[i]]
-    element_descriptions <- generate_elements_pa(epochs, treatments)
+    elements <- unlist(strsplit(arm_data$elements, ","))
     etcd <- unlist(strsplit(arm_data$etcd, ","))
-    tabranch <- unlist(strsplit(arm_data$tabranch, ","))
-    tatrans <- unlist(strsplit(arm_data$tatrans, ","))
-    num_elements <- length(element_descriptions)
+    
+    if (trial_design == "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS") {
+      tabranch <- unlist(strsplit(arm_data$tabranch, ","))
+      tatrans <- unlist(strsplit(arm_data$tatrans, ","))
+    } else {
+      tabranch <- rep(NA, length(epochs))
+      tatrans <- rep(NA, length(epochs))
+    }
+    
+    # Ensure tabranch and tatrans have the same length as epochs
+    if (length(tabranch) < length(epochs)) {
+      tabranch <- c(tabranch, rep(NA, length(epochs) - length(tabranch)))
+    }
+    if (length(tatrans) < length(epochs)) {
+      tatrans <- c(tatrans, rep(NA, length(epochs) - length(tatrans)))
+    }
+    
+    num_elements <- length(elements)
 
     armcd <- arm_data$armcd
     arm <- arm_data$arm
 
-    for (j in seq_along(element_descriptions)) {
+    for (j in seq_along(elements)) {
       ta_df <- ta_df %>%
         add_row(
           STUDYID = study_id,
@@ -89,7 +103,7 @@ create_ta_te_domains_pa <- function(study_id, trial_design, arms_data, treatment
           ARM = arm,
           TAETORD = j,
           ETCD = etcd[j],
-          ELEMENT = element_descriptions[j],
+          ELEMENT = elements[j],
           TABRANCH = if (trial_design == "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS") tabranch[j] else NA,
           TATRANS = if (trial_design == "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS") tatrans[j] else NA,
           EPOCH = epochs[j]
@@ -125,17 +139,18 @@ create_ta_te_domains_pa <- function(study_id, trial_design, arms_data, treatment
   etcd_mapping <- distinct(etcd_mapping)
 
   # Merge te_rules with etcd_mapping
-  te_df <- merge(te_rules, etcd_mapping, by = "ELEMENT", all = TRUE)
+  te_df <- ta_df %>%
+    select(STUDYID, ARMCD, ARM, ELEMENT, ETCD) %>%
+    distinct() %>%
+    left_join(te_rules, by = "ETCD") %>%
+    mutate(DOMAIN = "TE",
+           TESTRL = coalesce(TESTRL, ""),
+           TEENRL = coalesce(TEENRL, ""),
+           TEDUR = coalesce(TEDUR, NA_character_)) %>%
+    select(STUDYID, DOMAIN, everything())
 
-  # Process TE rules and sort by days in TEDUR (ISO8601 format)
-  te_df <- te_df %>%
-    mutate(
-      STUDYID = study_id,
-      DOMAIN = "TE",
-      DurationDays = as.numeric(gsub("[^0-9]", "", TEDUR)) # Extract days from TEDUR in ISO8601 format
-    ) %>%
-    arrange(DurationDays) %>% # Sort by the numeric value of days
-    select(STUDYID, DOMAIN, ETCD, ELEMENT, TESTRL, TEENRL, TEDUR)
+  # Remove the arrange() function call
+  # te_df <- te_df %>% arrange(DurationDays)  # This line should be removed
 
   # Save TA to Excel file
   ta_output_file <- file.path(output_dir, paste0(study_id, "_TA.xlsx"))

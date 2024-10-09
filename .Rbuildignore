@@ -5,3 +5,8 @@
 ^autoTDD\.Rcheck$
 ^autoTDD.*\.tar\.gz$
 ^autoTDD.*\.tgz$
+^\.vscode$
+^TD-doamins-automation\.Rproj$
+^json$
+^.*\.xlsx$
+^.*\.csv$

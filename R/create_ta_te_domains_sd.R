@@ -7,9 +7,7 @@
 #'
 #' @param study_id A character string representing the Study ID.
 #' @param trial_design A character string representing the trial design. Should be "SINGLE GROUP DESIGN".
-#' @param arms_data A list containing a single arm data. The arm data should be a list containing `armcd`, `arm`, `epochs`, `etcd`, and `elements`.
-#' @param treatments A list containing a single vector of treatments for the trial.
-#' @param te_rules A data frame containing TE rules with columns: ETCD, TESTRL, TEENRL, TEDUR.
+#' @param arms_data A list containing a single arm data. The arm data should be a list containing `armcd`, `arm`, `epochs`, `etcd`, `elements`, `testrl`, `teenrl`, and `tedur`.
 #' @param output_dir A character string representing the output directory. Defaults to the current working directory.
 #' @return A list containing two data frames: TA dataset and TE dataset.
 #' @export
@@ -27,29 +25,17 @@
 #'     arm = "Dose Escalation Arm",
 #'     epochs = "SCREENING,TREATMENT_1,TREATMENT_2,TREATMENT_3,FOLLOW-UP",
 #'     etcd = "SCRN,TRT1,TRT2,TRT3,F/U",
-#'     elements = "Screening,Treatment Dose Level 1,Treatment Dose Level 2,Treatment Dose Level 3,Follow-up"
+#'     elements = "Screening,Treatment Dose Level 1,Treatment Dose Level 2,Treatment Dose Level 3,Follow-up",
+#'     testrl = "Informed consent,First dose of Dose Level 1,First dose of Dose Level 2,First dose of Dose Level 3,Last dose of study treatment",
+#'     teenrl = "First dose of Dose Level 1,Last dose of Dose Level 1 or dose-limiting toxicity,Last dose of Dose Level 2 or dose-limiting toxicity,Last dose of Dose Level 3 or dose-limiting toxicity,30 days after last dose or resolution of all toxicities",
+#'     tedur = "P28D,P14D,P14D,P14D,P30D"
 #'   )
 #' )
-#' treatments <- list(c("Dose Level 1", "Dose Level 2", "Dose Level 3"))
-#' te_rules <- data.frame(
-#'   ETCD = c("SCRN", "TRT1", "TRT2", "TRT3", "F/U"),
-#'   TESTRL = c("Informed consent", 
-#'              "First dose of Dose Level 1", 
-#'              "First dose of Dose Level 2",
-#'              "First dose of Dose Level 3",
-#'              "Last dose of study treatment"),
-#'   TEENRL = c("First dose of Dose Level 1", 
-#'              "Last dose of Dose Level 1 or dose-limiting toxicity", 
-#'              "Last dose of Dose Level 2 or dose-limiting toxicity",
-#'              "Last dose of Dose Level 3 or dose-limiting toxicity",
-#'              "30 days after last dose or resolution of all toxicities"),
-#'   TEDUR = c("P28D", "P14D", "P14D", "P14D", "P30D")
-#' )
 #'
-#' result <- create_ta_te_domains_sd(study_id, trial_design, arms_data, treatments, te_rules)
+#' result <- create_ta_te_domains_sd(study_id, trial_design, arms_data)
 #' SGDE001_TA <- result$TA
 #' SGDE001_TE <- result$TE
-create_ta_te_domains_sd <- function(study_id, trial_design, arms_data, treatments, te_rules, output_dir = getwd()) {
+create_ta_te_domains_sd <- function(study_id, trial_design, arms_data, output_dir = getwd()) {
   # Validate inputs
   if (trial_design != "SINGLE GROUP DESIGN") {
     stop("This function is customized only for 'SINGLE GROUP DESIGN'.")
@@ -79,18 +65,18 @@ create_ta_te_domains_sd <- function(study_id, trial_design, arms_data, treatment
   epochs <- toupper(unlist(strsplit(arm_data$epochs, ",")))
   etcd <- unlist(strsplit(arm_data$etcd, ","))
   elements <- unlist(strsplit(arm_data$elements, ","))
+  testrl <- unlist(strsplit(arm_data$testrl, ","))
+  teenrl <- unlist(strsplit(arm_data$teenrl, ","))
+  tedur <- unlist(strsplit(arm_data$tedur, ","))
   num_elements <- length(elements)
 
   armcd <- arm_data$armcd
   arm <- arm_data$arm
 
-  if(length(elements) != num_elements || length(epochs) != num_elements || length(etcd) != num_elements) {
-    stop("Mismatch in the number of elements, epochs, or ETCDs")
-  }
-
-  treatment_epochs <- sum(grepl("TREATMENT", epochs, ignore.case = TRUE))
-  if(treatment_epochs != length(treatments[[1]])) {
-    stop("Mismatch between number of treatments and treatment epochs")
+  if(length(elements) != num_elements || length(epochs) != num_elements || 
+     length(etcd) != num_elements || length(testrl) != num_elements || 
+     length(teenrl) != num_elements || length(tedur) != num_elements) {
+    stop("Mismatch in the number of elements, epochs, ETCDs, TESTRL, TEENRL, or TEDUR")
   }
 
   for (j in seq_along(elements)) {
@@ -112,14 +98,13 @@ create_ta_te_domains_sd <- function(study_id, trial_design, arms_data, treatment
   # Create TE domain
   te_df <- ta_df %>%
     distinct(STUDYID, ETCD, ELEMENT) %>%
-    left_join(te_rules, by = "ETCD") %>%
     mutate(
       DOMAIN = "TE",
-      TESTRL = coalesce(TESTRL, ""),
-      TEENRL = coalesce(TEENRL, ""),
-      TEDUR = coalesce(TEDUR, NA_character_)
+      TESTRL = testrl,
+      TEENRL = teenrl,
+      TEDUR = tedur
     ) %>%
-    select(STUDYID, DOMAIN, everything())
+    select(STUDYID, DOMAIN, ETCD, ELEMENT, TESTRL, TEENRL, TEDUR)
 
   # Save TA domain to Excel file
   ta_output_file <- file.path(output_dir, paste0(study_id, "_TA.xlsx"))

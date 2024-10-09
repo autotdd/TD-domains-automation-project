@@ -8,8 +8,6 @@ create_ta_te_domains_pa(
   study_id,
   trial_design,
   arms_data,
-  treatments_list,
-  te_rules,
   output_dir = getwd()
 )
 }
@@ -18,11 +16,7 @@ create_ta_te_domains_pa(
 
 \item{trial_design}{A string specifying the trial design, either "PARALLEL DESIGN" or "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS".}
 
-\item{arms_data}{A list of arm data, each containing armcd, arm, epochs, etcd, tabranch, and tatrans.}
-
-\item{treatments_list}{A list of treatments for each arm.}
-
-\item{te_rules}{A data frame specifying rules for trial elements.}
+\item{arms_data}{A list of arm data, each containing armcd, arm, epochs, etcd, elements, testrl, teenrl, and tedur.}
 
 \item{output_dir}{The directory where output files will be saved (default is current working directory).}
 }
@@ -34,35 +28,35 @@ This function generates Trial Arms (TA) and Trial Elements (TE) domains for para
 including those with branches and transitions.
 }
 \examples{
-\dontrun{
+# Example: PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS
 study_id <- "STUDY002"
 trial_design <- "PARALLEL DESIGN WITH BRANCHES AND TRANSITIONS"
 arms_data <- list(
   list(
     armcd = "ARM1",
     arm = "Arm 1",
-    epochs = "Screening,Treatment,Follow-Up",
-    etcd = "SCRN,TRT1,FUP",
-    tabranch = "NA,BR1,NA",
-    tatrans = "NA,TR1,NA"
+    epochs = "SCREENING,TREATMENT 1,TREATMENT 2,FOLLOW-UP",
+    etcd = "SCRN,TRT1,TRT2,F/U",
+    elements = "Screening,Initial Treatment,Extended Treatment,Follow-up",
+    testrl = "Informed consent,First dose of initial treatment,First dose of extended treatment,Last dose of study treatment",
+    teenrl = "Randomization,Last dose of initial treatment,Last dose of extended treatment,30 days after last dose",
+    tedur = "P28D,P12W,P12W,P30D",
+    tabranch = "NA,BR1,NA,NA",
+    tatrans = "NA,TR1,NA,NA"
   ),
   list(
     armcd = "ARM2",
     arm = "Arm 2",
-    epochs = "Screening,Treatment,Follow-Up",
-    etcd = "SCRN,TRT2,FUP",
-    tabranch = "NA,BR2,NA",
-    tatrans = "NA,TR2,NA"
+    epochs = "SCREENING,TREATMENT 1,TREATMENT 2,FOLLOW-UP",
+    etcd = "SCRN,TRT1,TRT2,F/U",
+    elements = "Screening,Initial Treatment,Extended Treatment,Follow-up",
+    testrl = "Informed consent,First dose of initial treatment,First dose of extended treatment,Last dose of study treatment",
+    teenrl = "Randomization,Last dose of initial treatment,Last dose of extended treatment,30 days after last dose",
+    tedur = "P28D,P12W,P12W,P30D",
+    tabranch = "NA,BR2,NA,NA",
+    tatrans = "NA,TR2,NA,NA"
   )
 )
-treatments_list <- list(c("A"), c("B"))
-te_rules <- data.frame(
-  ELEMENT = c("SCREENING", "A", "B", "FOLLOW-UP"),
-  TESTRL = c("Informed consent", "First dose A", "First dose B", "End of treatment"),
-  TEENRL = c("End of screening", "End of A", "End of B", "End of follow-up"),
-  TEDUR = c("P7D", "P14D", "P14D", "P21D")
-)
-result <- create_ta_te_domains_pa(study_id, trial_design, arms_data, treatments_list, te_rules)
-}
+result <- create_ta_te_domains_pa(study_id, trial_design, arms_data)
 
 }

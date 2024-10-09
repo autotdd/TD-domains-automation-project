@@ -8,8 +8,6 @@ create_ta_te_domains_sd(
   study_id,
   trial_design,
   arms_data,
-  treatments,
-  te_rules,
   output_dir = getwd()
 )
 }
@@ -18,11 +16,7 @@ create_ta_te_domains_sd(
 
 \item{trial_design}{A character string representing the trial design. Should be "SINGLE GROUP DESIGN".}
 
-\item{arms_data}{A list containing a single arm data. The arm data should be a list containing \code{armcd}, \code{arm}, \code{epochs}, \code{etcd}, and \code{elements}.}
-
-\item{treatments}{A list containing a single vector of treatments for the trial.}
-
-\item{te_rules}{A data frame containing TE rules with columns: ETCD, TESTRL, TEENRL, TEDUR.}
+\item{arms_data}{A list containing a single arm data. The arm data should be a list containing \code{armcd}, \code{arm}, \code{epochs}, \code{etcd}, \code{elements}, \code{testrl}, \code{teenrl}, and \code{tedur}.}
 
 \item{output_dir}{A character string representing the output directory. Defaults to the current working directory.}
 }
@@ -43,26 +37,14 @@ arms_data <- list(
     arm = "Dose Escalation Arm",
     epochs = "SCREENING,TREATMENT_1,TREATMENT_2,TREATMENT_3,FOLLOW-UP",
     etcd = "SCRN,TRT1,TRT2,TRT3,F/U",
-    elements = "Screening,Treatment Dose Level 1,Treatment Dose Level 2,Treatment Dose Level 3,Follow-up"
+    elements = "Screening,Treatment Dose Level 1,Treatment Dose Level 2,Treatment Dose Level 3,Follow-up",
+    testrl = "Informed consent,First dose of Dose Level 1,First dose of Dose Level 2,First dose of Dose Level 3,Last dose of study treatment",
+    teenrl = "First dose of Dose Level 1,Last dose of Dose Level 1 or dose-limiting toxicity,Last dose of Dose Level 2 or dose-limiting toxicity,Last dose of Dose Level 3 or dose-limiting toxicity,30 days after last dose or resolution of all toxicities",
+    tedur = "P28D,P14D,P14D,P14D,P30D"
   )
 )
-treatments <- list(c("Dose Level 1", "Dose Level 2", "Dose Level 3"))
-te_rules <- data.frame(
-  ETCD = c("SCRN", "TRT1", "TRT2", "TRT3", "F/U"),
-  TESTRL = c("Informed consent", 
-             "First dose of Dose Level 1", 
-             "First dose of Dose Level 2",
-             "First dose of Dose Level 3",
-             "Last dose of study treatment"),
-  TEENRL = c("First dose of Dose Level 1", 
-             "Last dose of Dose Level 1 or dose-limiting toxicity", 
-             "Last dose of Dose Level 2 or dose-limiting toxicity",
-             "Last dose of Dose Level 3 or dose-limiting toxicity",
-             "30 days after last dose or resolution of all toxicities"),
-  TEDUR = c("P28D", "P14D", "P14D", "P14D", "P30D")
-)
 
-result <- create_ta_te_domains_sd(study_id, trial_design, arms_data, treatments, te_rules)
+result <- create_ta_te_domains_sd(study_id, trial_design, arms_data)
 SGDE001_TA <- result$TA
 SGDE001_TE <- result$TE
 }

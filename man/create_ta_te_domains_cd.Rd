@@ -8,8 +8,6 @@ create_ta_te_domains_cd(
   study_id,
   trial_design,
   arms_data,
-  treatments,
-  te_rules,
   output_dir = getwd()
 )
 }
@@ -18,11 +16,7 @@ create_ta_te_domains_cd(
 
 \item{trial_design}{A character string representing the trial design. Should be "CROSS-OVER DESIGN".}
 
-\item{arms_data}{A list of arm data. Each element in the list should be a list containing \code{armcd}, \code{arm}, \code{epochs}, \code{etcd}, and \code{elements}.}
-
-\item{treatments}{A list of treatments for the trial.}
-
-\item{te_rules}{A data frame containing TE rules with columns: ETCD, TESTRL, TEENRL, TEDUR.}
+\item{arms_data}{A list of arm data. Each element in the list should be a list containing \code{armcd}, \code{arm}, \code{epochs}, \code{etcd}, \code{elements}, \code{testrl}, \code{teenrl}, and \code{tedur}.}
 
 \item{output_dir}{A character string representing the output directory. Defaults to the current working directory.}
 }
@@ -42,25 +36,24 @@ arms_data <- list(
     arm = "A then B",
     epochs = "SCREENING,TREATMENT 1,WASHOUT,TREATMENT 2,FOLLOW-UP",
     etcd = "SCRN,TRT1,WASH,TRT2,F/U",
-    elements = "Screening,Treatment A,Washout,Treatment B,Follow-up"
+    elements = "Screening,Treatment A,Washout,Treatment B,Follow-up",
+    testrl = "Informed consent,First dose of A,Last dose of A,First dose of B,Last dose of B",
+    teenrl = "Randomization,Last dose of A,First dose of B,Last dose of B,Study completion",
+    tedur = "P28D,P12W,P4W,P12W,P4W"
   ),
   list(
     armcd = "BA",
     arm = "B then A",
     epochs = "SCREENING,TREATMENT 1,WASHOUT,TREATMENT 2,FOLLOW-UP",
     etcd = "SCRN,TRT1,WASH,TRT2,F/U",
-    elements = "Screening,Treatment B,Washout,Treatment A,Follow-up"
+    elements = "Screening,Treatment B,Washout,Treatment A,Follow-up",
+    testrl = "Informed consent,First dose of B,Last dose of B,First dose of A,Last dose of A",
+    teenrl = "Randomization,Last dose of B,First dose of A,Last dose of A,Study completion",
+    tedur = "P28D,P12W,P4W,P12W,P4W"
   )
 )
-treatments <- list(c("Treatment A", "Treatment B"))
-te_rules <- data.frame(
-  ETCD = c("SCRN", "TRT1", "WASH", "TRT2", "F/U"),
-  TESTRL = c("Informed consent", "First dose", "Last dose of Treatment 1", "First dose", "Last dose of Treatment 2"),
-  TEENRL = c("Randomization", "Last dose", "First dose of Treatment 2", "Last dose", "Study completion"),
-  TEDUR = c("P28D", "P12W", "P4W", "P12W", "P4W")
-)
 
-result <- create_ta_te_domains_cd(study_id, trial_design, arms_data, treatments, te_rules)
+result <- create_ta_te_domains_cd(study_id, trial_design, arms_data)
 CDXXX_TA <- result$TA
 CDXXX_TE <- result$TE
 }

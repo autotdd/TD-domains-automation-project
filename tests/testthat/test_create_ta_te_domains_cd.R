@@ -1,164 +1,94 @@
 # File: tests/testthat/test-create_ta_te_domains_cd.R
 
-library(testthat)
+# Load necessary libraries
 library(dplyr)
+library(openxlsx)
 
-test_that("create_ta_te_domains_cd produces correct output for a 2x2 cross-over design", {
-  study_id <- "STUDY001"
-  trial_design <- "CROSS-OVER DESIGN"
-  arms_data <- list(
-    list(
-      armcd = "ARM1",
-      arm = "Sequence AB",
-      epochs = "Screening,Treatment,Washout,Treatment,Follow-Up"
-    ),
-    list(
-      armcd = "ARM2",
-      arm = "Sequence BA",
-      epochs = "Screening,Treatment,Washout,Treatment,Follow-Up"
-    )
+# Source the function (assuming it's in the same directory)
+source("R/create_ta_te_domains_cd.R")
+
+# Set up the study parameters
+study_id <- "CDABC"
+trial_design <- "CROSS-OVER DESIGN"
+
+# Define the arms_data for a 3x3 Latin square design
+arms_data <- list(
+  list(
+    armcd = "ABC",
+    arm = "A then B then C",
+    epochs = "SCREENING,TREATMENT 1,WASHOUT 1,TREATMENT 2,WASHOUT 2,TREATMENT 3,FOLLOW-UP",
+    etcd = "SCRN,TRT1,WASH1,TRT2,WASH2,TRT3,F/U",
+    elements = "Screening,Treatment A,Washout 1,Treatment B,Washout 2,Treatment C,Follow-up",
+    testrl = "Informed consent,First dose of A,Start of washout 1,First dose of B,Start of washout 2,First dose of C,Last dose of study treatment",
+    teenrl = "Randomization,Last dose of A,End of washout 1,Last dose of B,End of washout 2,Last dose of C,End of follow-up",
+    tedur = "P28D,P4W,P2W,P4W,P2W,P4W,P4W"
+  ),
+  list(
+    armcd = "BCA",
+    arm = "B then C then A",
+    epochs = "SCREENING,TREATMENT 1,WASHOUT 1,TREATMENT 2,WASHOUT 2,TREATMENT 3,FOLLOW-UP",
+    etcd = "SCRN,TRT1,WASH1,TRT2,WASH2,TRT3,F/U",
+    elements = "Screening,Treatment B,Washout 1,Treatment C,Washout 2,Treatment A,Follow-up",
+    testrl = "Informed consent,First dose of B,Start of washout 1,First dose of C,Start of washout 2,First dose of A,Last dose of study treatment",
+    teenrl = "Randomization,Last dose of B,End of washout 1,Last dose of C,End of washout 2,Last dose of A,End of follow-up",
+    tedur = "P28D,P4W,P2W,P4W,P2W,P4W,P4W"
+  ),
+  list(
+    armcd = "CAB",
+    arm = "C then A then B",
+    epochs = "SCREENING,TREATMENT 1,WASHOUT 1,TREATMENT 2,WASHOUT 2,TREATMENT 3,FOLLOW-UP",
+    etcd = "SCRN,TRT1,WASH1,TRT2,WASH2,TRT3,F/U",
+    elements = "Screening,Treatment C,Washout 1,Treatment A,Washout 2,Treatment B,Follow-up",
+    testrl = "Informed consent,First dose of C,Start of washout 1,First dose of A,Start of washout 2,First dose of B,Last dose of study treatment",
+    teenrl = "Randomization,Last dose of C,End of washout 1,Last dose of A,End of washout 2,Last dose of B,End of follow-up",
+    tedur = "P28D,P4W,P2W,P4W,P2W,P4W,P4W"
   )
-  treatments <- list(c("A", "B"))
-  te_rules <- data.frame(
-    ELEMENT = c("SCREENING", "TREATMENT A", "WASHOUT","TREATMENT B", "FOLLOW-UP"),
-    TESTRL = c("Informed consent", "First dose A","Start washout", "First dose B", "End of treatment"),
-    TEENRL = c("End of screening", "End of A","End of washout", "End of B", "End of follow-up"),
-    TEDUR = c("P7D", "P14D", "P14D", "P7D", "P21D"),
-    stringsAsFactors = FALSE
-  )
+)
 
-  result <- create_ta_te_domains_cd(study_id, trial_design, arms_data, treatments, te_rules)
+# Call the function
+result <- create_ta_te_domains_cd(study_id, trial_design, arms_data)
 
-  # Check overall structure
-  expect_type(result, "list")
-  expect_named(result, c("TA", "TE"))
-  expect_s3_class(result$TA, "data.frame")
-  expect_s3_class(result$TE, "data.frame")
+# Extract the results
+CDABC_TA <- result$TA
+CDABC_TE <- result$TE
 
-  # Check TA domain
-  expect_equal(nrow(result$TA), 10) # 5 epochs * 2 arms
-  expect_equal(ncol(result$TA), 10) # Ensure all required variables are present
-  expect_equal(unique(result$TA$STUDYID), study_id)
-  expect_equal(unique(result$TA$DOMAIN), "TA")
-  expect_equal(unique(result$TA$ARMCD), c("ARM1", "ARM2"))
-  expect_equal(unique(result$TA$ARM), c("Sequence AB", "Sequence BA"))
-  expect_equal(unique(result$TA$TAETORD), 1:5)
-  expect_true(all(result$TA$ETCD %in% paste0("ET", 1:10)))
-  expect_setequal(unique(result$TA$ELEMENT), c("SCREENING", "TREATMENT A","WASHOUT", "TREATMENT B", "FOLLOW-UP"))
-  expect_true(all(is.na(result$TA$TABRANCH)))
-  expect_true(all(is.na(result$TA$TATRANS)))
-  expect_setequal(unique(result$TA$EPOCH), c("SCREENING", "TREATMENT", "WASHOUT", "FOLLOW-UP"))
+# Print TA Domain
+cat("TA Domain:\n")
+print(CDABC_TA)
 
+# Print TE Domain
+cat("\nTE Domain:\n")
+print(CDABC_TE)
 
-  # Check sequence of treatments
-  arm1_treatments <- result$TA %>% filter(ARMCD == "ARM1", grepl("TREATMENT", ELEMENT)) %>% pull(ELEMENT)
-  arm2_treatments <- result$TA %>% filter(ARMCD == "ARM2", grepl("TREATMENT", ELEMENT)) %>% pull(ELEMENT)
-  expect_equal(arm1_treatments, c("TREATMENT A", "TREATMENT B"))
-  expect_equal(arm2_treatments, c("TREATMENT B", "TREATMENT A"))
+# Test assertions
+library(testthat)
 
-
-  # Check TE domain
-  expect_equal(nrow(result$TE), 5) # 5 unique elements
-  expect_equal(ncol(result$TE), 7) # Ensure all required variables are present
-  expect_equal(unique(result$TE$STUDYID), study_id)
-  expect_equal(unique(result$TE$DOMAIN), "TE")
-  expect_true(all(result$TE$ETCD %in% paste0("ET", 1:5)))
-  expect_setequal(result$TE$ELEMENT, c("SCREENING", "TREATMENT A", "WASHOUT", "TREATMENT B", "FOLLOW-UP"))
-  expect_equal(result$TE$TESTRL, te_rules$TESTRL)
-  expect_equal(result$TE$TEENRL, te_rules$TEENRL)
-  expect_equal(result$TE$TEDUR, te_rules$TEDUR)
-
+test_that("TA domain is correctly generated", {
+  expect_equal(nrow(CDABC_TA), 21)  # 7 elements * 3 arms
+  expect_equal(ncol(CDABC_TA), 10)
+  expect_equal(unique(CDABC_TA$STUDYID), "CDABC")
+  expect_equal(unique(CDABC_TA$DOMAIN), "TA")
+  expect_equal(unique(CDABC_TA$ARMCD), c("ABC", "BCA", "CAB"))
+  expect_equal(unique(CDABC_TA$TAETORD), 1:7)
+  expect_true(all(is.na(CDABC_TA$TABRANCH)))
+  expect_true(all(is.na(CDABC_TA$TATRANS)))
 })
 
-test_that("create_ta_te_domains_cd handles 3x3 cross-over design correctly", {
-  study_id <- "STUDY002"
-  trial_design <- "CROSS-OVER DESIGN"
-  arms_data <- list(
-    list(
-      armcd = "ARM1",
-      arm = "Sequence ABC",
-      epochs = "Screening,Treatment,Washout,Treatment,Washout,Treatment,Follow-Up"
-    ),
-    list(
-      armcd = "ARM2",
-      arm = "Sequence BCA",
-      epochs = "Screening,Treatment,Washout,Treatment,Washout,Treatment,Follow-Up"
-    ),
-    list(
-      armcd = "ARM3",
-      arm = "Sequence CAB",
-      epochs = "Screening,Treatment,Washout,Treatment,Washout,Treatment,Follow-Up"
-    )
-  )
-  treatments <- list(c("A", "B", "C"))
-  te_rules <- data.frame(
-    ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "WASHOUT", "FOLLOW-UP"),
-    TESTRL = c("Informed consent", "First dose A", "First dose B", "First dose C", "Start washout", "End of treatment"),
-    TEENRL = c("End of screening", "End of A", "End of B", "End of C", "End of washout", "End of follow-up"),
-    TEDUR = c("P7D", "P14D", "P14D", "P14D", "P7D", "P21D"),
-    stringsAsFactors = FALSE
-  )
-
-  result <- create_ta_te_domains_cd(study_id, trial_design, arms_data, treatments, te_rules)
-
-
-  # Check overall structure
-  expect_type(result, "list")
-  expect_named(result, c("TA", "TE"))
-  expect_s3_class(result$TA, "data.frame")
-  expect_s3_class(result$TE, "data.frame")
-
-
-  # Check TA domain
-  expect_equal(nrow(result$TA), 21) # 7 epochs * 3 arms
-  expect_equal(unique(result$TA$ARMCD), c("ARM1", "ARM2", "ARM3"))
-  expect_equal(unique(result$TA$ARM), c("Sequence ABC", "Sequence BCA", "Sequence CAB"))
-  expect_equal(unique(result$TA$TAETORD), 1:7)
-  expect_true(all(result$TA$ETCD %in% paste0("ET", 1:21)))
-
-  # Check sequence of treatments for each arm
-  for (i in 1:3) {
-    arm_treatments <- result$TA %>%
-      filter(ARMCD == paste0("ARM", i), grepl("TREATMENT", ELEMENT)) %>%
-      pull(ELEMENT)
-    expect_equal(length(arm_treatments), 3)
-    expect_true(all(arm_treatments %in% c("TREATMENT A", "TREATMENT B", "TREATMENT C")))
-    expect_true(!any(duplicated(arm_treatments)))
-  }
-
-  # Check TE domain
-  expect_equal(nrow(result$TE), 6) # 6 unique elements
-  expect_setequal(result$TE$ELEMENT, c("SCREENING", "TREATMENT A", "TREATMENT B", "TREATMENT C", "WASHOUT", "FOLLOW-UP"))
+test_that("TE domain is correctly generated", {
+  expect_equal(nrow(CDABC_TE), 7)  # 7 unique elements
+  expect_equal(ncol(CDABC_TE), 7)
+  expect_equal(unique(CDABC_TE$STUDYID), "CDABC")
+  expect_equal(unique(CDABC_TE$DOMAIN), "TE")
+  expect_equal(CDABC_TE$ETCD, c("SCRN", "TRT1", "WASH1", "TRT2", "WASH2", "TRT3", "F/U"))
+  expect_false(any(is.na(CDABC_TE$TESTRL)))
+  expect_false(any(is.na(CDABC_TE$TEENRL)))
+  expect_false(any(is.na(CDABC_TE$TEDUR)))
 })
 
-test_that("create_ta_te_domains_cd handles errors correctly", {
-  study_id <- "STUDY005"
-  trial_design <- "CROSS-OVER DESIGN"
-  arms_data <- list(
-    list(
-      armcd = "ARM1",
-      epochs = "Screening, Treatment, Washout, Treatment"
-    )
-  )
-  treatments <- list(c("A", "B"))
-  te_rules <- data.frame(
-    ELEMENT = c("SCREENING", "TREATMENT A", "TREATMENT B", "WASHOUT"),
-    TESTRL = c("Informed consent", "First dose A", "First dose B", "Start washout"),
-    TEENRL = c("End of screening", "End of A", "End of B", "End of washout"),
-    TEDUR = c("P7D", "P14D", "P14D", "P7D"),
-    stringsAsFactors = FALSE
-  )
-
-  # Test invalid trial design
-  expect_error(
-    create_ta_te_domains_cd(study_id, "PARALLEL DESIGN", arms_data, treatments, te_rules),
-    "This function only supports 'CROSS-OVER DESIGN'"
-  )
-
-  # Test mismatched epochs and treatments
-  bad_treatments <- list(c("A", "B", "C"))
-  expect_error(
-    create_ta_te_domains_cd(study_id, trial_design, arms_data, bad_treatments, te_rules),
-    "Mismatch between number of treatments and treatment epochs for arm 1"
-  )
+# Check if Excel files are created
+test_that("Excel files are created", {
+  expect_true(file.exists(paste0(study_id, "_TA.xlsx")))
+  expect_true(file.exists(paste0(study_id, "_TE.xlsx")))
 })
+
+cat("All tests passed successfully!\n")

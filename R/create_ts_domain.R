@@ -110,8 +110,14 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
   tryCatch({
     # Read the template file
     ts_file_path <- system.file("extdata", "Trial_Summary.xlsx", package = "autoTDD")
-    print(paste("File path:", ts_file_path))
-    print(paste("File exists:", file.exists(ts_file_path)))
+    if(debug) {
+      print(paste("File path:", ts_file_path))
+      print(paste("File exists:", file.exists(ts_file_path)))
+    }
+
+    if (!file.exists(ts_file_path)) {
+      stop("Trial_Summary.xlsx file not found in the package. Please ensure it's properly installed.")
+    }
 
     # Check if the openxlsx package is available
     if (!requireNamespace("openxlsx", quietly = TRUE)) {
@@ -120,10 +126,12 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
 
     tryCatch({
       ts_template <- openxlsx::read.xlsx(ts_file_path, sheet = "TS")
-      print("Successfully read the Excel file")
-      print(head(ts_template))
+      if(debug) {
+        print("Successfully read the Excel file")
+        print(head(ts_template))
+      }
     }, error = function(e) {
-      print(paste("Error reading Excel file:", e$message))
+      stop(paste("Error reading Excel file:", e$message))
     })
 
     # Count the number of rows in the template

@@ -110,7 +110,7 @@ create_tv_domain <- function(study_id , file_path = NULL , output_dir = getwd())
 
   # Update the Visitdy if targetdays for cycle 1 is 0 in the ALS file, if it is 0 for Cycle 1 Day 1 then visitdy must be 1
 
-  row_count <- data %>% filter(!(is.na(Targetdays)) & Targetdays ==1 & grepl("Cycle 1 day 1| Cycle 1(D1)", FolderName, ignore.case = TRUE ))
+  row_count <- data %>% filter(!(is.na(Targetdays)) & Targetdays ==1 & grepl("Cycle 1 day 1| Cycle 1(D1)|Day 1", FolderName, ignore.case = TRUE ))
 
   nrow(row_count)
 

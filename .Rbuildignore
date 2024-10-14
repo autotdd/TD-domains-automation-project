@@ -10,3 +10,5 @@
 ^json$
 ^.*\.xlsx$
 ^.*\.csv$
+!inst/extdata/Trial_Summary.xlsx
+!inst/extdata/Als_file.xlsx

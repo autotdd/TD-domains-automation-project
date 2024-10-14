@@ -109,17 +109,22 @@ split_text <- function(text, max_length = 200) {
 create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FALSE) {
   tryCatch({
     # Read the template file
-#' @importFrom here here
+    ts_file_path <- system.file("extdata", "Trial_Summary.xlsx", package = "autoTDD")
+    print(paste("File path:", ts_file_path))
+    print(paste("File exists:", file.exists(ts_file_path)))
 
-# ... existing code ...
-
-    ts_file_path <- here::here("inst", "extdata", "Trial_Summary.xlsx")
-    if (!file.exists(ts_file_path)) {
-      stop("Trial_Summary.xlsx file not found. Expected path: ", ts_file_path)
+    # Check if the openxlsx package is available
+    if (!requireNamespace("openxlsx", quietly = TRUE)) {
+      stop("Package 'openxlsx' is needed for this function to work. Please install it.", call. = FALSE)
     }
-    ts_template <- openxlsx::read.xlsx(ts_file_path, sheet = "TS")
 
-    # ... rest of the function ...
+    tryCatch({
+      ts_template <- openxlsx::read.xlsx(ts_file_path, sheet = "TS")
+      print("Successfully read the Excel file")
+      print(head(ts_template))
+    }, error = function(e) {
+      print(paste("Error reading Excel file:", e$message))
+    })
 
     # Count the number of rows in the template
     template_row_count <- nrow(ts_template)

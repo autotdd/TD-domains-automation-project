@@ -109,13 +109,22 @@ split_text <- function(text, max_length = 200) {
 create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FALSE) {
   tryCatch({
     # Read the template file
-    ts_file_path <- system.file("extdata", "Trial_Summary.xlsx", package = "autoTDD")
+#' @importFrom here here
+
+# ... existing code ...
+
+    ts_file_path <- here::here("inst", "extdata", "Trial_Summary.xlsx")
+    if (!file.exists(ts_file_path)) {
+      stop("Trial_Summary.xlsx file not found. Expected path: ", ts_file_path)
+    }
     ts_template <- openxlsx::read.xlsx(ts_file_path, sheet = "TS")
-    
+
+    # ... rest of the function ...
+
     # Count the number of rows in the template
     template_row_count <- nrow(ts_template)
     
-    # Create a base ts_summary with all TSPARAM/TSPARAMCD from the template
+    # Create a base ts_summary with all TSPARM/TSPARAMCD from the template
     base_ts_summary <- ts_template %>%
       select(TSPARMCD, TSPARM) %>%
       mutate(

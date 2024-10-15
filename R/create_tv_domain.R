@@ -125,12 +125,21 @@ create_tv_domain <- function(study_id , file_path = NULL , output_dir = getwd())
 
   data2$VISITDY[(grepl("CYCLE 1 Day 1", data2$VISIT, ignore.case = TRUE) & data2$VISITDY == 0 ) ] <- 1
 
+  # Update the start rule if based on the DAY 1 visit
+  row_count1 <- data2 %>% filter( VISITDY ==1 & VISIT == ('DAY 1' ))
 
-  data3  <- data2 %>%  mutate (TVENRL =if_else(toupper(VISIT) == "SCREENING" , "One day before start of study drug" , "On the same day of visit")) %>%
-    #  mutate (TVSTRL =if_else(toupper(VISIT) == "SCREENING" , "28 days prior to treatment" , "")) %>%
-    mutate( TVSTRL = if_else(VISITDY == 1 ,  paste("First dose of treatment phase +/-",data2$due_day,"Days", sep =" "),  paste( data2$VISITDY,"Days +/-", data2$due_day, "Days from Cycle 1 Day 1", sep =" ") ))
+  if (nrow(row_count1) == 1) {
 
+    data3  <- data2 %>%  mutate (TVENRL =if_else(toupper(VISIT) == "SCREENING" , "One day before start of study drug" , "On the same day of visit")) %>%
+      #  mutate (TVSTRL =if_else(toupper(VISIT) == "SCREENING" , "28 days prior to treatment" , "")) %>%
+      mutate( TVSTRL = if_else(VISITDY == 1 ,  paste("First dose of treatment phase +/-",data2$due_day,"Days", sep =" "),  paste( data2$VISITDY,"Days +/-", data2$due_day, "Days from Day 1", sep =" ") ))
+  }
 
+  if (nrow(row_count1) == 0) {
+    data3  <- data2 %>%  mutate (TVENRL =if_else(toupper(VISIT) == "SCREENING" , "One day before start of study drug" , "On the same day of visit")) %>%
+      #  mutate (TVSTRL =if_else(toupper(VISIT) == "SCREENING" , "28 days prior to treatment" , "")) %>%
+      mutate( TVSTRL = if_else(VISITDY == 1 ,  paste("First dose of treatment phase +/-",data2$due_day,"Days", sep =" "),  paste( data2$VISITDY,"Days +/-", data2$due_day, "Days from Cycle 1 Day 1", sep =" ") ))
+  }
 
   #data3$TVSTRL[grepl("SCREENING", data3$VISIT, ignore.case = TRUE) & data3$VISITDY == -28 ] <- "Informed consent obtained"
 
@@ -176,6 +185,9 @@ create_tv_domain <- function(study_id , file_path = NULL , output_dir = getwd())
   data3$TVSTRL[grepl("SCREENING", data3$VISIT, ignore.case = TRUE) & is.na(data3$VISITDY)] <- ""
 
   data3$TVENRL[grepl("SCREENING|Study Discontinuation|STUDY DRUG DISCONTINUATION", data3$VISIT, ignore.case = TRUE) & is.na(data3$VISITDY)] <- ""
+
+
+  data3$TVSTRL[ data3$VISITDY == 1 & is.na(data3$due_day) ] <- 'First dose of treatment phase'
 
   tv_domain <- data3 %>% select(-due_day)
 

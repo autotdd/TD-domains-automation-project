@@ -847,7 +847,7 @@ generate_ti_domain <- function(study_id, inclusion_criteria, exclusion_criteria,
     ti_domain <- rbind(ti_domain, data.frame(
       STUDYID = study_id,
       DOMAIN = "TI",
-      IETESTCD = paste0("INCL", sprintf("%03d", i)),
+      IETESTCD = paste0("INCL", sprintf("%02d", i)),
       IETEST = trimws(inclusion_criteria[[i]]$text),  # Remove leading/trailing whitespace
       IECAT = "INCLUSION",
       IESCAT = iescat,
@@ -863,7 +863,7 @@ generate_ti_domain <- function(study_id, inclusion_criteria, exclusion_criteria,
     ti_domain <- rbind(ti_domain, data.frame(
       STUDYID = study_id,
       DOMAIN = "TI",
-      IETESTCD = paste0("EXCL", sprintf("%03d", i)),
+      IETESTCD = paste0("EXCL", sprintf("%02d", i)),
       IETEST = trimws(exclusion_criteria[[i]]$text),  # Remove leading/trailing whitespace
       IECAT = "EXCLUSION",
       IESCAT = iescat,

@@ -133,6 +133,13 @@ create_ta_te_domains_pa <- function(study_id, trial_design, arms_data, output_di
   # Sort TE domain based on the order in TA domain
   te_df <- te_df %>%
     left_join(ta_df %>% select(ETCD, TAETORD) %>% distinct(), by = "ETCD") %>%
+    arrange(TAETORD) 
+
+  # Remove duplicate records from TE domain
+  te_df <- te_df %>%
+    group_by(STUDYID, DOMAIN, ETCD, ELEMENT, TESTRL, TEENRL, TEDUR) %>%
+    slice(1) %>%
+    ungroup() %>%
     arrange(TAETORD) %>%
     select(-TAETORD)
 

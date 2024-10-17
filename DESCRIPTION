@@ -3,9 +3,8 @@ Title: Automated Trial Design Domains Creation
 Version: 0.1.0
 Authors@R: 
     person("Siddharth", "Lokineni", , "Sidhu871@gmail.com", role = c("aut", "cre"))
-Description: This package automates the creation of Trial Design Domains (TA, TE, TI, TS) 
-    for clinical trials based on data from ClinicalTrials.gov and user inputs. It supports 
-    various trial designs including parallel, cross-over, single group, and factorial designs.
+Description: This package automates the creation of Trial Design Domains (TA, TE, TI, TS, TV) 
+    for clinical trials based on data from ClinicalTrials.gov and user inputs from protocol.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

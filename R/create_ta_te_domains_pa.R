@@ -140,7 +140,7 @@ create_ta_te_domains_pa <- function(study_id, trial_design, arms_data, output_di
     group_by(STUDYID, DOMAIN, ETCD, ELEMENT, TESTRL, TEENRL, TEDUR) %>%
     slice(1) %>%
     ungroup() %>%
-    arrange(TAETORD) %>%
+    arrange(TAETORD) %>% 
     select(-TAETORD)
 
   # Save TA to Excel file

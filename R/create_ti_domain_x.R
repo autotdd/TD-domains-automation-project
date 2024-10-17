@@ -482,6 +482,8 @@ handle_text_length <- function(text, max_length = 200) {
 #' @return A cleaned and potentially truncated character string.
 #' @keywords internal
 clean_criterion_text <- function(text, max_length = 200, debug = FALSE) {
+  text <- gsub("^\\s*(\\d+\\.?|[a-z]\\.?|\\*|\\-|•)\\s*", "", text)
+
   # Remove any leading/trailing whitespace
   text <- trimws(text)
   
@@ -696,16 +698,14 @@ separate_criteria <- function(eligibility_text, debug = TRUE) {
   lines <- unlist(strsplit(eligibility_text, "\n"))
   lines <- trimws(lines)
   
-  if(debug) {
-    cat("First few lines of eligibility text:\n")
-    print(head(lines))
-  }
-  
   # Initialize variables
-  inclusion <- list()
-  exclusion <- list()
+  inclusion <- character()
+  exclusion <- character()
   current_list <- NULL
   current_criterion <- NULL
+  
+  # Regular expression to match various list formats
+  list_pattern <- "^\\s*(\\d+\\.?|[a-z]\\.?|\\*|\\-|•)\\s*"
   
   for(i in seq_along(lines)) {
     line <- lines[i]
@@ -718,43 +718,40 @@ separate_criteria <- function(eligibility_text, debug = TRUE) {
       current_list <- "exclusion"
       if(debug) cat("Switched to exclusion criteria\n")
     } else if(!is.null(current_list) && nchar(line) > 0) {
-      if(grepl("^\\d+\\.", line)) {
-        # This is a new main criterion
+      # Remove any list markers at the beginning of the line
+      clean_line <- gsub(list_pattern, "", line)
+      
+      if(grepl(list_pattern, line) || is.null(current_criterion)) {
+        # This is a new criterion
         if(!is.null(current_criterion)) {
-          processed_criterion <- list(
-            text = process_criterion_text(current_criterion$text),
-            subsection = current_criterion$subsection
-          )
           if(current_list == "inclusion") {
-            inclusion <- c(inclusion, list(processed_criterion))
+            inclusion <- c(inclusion, current_criterion)
           } else {
-            exclusion <- c(exclusion, list(processed_criterion))
+            exclusion <- c(exclusion, current_criterion)
           }
         }
-        current_criterion <- list(text = sub("^\\d+\\.\\s*", "", line), subsection = NULL)
-        if(debug) cat("New main criterion added:", current_criterion$text, "\n")
+        current_criterion <- clean_line
+        if(debug) cat("New criterion added:", current_criterion, "\n")
       } else {
         # This is a continuation of the previous criterion
-        if(!is.null(current_criterion)) {
-          current_criterion$text <- paste(current_criterion$text, line)
-          if(debug) cat("Appended to previous criterion:", line, "\n")
-        }
+        current_criterion <- paste(current_criterion, clean_line)
+        if(debug) cat("Appended to previous criterion:", clean_line, "\n")
       }
     }
   }
   
   # Add the last criterion
   if(!is.null(current_criterion)) {
-    processed_criterion <- list(
-      text = process_criterion_text(current_criterion$text),
-      subsection = current_criterion$subsection
-    )
     if(current_list == "inclusion") {
-      inclusion <- c(inclusion, list(processed_criterion))
+      inclusion <- c(inclusion, current_criterion)
     } else {
-      exclusion <- c(exclusion, list(processed_criterion))
+      exclusion <- c(exclusion, current_criterion)
     }
   }
+  
+  # Clean up criteria
+  inclusion <- sapply(inclusion, clean_criterion_text)
+  exclusion <- sapply(exclusion, clean_criterion_text)
   
   if(debug) {
     cat(sprintf("Separated %d inclusion criteria\n", length(inclusion)))
@@ -765,6 +762,7 @@ separate_criteria <- function(eligibility_text, debug = TRUE) {
   
   return(list(inclusion = inclusion, exclusion = exclusion))
 }
+
 
 #' Clean Criteria List
 #'
@@ -842,15 +840,13 @@ generate_ti_domain <- function(study_id, inclusion_criteria, exclusion_criteria,
   )
   
   for (i in seq_along(inclusion_criteria)) {
-    iescat <- if(!is.null(inclusion_criteria[[i]]$subsection)) inclusion_criteria[[i]]$subsection else ""
-    
     ti_domain <- rbind(ti_domain, data.frame(
       STUDYID = study_id,
       DOMAIN = "TI",
       IETESTCD = paste0("INCL", sprintf("%02d", i)),
-      IETEST = trimws(inclusion_criteria[[i]]$text),  # Remove leading/trailing whitespace
+      IETEST = inclusion_criteria[i],
       IECAT = "INCLUSION",
-      IESCAT = iescat,
+      IESCAT = "",
       TIRL = "",
       TIVERS = tivers,
       stringsAsFactors = FALSE
@@ -858,15 +854,13 @@ generate_ti_domain <- function(study_id, inclusion_criteria, exclusion_criteria,
   }
   
   for (i in seq_along(exclusion_criteria)) {
-    iescat <- if(!is.null(exclusion_criteria[[i]]$subsection)) exclusion_criteria[[i]]$subsection else ""
-    
     ti_domain <- rbind(ti_domain, data.frame(
       STUDYID = study_id,
       DOMAIN = "TI",
       IETESTCD = paste0("EXCL", sprintf("%02d", i)),
-      IETEST = trimws(exclusion_criteria[[i]]$text),  # Remove leading/trailing whitespace
+      IETEST = exclusion_criteria[i],
       IECAT = "EXCLUSION",
-      IESCAT = iescat,
+      IESCAT = "",
       TIRL = "",
       TIVERS = tivers,
       stringsAsFactors = FALSE
@@ -882,6 +876,7 @@ generate_ti_domain <- function(study_id, inclusion_criteria, exclusion_criteria,
   
   return(ti_domain)
 }
+
 #' Save TI Domain to Excel
 #'
 #' This function saves the TI domain data frame to an Excel file with proper formatting.
@@ -982,9 +977,9 @@ prepare_summary <- function(result, excel_file, debug = FALSE) {
   summary <- list(
     num_inclusion = length(result$inclusion),
     num_exclusion = length(result$exclusion),
-    first_inclusion = if(length(result$inclusion) > 0) result$inclusion[[1]]$text else "No inclusion criteria found",
-    first_exclusion = if(length(result$exclusion) > 0) result$exclusion[[1]]$text else "No exclusion criteria found",
-    inclusion_lines = paste(sapply(result$inclusion[1:min(10, length(result$inclusion))], function(x) x$text), collapse = "\n"),
+    first_inclusion = if(length(result$inclusion) > 0) result$inclusion[1] else "No inclusion criteria found",
+    first_exclusion = if(length(result$exclusion) > 0) result$exclusion[1] else "No exclusion criteria found",
+    inclusion_lines = paste(result$inclusion[1:min(10, length(result$inclusion))], collapse = "\n"),
     output_location = excel_file
   )
   
@@ -1171,7 +1166,7 @@ identify_and_extract_criteria <- function(pdf_path, page_range, start_section, e
 #' @keywords internal
 clean_criterion_text <- function(text, max_length = 200, debug = FALSE) {
   # Remove section numbers
-  text <- gsub("^\\s*\\d+(\\.\\d+)*\\s+", "", text)
+  text <- gsub("^\\s*(\\d+\\.?|[a-z]\\.?|\\*|\\-|•)\\s*", "", text)
   
   # Remove any leading/trailing whitespace
   text <- trimws(text)

@@ -1220,12 +1220,22 @@ AEDICT = function(df) {
       tryCatch({
         if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$armsInterventionsModule$interventions)) {
           interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
-          comp_treatments <- interventions[grepl("carboplatin|cisplatin|pemetrexed", interventions$name, ignore.case = TRUE), ]
+          
+          # Identify the experimental treatment(s)
+          experimental_arms <- df[[1]]$protocolSection$armsInterventionsModule$armGroups[df[[1]]$protocolSection$armsInterventionsModule$armGroups$type == "EXPERIMENTAL", ]
+          experimental_treatments <- unlist(strsplit(experimental_arms$interventionNames, ","))
+          experimental_treatments <- trimws(experimental_treatments)
+          
+          # Filter out the experimental treatments from all interventions
+          comp_treatments <- interventions[!(interventions$name %in% experimental_treatments), ]
+          
           if (nrow(comp_treatments) > 0) {
-            return(paste(comp_treatments$name, collapse = "; "))
+            # Convert to uppercase and create a new row for each treatment
+            comp_treatments_upper <- toupper(unique(comp_treatments$name))
+            return(comp_treatments_upper)
           }
         }
-        return("NA")
+        return(NA_character_)
       }, error = function(e) {
         warning("Error in COMPTRT mapping: ", e$message)
         return(NA_character_)

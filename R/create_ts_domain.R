@@ -560,7 +560,7 @@ create_ts_domain <- function(nct_ids, study_id, output_dir = getwd(), debug = FA
     desiredx_columns <- c(desired_columns, extra_tsval_columns)
     ts_summary <- ts_summary[, desiredx_columns]
 
-    # Count unique TSPARAMCD's
+    # Count unique TSPARAM/TSPARAMCD's
     unique_tsparmcd_count <- length(unique(ts_summary$TSPARMCD))
 
     # Count non-missing TSVAL's
@@ -1218,38 +1218,66 @@ AEDICT = function(df) {
     },
     COMPTRT = function(df) {
       tryCatch({
-        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$armsInterventionsModule$interventions)) {
-          interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
+        cat("Starting COMPTRT function\n")
+        
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$armsInterventionsModule$armGroups)) {
+          arm_groups <- df[[1]]$protocolSection$armsInterventionsModule$armGroups
+          cat("Arm groups extracted\n")
           
-          # Ensure interventions is a data frame
-          if(!is.data.frame(interventions)) {
-            interventions <- do.call(rbind, lapply(interventions, as.data.frame))
+          # Ensure arm_groups is a data frame
+          if(!is.data.frame(arm_groups)) {
+            arm_groups <- do.call(rbind, lapply(arm_groups, as.data.frame))
           }
+          cat("Arm groups structure:\n")
+          print(str(arm_groups))
           
-          # Identify the experimental treatment(s)
-          experimental_arms <- df[[1]]$protocolSection$armsInterventionsModule$armGroups
-          if(!is.data.frame(experimental_arms)) {
-            experimental_arms <- do.call(rbind, lapply(experimental_arms, as.data.frame))
+          # Identify the comparative arms
+          comparative_arms <- arm_groups[arm_groups$type %in% c("ACTIVE_COMPARATOR", "PLACEBO_COMPARATOR", "SHAM_COMPARATOR", "NO_INTERVENTION"), ]
+          cat("Comparative arms identified. Number of comparative arms:", nrow(comparative_arms), "\n")
+          
+          if (nrow(comparative_arms) > 0) {
+            # Extract intervention names for comparative arms
+            comp_treatments <- unlist(comparative_arms$interventionNames)
+            cat("Initial comp_treatments:\n")
+            print(comp_treatments)
+            
+            # Process each treatment
+            comp_treatments <- sapply(comp_treatments, function(x) {
+              # Remove "Drug:" prefix and trim whitespace
+              x <- gsub("^Drug:\\s*", "", trimws(x))
+              # Remove any remaining special characters and extra spaces
+              x <- gsub("[^[:alnum:] ]", "", x)
+              x <- gsub("\\s+", " ", x)
+              # Convert to uppercase
+              toupper(x)
+            })
+            cat("After processing treatments:\n")
+            print(comp_treatments)
+            
+            # Remove duplicates and empty strings
+            comp_treatments <- unique(comp_treatments[comp_treatments != ""])
+            
+            # Sort the treatments alphabetically
+            comp_treatments <- sort(comp_treatments)
+            
+            cat("Final comp_treatments:\n")
+            print(comp_treatments)
+            
+            # Return treatments as a vector (for separate Excel cells)
+            return(comp_treatments)
+          } else {
+            cat("No comparative arms found\n")
           }
-          experimental_arms <- experimental_arms[experimental_arms$type == "EXPERIMENTAL", ]
-          experimental_treatments <- unlist(strsplit(as.character(experimental_arms$interventionNames), ","))
-          experimental_treatments <- trimws(experimental_treatments)
-          
-          # Filter out the experimental treatments from all interventions
-          comp_treatments <- interventions[!(interventions$name %in% experimental_treatments), ]
-          
-          if (nrow(comp_treatments) > 0) {
-            # Convert to uppercase and create a new row for each treatment
-            comp_treatments_upper <- toupper(unique(as.character(comp_treatments$name)))
-            return(comp_treatments_upper)
-          }
+        } else {
+          cat("Required data not found in the input\n")
         }
         return(NA_character_)
       }, error = function(e) {
-        warning("Error in COMPTRT mapping: ", e$message)
+        cat("Error in COMPTRT mapping:", conditionMessage(e), "\n")
         return(NA_character_)
       })
     },
+    
     CURTRT = function(df) {
       tryCatch({
         if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$armsInterventionsModule$interventions)) {
@@ -1309,8 +1337,57 @@ AEDICT = function(df) {
         return(NA_character_)
       })
     },
-    NCOHORT = function(df) if(is.list(df) && length(df) > 0) df[[1]]$protocolSection$designModule$numberOfArms else NA_integer_,
+    NCOHORT = function(df) {
+      tryCatch({
+        if(is.list(df) && length(df) > 0) {
+          study_type <- df[[1]]$protocolSection$designModule$studyType
+          if(study_type == "INTERVENTIONAL") {
+            if(!is.null(df[[1]]$protocolSection$armsInterventionsModule$armGroups)) {
+              return(as.character(length(df[[1]]$protocolSection$armsInterventionsModule$armGroups)))
+            }
+          } else if(study_type == "OBSERVATIONAL") {
+            if(!is.null(df[[1]]$protocolSection$designModule$designInfo$observationalModel)) {
+              # For observational studies, we might consider the observational model
+              # as an indicator of cohorts, but this is an approximation
+              return(df[[1]]$protocolSection$designModule$designInfo$observationalModel)
+            }
+          }
+        }
+        return(NA_character_)
+      }, error = function(e) {
+        warning("Error in NCOHORT mapping: ", e$message)
+        return(NA_character_)
+      })
+    },
     ONGOSIND = function(df) if(is.list(df) && length(df) > 0 && df[[1]]$protocolSection$statusModule$overallStatus %in% c("Recruiting", "Active, not recruiting")) "Y" else "N",
+    OBJPRIM = function(df) {
+       tryCatch({
+         if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$descriptionModule$briefSummary)) {
+           return(df[[1]]$protocolSection$descriptionModule$briefSummary)
+         }
+         return(NA_character_)
+       }, error = function(e) {
+         warning("Error in OBJPRIM mapping: ", e$message)
+         return(NA_character_)
+       })
+     },
+    OBJSEC = function(df) {
+       tryCatch({
+         if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$descriptionModule$detailedDescription)) {
+           detailed_desc <- df[[1]]$protocolSection$descriptionModule$detailedDescription
+           # Look for secondary objectives in the detailed description
+           sec_obj_match <- regexpr("(?i)secondary objective(s)?:?.*?(\\.|\n|$)", detailed_desc, perl = TRUE)
+           if (sec_obj_match != -1) {
+             sec_obj <- regmatches(detailed_desc, sec_obj_match)
+             return(trimws(sec_obj))
+           }
+         }
+         return(NA_character_)
+       }, error = function(e) {
+         warning("Error in OBJSEC mapping: ", e$message)
+         return(NA_character_)
+       })
+     },
     OUTMSPRI = function(df) {
       tryCatch({
         if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$outcomesModule$primaryOutcomes)) {
@@ -1351,12 +1428,18 @@ AEDICT = function(df) {
       tryCatch({
         if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$eligibilityModule$sex)) {
           sex <- df[[1]]$protocolSection$eligibilityModule$sex
-          if (toupper(sex) == "ALL") {
-            return("BOTH")
-          }
-          return(sex)
+          sex <- toupper(sex)  # Convert to uppercase for consistency
+          
+          # Map the values
+          sex_mapped <- switch(sex,
+                              "FEMALE" = "F",
+                              "MALE" = "M",
+                              "ALL" = "BOTH",
+                              sex)  # If it's not one of the above, keep the original value
+          
+          return(sex_mapped)
         }
-        return("NA")
+        return(NA_character_)
       }, error = function(e) {
         warning("Error in SEXPOP mapping: ", e$message)
         return(NA_character_)
@@ -1388,17 +1471,29 @@ AEDICT = function(df) {
     },
     HLTSUBJI = function(df) derive_healthy_subjects(df),
     EXTTIND = function(df) derive_extension_trial(df),
-    PDSTIND = function(df) {
-      if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$eligibilityModule$minimumAge)) {
-        min_age <- df[[1]]$protocolSection$eligibilityModule$minimumAge
-        min_age <- as.numeric(gsub("[^0-9.]", "", min_age))
-        if (!is.na(min_age) && min_age < 6) {
-          return("Y")
-        } else {
-          return("N")
+    PDPSTIND = function(df) {
+      tryCatch({
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$oversightModule$isPpsd)) {
+          return(ifelse(df[[1]]$protocolSection$oversightModule$isPpsd, "Y", "N"))
         }
-      }
-      return(NA_character_)
+        return(NA_character_)
+      }, error = function(e) {
+        warning("Error in PDPSTIND mapping: ", e$message)
+        return(NA_character_)
+      })
+    },
+
+    PDSTIND = function(df) {
+      tryCatch({
+        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$eligibilityModule$standardAges)) {
+          ages <- df[[1]]$protocolSection$eligibilityModule$standardAges
+          return(ifelse(any(ages %in% c("CHILD")), "Y", "N"))
+        }
+        return(NA_character_)
+      }, error = function(e) {
+        warning("Error in PDSTIND mapping: ", e$message)
+        return(NA_character_)
+      })
     },
     SPREFID = function(df) {
       tryCatch({
@@ -1411,18 +1506,72 @@ AEDICT = function(df) {
         return(NA_character_)
       })
     },
-    TRT = function(df) {
-      tryCatch({
-        if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$armsInterventionsModule$interventions)) {
-          treatments <- df[[1]]$protocolSection$armsInterventionsModule$interventions$name
-          return(paste(unique(treatments), collapse = ", "))
-        }
-        return("NA")
-      }, error = function(e) {
-        warning("Error in TRT mapping: ", e$message)
-        return(NA_character_)
-      })
-    },
+TRT = function(df) {
+  tryCatch({
+    cat("Starting TRT function\n")
+    
+    if(is.list(df) && length(df) > 0 && 
+       !is.null(df[[1]]$protocolSection$armsInterventionsModule$armGroups) &&
+       !is.null(df[[1]]$protocolSection$armsInterventionsModule$interventions)) {
+      
+      cat("Required data found in input\n")
+      
+      # Get arm groups
+      arm_groups <- df[[1]]$protocolSection$armsInterventionsModule$armGroups
+      if(!is.data.frame(arm_groups)) {
+        arm_groups <- do.call(rbind, lapply(arm_groups, as.data.frame))
+      }
+      cat("Arm groups structure:\n")
+      print(str(arm_groups))
+      
+      # Identify experimental arms
+      experimental_arms <- arm_groups[arm_groups$type == "EXPERIMENTAL", ]
+      cat("Experimental arms identified. Number of experimental arms:", nrow(experimental_arms), "\n")
+      
+      if(nrow(experimental_arms) > 0) {
+        # Get intervention names for experimental arms
+        experimental_treatments <- unlist(experimental_arms$interventionNames)
+        cat("Initial experimental_treatments:\n")
+        print(experimental_treatments)
+        
+        # Process each treatment
+        experimental_treatments <- sapply(experimental_treatments, function(x) {
+          # Remove "Drug:" prefix and trim whitespace
+          x <- gsub("^Drug:\\s*", "", trimws(x))
+          # Remove any remaining special characters and extra spaces
+          x <- gsub("[^[:alnum:] ]", "", x)
+          x <- gsub("\\s+", " ", x)
+          # Convert to uppercase
+          toupper(x)
+        })
+        cat("After processing treatments:\n")
+        print(experimental_treatments)
+        
+        # Remove duplicates and empty strings
+        experimental_treatments <- unique(experimental_treatments[experimental_treatments != ""])
+        
+        # Sort the treatments alphabetically
+        experimental_treatments <- sort(experimental_treatments)
+        
+        cat("Final experimental_treatments:\n")
+        print(experimental_treatments)
+        
+        # Return treatments as a comma-separated string
+        result <- paste(experimental_treatments, collapse = ", ")
+        cat("Returning result:", result, "\n")
+        return(result)
+      } else {
+        cat("No experimental arms found\n")
+      }
+    } else {
+      cat("Required data not found in the input\n")
+    }
+    return(NA_character_)
+  }, error = function(e) {
+    cat("Error in TRT mapping:", conditionMessage(e), "\n")
+    return(NA_character_)
+  })
+},
     TBLIND = function(df) {
       tryCatch({
         if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$designModule$designInfo$maskingInfo$masking)) {
@@ -1761,4 +1910,4 @@ derive_pediatric_study <- function(df) {
     }
   }
   return(NA)
-}
+          }

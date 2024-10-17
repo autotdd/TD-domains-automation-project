@@ -1221,9 +1221,18 @@ AEDICT = function(df) {
         if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$armsInterventionsModule$interventions)) {
           interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
           
+          # Ensure interventions is a data frame
+          if(!is.data.frame(interventions)) {
+            interventions <- do.call(rbind, lapply(interventions, as.data.frame))
+          }
+          
           # Identify the experimental treatment(s)
-          experimental_arms <- df[[1]]$protocolSection$armsInterventionsModule$armGroups[df[[1]]$protocolSection$armsInterventionsModule$armGroups$type == "EXPERIMENTAL", ]
-          experimental_treatments <- unlist(strsplit(experimental_arms$interventionNames, ","))
+          experimental_arms <- df[[1]]$protocolSection$armsInterventionsModule$armGroups
+          if(!is.data.frame(experimental_arms)) {
+            experimental_arms <- do.call(rbind, lapply(experimental_arms, as.data.frame))
+          }
+          experimental_arms <- experimental_arms[experimental_arms$type == "EXPERIMENTAL", ]
+          experimental_treatments <- unlist(strsplit(as.character(experimental_arms$interventionNames), ","))
           experimental_treatments <- trimws(experimental_treatments)
           
           # Filter out the experimental treatments from all interventions
@@ -1231,7 +1240,7 @@ AEDICT = function(df) {
           
           if (nrow(comp_treatments) > 0) {
             # Convert to uppercase and create a new row for each treatment
-            comp_treatments_upper <- toupper(unique(comp_treatments$name))
+            comp_treatments_upper <- toupper(unique(as.character(comp_treatments$name)))
             return(comp_treatments_upper)
           }
         }
@@ -1245,12 +1254,29 @@ AEDICT = function(df) {
       tryCatch({
         if(is.list(df) && length(df) > 0 && !is.null(df[[1]]$protocolSection$armsInterventionsModule$interventions)) {
           interventions <- df[[1]]$protocolSection$armsInterventionsModule$interventions
-          cur_treatments <- interventions[grepl("divarasib|pembrolizumab", interventions$name, ignore.case = TRUE), ]
+          
+          # Ensure interventions is a data frame
+          if(!is.data.frame(interventions)) {
+            interventions <- do.call(rbind, lapply(interventions, as.data.frame))
+          }
+          
+          # Identify the experimental treatment(s)
+          experimental_arms <- df[[1]]$protocolSection$armsInterventionsModule$armGroups
+          if(!is.data.frame(experimental_arms)) {
+            experimental_arms <- do.call(rbind, lapply(experimental_arms, as.data.frame))
+          }
+          experimental_arms <- experimental_arms[experimental_arms$type == "EXPERIMENTAL", ]
+          experimental_treatments <- unlist(strsplit(as.character(experimental_arms$interventionNames), ","))
+          experimental_treatments <- trimws(experimental_treatments)
+          
+          # Filter interventions to include only experimental treatments
+          cur_treatments <- interventions[interventions$name %in% experimental_treatments, ]
+          
           if (nrow(cur_treatments) > 0) {
-            return(paste(cur_treatments$name, collapse = "; "))
+            return(paste(unique(as.character(cur_treatments$name)), collapse = "; "))
           }
         }
-        return("NA")
+        return(NA_character_)
       }, error = function(e) {
         warning("Error in CURTRT mapping: ", e$message)
         return(NA_character_)

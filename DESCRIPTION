@@ -1,14 +1,10 @@
-Package: autotdd
+Package: autoTDD
 Title: Automated Trial Design Domains Creation
-Version: 0.2.0
+Version: 0.1.0
 Authors@R: 
-    person("Siddharth", "Lokineni", , "Sidhu871@gmail.com", role = c("aut", "cre")),
-    person("Anil", "Kumar", , role = "ctb")
-Description: This package streamlines the generation of Trial Design Domains (TA, TE, TI, TS, TV) 
-    for clinical trials. It integrates data from ClinicalTrials.gov, PDF protocols, and user-provided 
-    information to automate the creation of standardized CDISC SDTM Trial Design domains. This comprehensive 
-    approach enhances efficiency, reduces manual errors, and ensures consistency in clinical trial 
-    data management and reporting, while accommodating various data sources including PDF protocols.
+    person("Siddharth", "Lokineni", , "Sidhu871@gmail.com", role = c("aut", "cre"))
+Description: This package automates the creation of Trial Design Domains (TA, TE, TI, TS, TV) 
+    for clinical trials based on data from ClinicalTrials.gov and user inputs from protocol.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
@@ -30,4 +26,3 @@ Imports:
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
-

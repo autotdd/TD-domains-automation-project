@@ -19,6 +19,6 @@ save_to_excel(ti_domain, study_id, output_dir, debug = FALSE)
 A character string representing the path to the saved Excel file.
 }
 \description{
-This function saves the TI domain data frame to an Excel file with proper formatting.
+This function saves the TI domain data frame to an Excel file with proper formatting and UTF-8 encoding.
 }
 \keyword{internal}

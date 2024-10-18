@@ -902,7 +902,7 @@ generate_ti_domain <- function(study_id, inclusion_criteria, exclusion_criteria,
 
 #' Save TI Domain to Excel
 #'
-#' This function saves the TI domain data frame to an Excel file with proper formatting.
+#' This function saves the TI domain data frame to an Excel file with proper formatting and UTF-8 encoding.
 #'
 #' @param ti_domain A data frame containing the TI domain data.
 #' @param study_id A character string representing the Study ID.
@@ -922,6 +922,16 @@ save_to_excel <- function(ti_domain, study_id, output_dir, debug = FALSE) {
   
   # Trim leading and trailing whitespace from all character columns
   ti_domain[] <- lapply(ti_domain, function(x) if(is.character(x)) trimws(x) else x)
+  
+  # Ensure all character columns are encoded as UTF-8
+  ti_domain[] <- lapply(ti_domain, function(x) {
+    if(is.character(x)) {
+      Encoding(x) <- "UTF-8"
+      return(x)
+    } else {
+      return(x)
+    }
+  })
   
   # Write the data to the worksheet
   openxlsx::writeData(wb, "TI", ti_domain)

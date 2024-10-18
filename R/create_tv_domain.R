@@ -121,6 +121,8 @@ create_tv_domain <- function(study_id , file_path = NULL , output_dir = getwd())
   }
 
 
+  data2$VISIT[(grepl("RANDOMIZATION / DAY 1", data2$VISIT, ignore.case = TRUE)) ] <- 'DAY 1'
+
   data2$VISITDY[(grepl("SCREENING", data2$VISIT, ignore.case = TRUE) & data2$VISITDY == 0 ) ] <- NA
 
   data2$VISITDY[(grepl("CYCLE 1 Day 1", data2$VISIT, ignore.case = TRUE) & data2$VISITDY == 0 ) ] <- 1
@@ -177,7 +179,7 @@ create_tv_domain <- function(study_id , file_path = NULL , output_dir = getwd())
 
   data3$VISITDY[(grepl("Treatment Discontinuation|Study Discontinuation|STUDY DRUG DISCONTINUATION", data3$VISIT, ignore.case = TRUE) ) ] <- NA
 
-  data3$VISITDY[(grepl("Follow Up Month|Follow-Up Month|Follow - Up Month|FollowUp Month|Long Term Follow Up|Follow Up|Long-Term Follow-Up", data3$VISIT, ignore.case = TRUE) ) ] <- NA
+  #data3$VISITDY[(grepl("Follow Up Month|Follow-Up Month|Follow - Up Month|FollowUp Month|Long Term Follow Up|Follow Up|Long-Term Follow-Up", data3$VISIT, ignore.case = TRUE) ) ] <- NA
 
 
   #Assign start and end rule as missing if Screening target day (visitday) is missing

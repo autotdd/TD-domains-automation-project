@@ -493,8 +493,9 @@ clean_criterion_text <- function(text, max_length = 200, debug = FALSE) {
   # Truncate if necessary
   if (nchar(text) > max_length) {
     if(debug) cat("Cleaning and truncating criterion\n")
-    truncated <- substr(text, 1, max_length - 3)
-    text <- paste0(truncated, "...")
+    suffix <- " As Per Protocol"
+    truncated <- substr(text, 1, max_length - nchar(suffix))
+    text <- paste0(truncated, suffix)
     if(debug) cat(sprintf("Final criterion length: %d characters\n", nchar(text)))
   }
   
@@ -827,6 +828,24 @@ generate_ti_domain <- function(study_id, inclusion_criteria, exclusion_criteria,
   # Extract version information if pdf_text is provided
   tivers <- if (!is.null(pdf_text)) extract_version(pdf_text, debug) else NA
   
+  # Debug: Print the lengths of inclusion and exclusion criteria
+  if(debug) {
+    cat("Number of inclusion criteria:", length(inclusion_criteria), "\n")
+    cat("Number of exclusion criteria:", length(exclusion_criteria), "\n")
+    cat("TIVERS:", tivers, "\n")
+    
+    # Print the structure of the first inclusion and exclusion criteria
+    if(length(inclusion_criteria) > 0) {
+      cat("Structure of first inclusion criterion:\n")
+      print(str(inclusion_criteria[[1]]))
+    }
+    if(length(exclusion_criteria) > 0) {
+      cat("Structure of first exclusion criterion:\n")
+      print(str(exclusion_criteria[[1]]))
+    }
+  }
+  
+  # Create empty data frame
   ti_domain <- data.frame(
     STUDYID = character(),
     DOMAIN = character(),
@@ -839,28 +858,32 @@ generate_ti_domain <- function(study_id, inclusion_criteria, exclusion_criteria,
     stringsAsFactors = FALSE
   )
   
+  # Add inclusion criteria
   for (i in seq_along(inclusion_criteria)) {
+    criterion <- inclusion_criteria[[i]]
     ti_domain <- rbind(ti_domain, data.frame(
       STUDYID = study_id,
       DOMAIN = "TI",
       IETESTCD = paste0("INCL", sprintf("%02d", i)),
-      IETEST = inclusion_criteria[i],
+      IETEST = if(is.character(criterion)) criterion else criterion$text,
       IECAT = "INCLUSION",
-      IESCAT = "",
+      IESCAT = if(is.list(criterion) && !is.null(criterion$subsection)) criterion$subsection else "",
       TIRL = "",
       TIVERS = tivers,
       stringsAsFactors = FALSE
     ))
   }
   
+  # Add exclusion criteria
   for (i in seq_along(exclusion_criteria)) {
+    criterion <- exclusion_criteria[[i]]
     ti_domain <- rbind(ti_domain, data.frame(
       STUDYID = study_id,
       DOMAIN = "TI",
       IETESTCD = paste0("EXCL", sprintf("%02d", i)),
-      IETEST = exclusion_criteria[i],
+      IETEST = if(is.character(criterion)) criterion else criterion$text,
       IECAT = "EXCLUSION",
-      IESCAT = "",
+      IESCAT = if(is.list(criterion) && !is.null(criterion$subsection)) criterion$subsection else "",
       TIRL = "",
       TIVERS = tivers,
       stringsAsFactors = FALSE
@@ -896,6 +919,9 @@ save_to_excel <- function(ti_domain, study_id, output_dir, debug = FALSE) {
   
   # Add a worksheet
   openxlsx::addWorksheet(wb, "TI")
+  
+  # Trim leading and trailing whitespace from all character columns
+  ti_domain[] <- lapply(ti_domain, function(x) if(is.character(x)) trimws(x) else x)
   
   # Write the data to the worksheet
   openxlsx::writeData(wb, "TI", ti_domain)
@@ -977,9 +1003,15 @@ prepare_summary <- function(result, excel_file, debug = FALSE) {
   summary <- list(
     num_inclusion = length(result$inclusion),
     num_exclusion = length(result$exclusion),
-    first_inclusion = if(length(result$inclusion) > 0) result$inclusion[1] else "No inclusion criteria found",
-    first_exclusion = if(length(result$exclusion) > 0) result$exclusion[1] else "No exclusion criteria found",
-    inclusion_lines = paste(result$inclusion[1:min(10, length(result$inclusion))], collapse = "\n"),
+    first_inclusion = if(length(result$inclusion) > 0) {
+      if(is.list(result$inclusion[[1]])) result$inclusion[[1]]$text else result$inclusion[[1]]
+    } else "No inclusion criteria found",
+    first_exclusion = if(length(result$exclusion) > 0) {
+      if(is.list(result$exclusion[[1]])) result$exclusion[[1]]$text else result$exclusion[[1]]
+    } else "No exclusion criteria found",
+    inclusion_lines = paste(sapply(result$inclusion[1:min(10, length(result$inclusion))], function(x) {
+      if(is.list(x)) x$text else x
+    }), collapse = "\n"),
     output_location = excel_file
   )
   
